@@ -17,7 +17,7 @@ public class yal2jvm {
 		InputStream f = null;
 
 		try { 
-			f = new FileInputStream("/home/delay/FEUP/comp/COMP/yal examples/MyFirstYalExamples/array1.yal");
+			f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/src/array1.yal");
 		}catch(FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		}
@@ -115,29 +115,54 @@ void Stmt() : {}
 		If()
 		|
 		While()
+		|
+		LOOKAHEAD(3)
+
+		Assign()
+		|
+		Call()
+
+		<PVIRG>
 	}
 	catch (ParseException e) {
+		error_skipto(PVIRG);/*
 		System.out.println(e.toString());
 		Token t;
 		do {
 			t = getNextToken();
-		} while (t.kind != PVIRG);
+		} while (t.kind != PVIRG);*/
 	}
 }
 
-/*void Stmt() : {}
-{
-	While() | If() |  LOOKAHEAD(3) error_skipto(PVIRG) Assign() | Call() <PVIRG>
-}*/
-
 void Assign() : {}
 {
-	Lhs() <ASSIGN> Rhs() <PVIRG>
+	try{
+		Lhs() 
+		<ASSIGN>
+		Rhs() 
+		<PVIRG>
+	}
+	catch (ParseException e) {
+		error_skipto(PVIRG);/*
+		System.out.println(e.toString());
+		Token t;
+		do {
+			t = getNextToken();
+		} while (t.kind != PVIRG);*/
+	}
 }
 
 void Lhs() : {}
 {
-	LOOKAHEAD(2) ArrayAccess() | ScalarAccess()
+	try{
+		LOOKAHEAD(2) 
+		ArrayAccess() 
+		| 
+		ScalarAccess()
+	}
+	catch (ParseException e){
+		error_skipto(PVIRG);
+	}
 }
 
 void Rhs() : {}
@@ -157,7 +182,26 @@ void Term() : {}
 
 void Exprtest() : {}
 {
-	<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+	try{
+		<LPAR>
+	}
+	catch(ParseException e){
+		error_skipto(LPAR);
+	}
+
+	try{
+		Lhs() <RELA_OP> Rhs()
+	}
+	catch(ParseException e){
+		error_skipto(RELA_OP);
+	}
+
+	try{
+		<RPAR>
+	}
+	catch(ParseException e){
+		error_skipto(RPAR);
+	}
 }
 
 void While() : {}
@@ -167,7 +211,26 @@ void While() : {}
 
 void If() : {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA>	Stmtlst() <RCHAVETA> )?
+	try{
+		<IF> Exprtest() <LCHAVETA> 
+	}
+	catch(ParseException e){
+		error_skipto(LCHAVETA);
+	}
+
+	try{
+		Stmtlst() <RCHAVETA>
+	}
+	catch(ParseException e){
+		error_skipto(RCHAVETA);
+	}
+
+	try{
+		( <ELSE> <LCHAVETA> Stmtlst() <RCHAVETA> )?
+	}
+	catch(ParseException e){
+		error_skipto(RCHAVETA);
+	}
 }
 
 void Call() : {}
@@ -210,6 +273,7 @@ void error_skipto(int kind){
   do {
   	t = getNextToken();
   } while (t.kind != kind);
+  System.out.println("Should have encountered: " + t);
     // The above loop consumes tokens all the way up to a token of
     // "kind".  We use a do-while loop rather than a while because the
     // current token is the one immediately before the erroneous token
