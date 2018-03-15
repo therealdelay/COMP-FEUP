@@ -1,0 +1,218 @@
+options
+{
+	LOOKAHEAD = 1;
+}
+
+PARSER_BEGIN(yal2jvm)
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+public class yal2jvm {
+	public static void main(String args[]) throws ParseException {
+// criação do objecto utilizando o constructor com argumento para
+// ler do standard input (teclado)
+ //yal2jvm parser = new yal2jvm(System.in);
+		InputStream f = null;
+
+		try { 
+			f = new FileInputStream("/home/delay/FEUP/comp/COMP/yal examples/MyFirstYalExamples/array1.yal");
+		}catch(FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+
+		yal2jvm parser = new yal2jvm(f);
+
+		parser.Module();
+	}
+}
+
+PARSER_END(yal2jvm)
+
+SKIP : {
+	" "
+	| "\t"
+	| "\n"
+	| "\r"
+	| <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+	| <"/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
+}
+
+/* reserved words */
+TOKEN : {
+	<RELA_OP: ">" | "<" | "<=" | ">=" | "==" | "!=">
+	| <ADDSUB_OP: "+" | "-">
+	| <ARITH_OP: "*" | "/" | "<<" | ">>" | ">>>">
+	| <BITWISE_OP: "&" | "|" | "^">
+	| <NOT_OP: "!">
+	| <WHILE: "while">
+	| <IF: "if">
+	| <ELSE: "else">
+	| <ASSIGN: "=">
+	| <ASPA: "\"">
+	| <LPAR: "(">
+	| <RPAR: ")">
+	| <VIRG: ",">
+	| <PVIRG: ";">
+	| <LCHAVETA: "{">
+	| <RCHAVETA: "}">
+	| <FUNCTION: "function">
+	| <MODULE: "module">
+	| <SIZE: "size">
+}
+
+TOKEN : {
+	<INTEGER: (<DIGIT>)+>
+	| <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+	| <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+	| <#DIGIT: ["0"-"9"]>
+	| <STRING: "\"" (["a"-"z","A"-"Z","0"-"9",":"," ","="])+ "\"">
+}
+
+
+void Module() : {}
+{
+	<MODULE> <ID> <LCHAVETA> (Declaration())* (Function())* <RCHAVETA>
+}
+
+void Declaration() : {}
+{
+
+	( LOOKAHEAD(2) ArrayElement() | ScalarElement()) ( <ASSIGN> ( ( "[" ArraySize() "]" ) | (<ADDSUB_OP> )? <INTEGER> ) )? <PVIRG>
+}
+
+void Function() : {}
+{
+	( LOOKAHEAD(3) (<FUNCTION> ( LOOKAHEAD(2) ArrayElement() | ScalarElement() ) <ASSIGN> <ID> <LPAR> (Varlist())? <RPAR> )
+		| ( <FUNCTION> <ID> <LPAR> (Varlist())? <RPAR> ) ) <LCHAVETA> Stmtlst() <RCHAVETA>
+}
+
+
+void Varlist() : {}
+{
+	( LOOKAHEAD(2) ArrayElement() | ScalarElement() ) ( <VIRG> ( LOOKAHEAD(2) ArrayElement() | ScalarElement() ) )*
+}
+
+void ArrayElement() : {}
+{
+	<ID> "[" "]"
+}
+
+void ScalarElement() : {}
+{
+	<ID> 
+}
+
+void Stmtlst() : {}
+{
+	( Stmt() )*
+} 
+
+void Stmt() : {}
+{
+	try {
+		If()
+		|
+		While()
+	}
+	catch (ParseException e) {
+		System.out.println(e.toString());
+		Token t;
+		do {
+			t = getNextToken();
+		} while (t.kind != PVIRG);
+	}
+}
+
+/*void Stmt() : {}
+{
+	While() | If() |  LOOKAHEAD(3) error_skipto(PVIRG) Assign() | Call() <PVIRG>
+}*/
+
+void Assign() : {}
+{
+	Lhs() <ASSIGN> Rhs() <PVIRG>
+}
+
+void Lhs() : {}
+{
+	LOOKAHEAD(2) ArrayAccess() | ScalarAccess()
+}
+
+void Rhs() : {}
+{
+	( Term() ( ( <ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP> ) Term() )? ) | "[" ArraySize() "]"
+}
+
+void ArraySize() : {}
+{
+	ScalarAccess() | <INTEGER>
+}
+
+void Term() : {}
+{
+	( <ADDSUB_OP> )? ( <INTEGER> |  LOOKAHEAD(3) Call() | LOOKAHEAD(2) ArrayAccess() | ScalarAccess() )
+}
+
+void Exprtest() : {}
+{
+	<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+}
+
+void While() : {}
+{
+	<WHILE> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
+}
+
+void If() : {}
+{
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> ( <ELSE> <LCHAVETA>	Stmtlst() <RCHAVETA> )?
+}
+
+void Call() : {}
+{
+	<ID> ( "." <ID> )? <LPAR> ( ArgumentList() )? <RPAR>
+}
+
+void ArgumentList() : {}
+{
+	Argument() ( <VIRG> Argument() )*
+}
+
+void Argument() : {}
+{
+	( <ID> | <STRING> | <INTEGER> )
+}
+
+void ArrayAccess() : {}
+{
+	<ID> "[" Index() "]"
+}
+
+void ScalarAccess() : {}
+{
+	<ID> ( "." <SIZE> )?
+}
+
+void Index() : {}
+{
+	<ID> | <INTEGER>
+}
+
+
+// SHALLOW ERROR RECOVERY
+JAVACODE
+void error_skipto(int kind){
+  ParseException e = generateParseException();  // generate the exception object.
+  System.out.println(e.toString());  // print the error message
+  Token t;
+  do {
+  	t = getNextToken();
+  } while (t.kind != kind);
+    // The above loop consumes tokens all the way up to a token of
+    // "kind".  We use a do-while loop rather than a while because the
+    // current token is the one immediately before the erroneous token
+    // (in our case the token immediately before what should have been
+    // "if"/"while".
+}
