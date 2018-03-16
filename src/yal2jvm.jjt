@@ -1,0 +1,314 @@
+options{
+
+	MULTI=true;
+}
+
+PARSER_BEGIN(yal2jvm)
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+public class yal2jvm {
+	public static int error_counter = 0;
+	public static void main(String args[]) throws ParseException {
+		InputStream f = null;
+
+		try { 
+			f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/MyFirstYalExamples_1/" + args[0] + ".yal");
+		}catch(FileNotFoundException e) {
+			System.out.println(e.getMessage());
+		}
+
+		yal2jvm parser = new yal2jvm(f);
+
+		SimpleNode node = parser.Module();
+
+		System.out.print("Error count: " + error_counter + "\n\n\n");
+		
+		System.out.println("AST:");
+		node.dump("");
+	}
+}
+
+PARSER_END(yal2jvm)
+
+SKIP : {
+	" "
+	| "\t"
+	| "\n"
+	| "\r"
+	| <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+	| <"/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
+}
+
+/* reserved words */
+TOKEN : {
+	<RELA_OP: ">" | "<" | "<=" | ">=" | "==" | "!=">
+	| <ADDSUB_OP: "+" | "-">
+	| <ARITH_OP: "*" | "/" | "<<" | ">>" | ">>>">
+	| <BITWISE_OP: "&" | "|" | "^">
+	| <NOT_OP: "!">
+	| <WHILE: "while">
+	| <IF: "if">
+	| <ELSE: "else">
+	| <ASSIGN: "=">
+	| <ASPA: "\"">
+	| <LPAR: "(">
+	| <RPAR: ")">
+	| <VIRG: ",">
+	| <PVIRG: ";">
+	| <LCHAVETA: "{">
+	| <RCHAVETA: "}">
+	| <FUNCTION: "function">
+	| <MODULE: "module">
+	| <SIZE: "size">
+}
+
+TOKEN : {
+	<INTEGER: (<DIGIT>)+>
+	| <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+	| <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+	| <#DIGIT: ["0"-"9"]>
+	| <STRING: "\"" (["a"-"z","A"-"Z","0"-"9",":"," ","="])+ "\"">
+}
+
+SimpleNode Module() : {Token t;}{
+	try{
+		<MODULE> t=<ID>{jjtThis.jjtSetValue(t.image);} <LCHAVETA> (Declaration())* (Function())* <RCHAVETA>
+	}
+	catch (ParseException e) {
+			System.out.println("EXCEPTION IN MODULE " + e.toString());
+			yal2jvm.error_counter++;
+			int[] kinds = {RCHAVETA};
+			error_skipto(kinds);
+	}
+	{return jjtThis;}
+}
+
+void Declaration() : {}{
+	<ID> ["[" "]"] 
+	[
+		<ASSIGN>
+		try{
+			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>) <PVIRG>
+		}
+		catch (ParseException e) {
+			System.out.println("EXCEPTION IN DECLARATION " + e.toString());
+			yal2jvm.error_counter++;
+			int[] kinds = {PVIRG};
+			error_skipto(kinds);
+		}
+	]
+}
+
+void Function() : {Token t;}{
+
+	try{
+		<FUNCTION> t=<ID>{jjtThis.jjtSetValue(t.image);}
+	}
+	catch (ParseException e) {
+			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
+			yal2jvm.error_counter++;
+			int[] kinds = {PVIRG, LCHAVETA, LPAR, ID};
+			error_skipto(kinds);
+	}
+
+	try{
+		[(("[" Index() "]")|(["." <SIZE>])) <ASSIGN> <ID>]  <LPAR> [Varlist()] <RPAR>
+	}
+	catch (ParseException e) {
+			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
+			yal2jvm.error_counter++;
+			int[] kinds = {RPAR};
+			error_skipto(kinds);
+	}
+	<LCHAVETA> Stmtlst() <RCHAVETA>
+}
+
+void Varlist() : {}{
+	(ArrayElement2()) ( <VIRG> ArrayElement2() )*
+}
+
+void ArrayElement() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} "[" "]"
+}
+
+void ArrayElement2() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
+}
+
+void ScalarElement() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);}
+}
+
+void Stmtlst() : {}
+{
+	( Stmt() )*
+} 
+
+void SpecialStmtlst() #void : {}
+{
+	Stmtlst() <RCHAVETA>
+} 
+
+void Stmt() : {}
+{
+	try{
+		If() | While() | LOOKAHEAD(3) Assign() | Callstmt()
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN STMT " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {RPAR, PVIRG, LCHAVETA};
+		error_skipto(kinds);
+	}
+}
+
+void Assign() : {}
+{
+	Lhs() <ASSIGN>
+	try{
+		Rhs() <PVIRG>
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN ASSIGN " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {PVIRG};
+		error_skipto(kinds);
+	}
+}
+
+void Lhs() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))
+}
+
+void Rhs() : {}
+{
+	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize() "]"
+}
+
+void ArraySize() : {}
+{
+	ScalarAccess() | <INTEGER>
+}
+
+void Term() : {Token t;}
+{
+	[<ADDSUB_OP>] (<INTEGER> | LOOKAHEAD(3) Call() | (t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))))
+}
+
+void Exprtest() : {}
+{
+	try{
+		<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {RPAR};
+		error_skipto(kinds);
+	}	
+}
+
+void While() : {}
+{
+	<WHILE> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
+}
+
+void If() : {}
+{
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> 
+
+	try{
+		[<ELSE> <LCHAVETA> Stmtlst() <RCHAVETA>]
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN ELSE " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {PVIRG};
+		error_skipto(kinds);
+	}
+}
+
+void Call() : {Token t1, t2;}
+{
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>	
+
+	try{
+		[ArgumentList()] <RPAR>
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN CALL " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {RCHAVETA, LCHAVETA, RPAR};
+		int ret = error_skipto(kinds);
+		if(ret == LCHAVETA){
+			SpecialStmtlst();
+		}
+	}
+}
+
+void Callstmt() #Call : {Token t1, t2;}
+{
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>	
+
+	try{
+		[ArgumentList()] <RPAR> <PVIRG>
+	}
+	catch (ParseException e) {
+		System.out.println("EXCEPTION IN CALL " + e.toString());
+		yal2jvm.error_counter++;
+		int[] kinds = {PVIRG, RCHAVETA, LCHAVETA};
+		int ret = error_skipto(kinds);
+		if(ret == LCHAVETA){
+			SpecialStmtlst();
+		}
+	}
+}
+
+void ArgumentList() : {}
+{
+	Argument() ( <VIRG> Argument() )*
+}
+
+void Argument() : {Token t;}
+{
+	( t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<STRING>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);} )
+}
+
+void ArrayAccess() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} "[" Index() "]"
+}
+
+void ScalarAccess() : {Token t, t1;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} ["." t1=<SIZE>{jjtThis.jjtSetSecValue(t1.image);}]
+}
+
+void Index() : {Token t;}
+{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);}
+}
+
+JAVACODE
+int error_skipto(int[] kinds) #void {
+  Token t;
+  boolean exit = false;
+  System.out.print("Tokens skipped: ");
+  do {
+  	t = getNextToken();
+  	System.out.print(t + " ");
+  	for(int a : kinds){
+  		if((a == t.kind) | (t.kind == EOF))
+  			exit = true;
+  	}
+  } while (!exit);
+  System.out.print("\n\n");
+  return t.kind;
+}
