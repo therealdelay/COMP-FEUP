@@ -11,7 +11,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 InputStream f = null;
 
                 try {
-                        f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/MyFirstYalExamples_1/" + args[0] + ".yal");
+                        f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/MyFirstYalExamples_1/" + args[0]);
                 }catch(FileNotFoundException e) {
                         System.out.println(e.getMessage());
                 }
