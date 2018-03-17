@@ -11,19 +11,22 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 InputStream f = null;
 
                 try {
-                        f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/MyFirstYalExamples_1/" + args[0]);
+                        f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/" + args[0]);
                 }catch(FileNotFoundException e) {
                         System.out.println(e.getMessage());
                 }
+
+                System.out.println("File: " + args[0]);
 
                 yal2jvm parser = new yal2jvm(f);
 
                 SimpleNode node = parser.Module();
 
-                System.out.print("Error count: " + error_counter + "\n\n\n");
+                System.out.print("Error count: " + error_counter + "\n\n");
 
                 System.out.println("AST:");
                 node.dump("");
+                System.out.print("\n\n\n");
         }
 
   static final public SimpleNode Module() throws ParseException {/*@bgen(jjtree) Module */
@@ -66,7 +69,7 @@ jjtn000.jjtSetValue(t.image);
       } catch (ParseException e) {
 System.out.println("EXCEPTION IN MODULE " + e.toString());
                         yal2jvm.error_counter++;
-                        int[] kinds = {RCHAVETA};
+                        int[] kinds = {RCHAVETA, EOF};
                         error_skipto(kinds);
       }
 jjtree.closeNodeScope(jjtn000, true);
@@ -95,11 +98,12 @@ if (jjtc000) {
 }
 
   static final public void Declaration() throws ParseException {/*@bgen(jjtree) Declaration */
-  ASTDeclaration jjtn000 = new ASTDeclaration(JJTDECLARATION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                      ASTDeclaration jjtn000 = new ASTDeclaration(JJTDECLARATION);
+                      boolean jjtc000 = true;
+                      jjtree.openNodeScope(jjtn000);Token t;
     try {
-      jj_consume_token(ID);
+      t = jj_consume_token(ID);
+jjtn000.jjtSetValue(t.image);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case 31:{
         jj_consume_token(31);
@@ -108,6 +112,15 @@ if (jjtc000) {
         }
       default:
         jj_la1[2] = jj_gen;
+        ;
+      }
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case PVIRG:{
+        jj_consume_token(PVIRG);
+        break;
+        }
+      default:
+        jj_la1[3] = jj_gen;
         ;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -129,14 +142,14 @@ if (jjtc000) {
               break;
               }
             default:
-              jj_la1[3] = jj_gen;
+              jj_la1[4] = jj_gen;
               ;
             }
             jj_consume_token(INTEGER);
             break;
             }
           default:
-            jj_la1[4] = jj_gen;
+            jj_la1[5] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
@@ -150,7 +163,7 @@ System.out.println("EXCEPTION IN DECLARATION " + e.toString());
         break;
         }
       default:
-        jj_la1[5] = jj_gen;
+        jj_la1[6] = jj_gen;
         ;
       }
     } catch (Throwable jjte000) {
@@ -192,27 +205,16 @@ System.out.println("EXCEPTION IN FUNCTION " + e.toString());
       try {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case ASSIGN:
-        case 31:
-        case 33:{
+        case 31:{
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case 31:{
             jj_consume_token(31);
-            Index();
             jj_consume_token(32);
             break;
             }
           default:
             jj_la1[7] = jj_gen;
-            switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case 33:{
-              jj_consume_token(33);
-              jj_consume_token(SIZE);
-              break;
-              }
-            default:
-              jj_la1[6] = jj_gen;
-              ;
-            }
+            ;
           }
           jj_consume_token(ASSIGN);
           jj_consume_token(ID);
@@ -1390,10 +1392,10 @@ if (jjtc000) {
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x8000000,0x800000,0x80000000,0x100,0x84000100,0x8000,0x0,0x80000000,0x80008000,0x8000000,0x80000,0x80000000,0x8003000,0x3000,0x8000000,0x0,0x80000000,0x700,0x700,0x8c000100,0xc000000,0x100,0x0,0x80000000,0x4000000,0x8000000,0x4000,0x0,0x4c000000,0x0,0x4c000000,0x80000,0x4c000000,0x0,0xc000000,};
+	   jj_la1_0 = new int[] {0x8000000,0x800000,0x80000000,0x100000,0x100,0x84000100,0x8000,0x80000000,0x80008000,0x8000000,0x80000,0x80000000,0x8003000,0x3000,0x8000000,0x0,0x80000000,0x700,0x700,0x8c000100,0xc000000,0x100,0x0,0x80000000,0x4000000,0x8000000,0x4000,0x0,0x4c000000,0x0,0x4c000000,0x80000,0x4c000000,0x0,0xc000000,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x2,0x0,0x2,0x0,0x0,0x0,0x2,0x0,};
+	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x2,0x0,0x2,0x0,0x0,0x0,0x2,0x0,};
 	}
   static final private JJCalls[] jj_2_rtns = new JJCalls[2];
   static private boolean jj_rescan = false;

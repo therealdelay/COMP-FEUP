@@ -15,19 +15,22 @@ public class yal2jvm {
 		InputStream f = null;
 
 		try { 
-			f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/MyFirstYalExamples_1/" + args[0]);
+			f = new FileInputStream("/home/delay/FEUP/comp-bit/g33/yal examples/" + args[0]);
 		}catch(FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		}
+
+		System.out.println("File: " + args[0]);
 
 		yal2jvm parser = new yal2jvm(f);
 
 		SimpleNode node = parser.Module();
 
-		System.out.print("Error count: " + error_counter + "\n\n\n");
+		System.out.print("Error count: " + error_counter + "\n\n");
 		
 		System.out.println("AST:");
 		node.dump("");
+		System.out.print("\n\n\n");
 	}
 }
 
@@ -80,14 +83,14 @@ SimpleNode Module() : {Token t;}{
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN MODULE " + e.toString());
 			yal2jvm.error_counter++;
-			int[] kinds = {RCHAVETA};
+			int[] kinds = {RCHAVETA, EOF};
 			error_skipto(kinds);
 	}
 	{return jjtThis;}
 }
 
-void Declaration() : {}{
-	<ID> ["[" "]"] 
+void Declaration() : {Token t;}{
+	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"] [<PVIRG>]
 	[
 		<ASSIGN>
 		try{
@@ -115,7 +118,7 @@ void Function() : {Token t;}{
 	}
 
 	try{
-		[(("[" Index() "]")|(["." <SIZE>])) <ASSIGN> <ID>]  <LPAR> [Varlist()] <RPAR>
+		[["[" "]"] <ASSIGN> <ID>] <LPAR> [Varlist()] <RPAR>
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
