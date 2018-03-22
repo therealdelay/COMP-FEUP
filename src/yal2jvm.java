@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.*;
 
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmConstants {/*@bgen(jjtree)*/
   protected static JJTyal2jvmState jjtree = new JJTyal2jvmState();public static int error_counter = 0;
+        private static SimpleNode astRoot = null;
         public static void main(String args[]) throws ParseException {
                 InputStream f = null;
 
@@ -20,12 +22,15 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 yal2jvm parser = new yal2jvm(f);
 
-                SimpleNode node = parser.Module();
+                astRoot = parser.Module();
 
-                System.out.print("Error count: " + error_counter + "\n\n");
+                //System.out.print("Error count: " + error_counter + "\n\n");
 
-                System.out.println("AST:");
-                node.dump("");
+                //System.out.println("AST:");
+                //node.dump("");
+
+                buildSymbolTable(astRoot);
+
                 System.out.print("\n\n\n");
         }
 
@@ -1170,6 +1175,52 @@ if (jjtc000) {
   return t.kind;
   }
 
+  static boolean buildSymbolTable(SimpleNode astRoot) throws ParseException {/*@bgen(jjtree) buildSymbolTable */
+     ASTbuildSymbolTable jjtn000 = new ASTbuildSymbolTable(JJTBUILDSYMBOLTABLE);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {SimpleNode moduleNode = astRoot;
+
+        ArrayList<SimpleNode> functions = new ArrayList<SimpleNode>();
+        ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
+
+        for(int i = 0; i < astRoot.jjtGetNumChildren(); i++){
+                if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
+                        if(functions.contains(astRoot.jjtGetChild(i))){
+                                System.out.println("Duplicate: " + astRoot.jjtGetChild(i));
+                        }
+                        else
+                                functions.add((SimpleNode)astRoot.jjtGetChild(i));
+                        //System.out.println(astRoot.jjtGetChild(i));
+                }
+                else if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
+                        declarations.add((SimpleNode)astRoot.jjtGetChild(i));
+                        //System.out.println(astRoot.jjtGetChild(i));
+                }
+        }
+
+        System.out.println("@modules");
+        System.out.println(moduleNode + "\n");
+
+        System.out.println("@functions");
+        for(SimpleNode s : functions){
+                System.out.println(s);
+        }
+
+        System.out.println("\n@global variables");
+        for(SimpleNode s : declarations){
+                System.out.println(s);
+        }
+
+
+        return true;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
   static private boolean jj_2_1(int xla)
  {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
@@ -1184,14 +1235,6 @@ if (jjtc000) {
     try { return (!jj_3_2()); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(1, xla); }
-  }
-
-  static private boolean jj_3R_6()
- {
-    if (jj_3R_8()) return true;
-    if (jj_scan_token(ASSIGN)) return true;
-    if (jj_3R_9()) return true;
-    return false;
   }
 
   static private boolean jj_3R_15()
@@ -1369,6 +1412,14 @@ if (jjtc000) {
  {
     if (jj_scan_token(31)) return true;
     if (jj_3R_17()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_6()
+ {
+    if (jj_3R_8()) return true;
+    if (jj_scan_token(ASSIGN)) return true;
+    if (jj_3R_9()) return true;
     return false;
   }
 

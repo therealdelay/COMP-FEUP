@@ -1,5 +1,11 @@
 module array1
 {
+	a;
+
+	function print_array(N){
+		
+	}
+
 	function print_array(N)
 	{
 		a=[N];

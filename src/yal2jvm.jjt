@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.*;
 
 public class yal2jvm {
 	public static int error_counter = 0;
+	private static SimpleNode astRoot = null;
 	public static void main(String args[]) throws ParseException {
 		InputStream f = null;
 
@@ -24,12 +26,15 @@ public class yal2jvm {
 
 		yal2jvm parser = new yal2jvm(f);
 
-		SimpleNode node = parser.Module();
+		astRoot = parser.Module();
 
-		System.out.print("Error count: " + error_counter + "\n\n");
+		//System.out.print("Error count: " + error_counter + "\n\n");
 		
-		System.out.println("AST:");
-		node.dump("");
+		//System.out.println("AST:");
+		//node.dump("");
+
+		buildSymbolTable(astRoot);
+
 		System.out.print("\n\n\n");
 	}
 }
@@ -314,4 +319,42 @@ int error_skipto(int[] kinds) #void {
   } while (!exit);
   System.out.print("\n\n");
   return t.kind;
+}
+
+JAVACODE
+boolean buildSymbolTable(SimpleNode astRoot){
+
+	SimpleNode moduleNode = astRoot;
+
+	ArrayList<SimpleNode> functions = new ArrayList<SimpleNode>();
+	ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
+	
+	for(int i = 0; i < astRoot.jjtGetNumChildren(); i++){
+		if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
+			//se já estiver lá um nó igual, rejeitar
+			functions.add((SimpleNode)astRoot.jjtGetChild(i));
+			//System.out.println(astRoot.jjtGetChild(i));
+		}
+		else if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
+			//se já estiver lá um nó igual, rejeitar
+			declarations.add((SimpleNode)astRoot.jjtGetChild(i));
+			//System.out.println(astRoot.jjtGetChild(i));
+		}
+	}
+
+	System.out.println("@modules");
+	System.out.println(moduleNode + "\n");
+
+	System.out.println("@functions");
+	for(SimpleNode s : functions){
+		System.out.println(s);
+	}
+
+	System.out.println("\n@global variables");
+	for(SimpleNode s : declarations){
+		System.out.println(s);
+	}
+
+
+	return true;
 }

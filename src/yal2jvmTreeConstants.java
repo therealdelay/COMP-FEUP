@@ -25,6 +25,7 @@ public interface yal2jvmTreeConstants
   public int JJTARRAYACCESS = 21;
   public int JJTSCALARACCESS = 22;
   public int JJTINDEX = 23;
+  public int JJTBUILDSYMBOLTABLE = 24;
 
 
   public String[] jjtNodeName = {
@@ -52,6 +53,7 @@ public interface yal2jvmTreeConstants
     "ArrayAccess",
     "ScalarAccess",
     "Index",
+    "buildSymbolTable",
   };
 }
-/* JavaCC - OriginalChecksum=c987ede8d5de927bbcdfa01da0600d95 (do not edit this line) */
+/* JavaCC - OriginalChecksum=0e2c87b856655da5605e9b308d5e05fc (do not edit this line) */
