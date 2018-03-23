@@ -1,0 +1,22 @@
+CHECKPOINT 1 FEEDBACK
+=====================
+Class 3 - Group 33
+
+These notes are based on an analysis of commit 38895996a5bc0b573118356557742c19880913a6.
+If you believe this is an error, contact your class teacher.
+=====================
+
+High-priority:
+	- Name of file to compile should not be hardcoded.
+	- In "function a=b()", parser incorrectly states that "a" is the name of the function, when "b" is the correct value ("a" is the output of the function).
+	- Tree Annotation is incomplete:
+		- Missing "-" operator in Term()
+		- Missing <RELA_OP> value in Exprtest()
+		- Missing initialization value in Declaration()
+
+Low-priority:
+	- Use packages, instead of Java's default package
+	- Stop after the first 10 parser errors
+	- Add comments to explain/document your code
+	- Consider outputting "prettier" (i.e., cleaner and more informative) error messages.
+	- Consider rewriting the grammar to avoid use of LOOKAHEADs.
