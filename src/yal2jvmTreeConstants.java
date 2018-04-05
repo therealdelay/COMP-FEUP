@@ -26,6 +26,7 @@ public interface yal2jvmTreeConstants
   public int JJTSCALARACCESS = 22;
   public int JJTINDEX = 23;
   public int JJTBUILDSYMBOLTABLE = 24;
+  public int JJTCHECKDUPLICATES = 25;
 
 
   public String[] jjtNodeName = {
@@ -54,6 +55,7 @@ public interface yal2jvmTreeConstants
     "ScalarAccess",
     "Index",
     "buildSymbolTable",
+    "checkDuplicates",
   };
 }
-/* JavaCC - OriginalChecksum=0e2c87b856655da5605e9b308d5e05fc (do not edit this line) */
+/* JavaCC - OriginalChecksum=593805733bd6efde803b5af8e3286e67 (do not edit this line) */

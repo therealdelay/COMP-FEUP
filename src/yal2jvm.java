@@ -1180,22 +1180,24 @@ if (jjtc000) {
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
      try {SimpleNode moduleNode = astRoot;
-
+        ArrayList<String> errors = new ArrayList<String>();
         ArrayList<SimpleNode> functions = new ArrayList<SimpleNode>();
         ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
 
         for(int i = 0; i < astRoot.jjtGetNumChildren(); i++){
                 if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
-                        if(functions.contains(astRoot.jjtGetChild(i))){
-                                System.out.println("Duplicate: " + astRoot.jjtGetChild(i));
-                        }
-                        else
+                        if(!checkDuplicates(functions,(SimpleNode)astRoot.jjtGetChild(i)))
                                 functions.add((SimpleNode)astRoot.jjtGetChild(i));
-                        //System.out.println(astRoot.jjtGetChild(i));
+                        else{
+                                errors.add("Semantic error: node \"" + astRoot.jjtGetChild(i) + "\" is duplicate.");
+                        }
                 }
                 else if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
-                        declarations.add((SimpleNode)astRoot.jjtGetChild(i));
-                        //System.out.println(astRoot.jjtGetChild(i));
+                        if(!checkDuplicates(declarations,(SimpleNode)astRoot.jjtGetChild(i)))
+                                declarations.add((SimpleNode)astRoot.jjtGetChild(i));
+                        else{
+                                errors.add("Semantic error: node \"" + astRoot.jjtGetChild(i) + "\" is duplicate.");
+                        }
                 }
         }
 
@@ -1212,8 +1214,31 @@ if (jjtc000) {
                 System.out.println(s);
         }
 
+        System.out.println("\n@errors");
+        for(String s : errors){
+                System.out.println(s);
+        }
+
 
         return true;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node) throws ParseException {/*@bgen(jjtree) checkDuplicates */
+     ASTcheckDuplicates jjtn000 = new ASTcheckDuplicates(JJTCHECKDUPLICATES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {for(SimpleNode n : nodes){
+                if(n.jjtGetValue().equals(node.jjtGetValue())){
+                        System.out.println("dup " + node.jjtGetValue());
+                        return true;
+                }
+        }
+        return false;/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);

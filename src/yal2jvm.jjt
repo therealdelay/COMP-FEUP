@@ -325,21 +325,19 @@ JAVACODE
 boolean buildSymbolTable(SimpleNode astRoot){
 
 	SimpleNode moduleNode = astRoot;
-
+	ArrayList<String> errors = new ArrayList<String>();
 	ArrayList<SimpleNode> functions = new ArrayList<SimpleNode>();
 	ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
-	
-	for(int i = 0; i < astRoot.jjtGetNumChildren(); i++){
-		if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
-			//se já estiver lá um nó igual, rejeitar
-			functions.add((SimpleNode)astRoot.jjtGetChild(i));
-			//System.out.println(astRoot.jjtGetChild(i));
-		}
-		else if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
-			//se já estiver lá um nó igual, rejeitar
-			declarations.add((SimpleNode)astRoot.jjtGetChild(i));
-			//System.out.println(astRoot.jjtGetChild(i));
-		}
+	ArrayList<SimpleNode> local_vars = new ArrayList<SimpleNode>();
+
+	getChildren(astRoot, errors, functions, declarations, local_vars);
+
+	for(SimpleNode s : functions){
+		getChildren(s, functions, declarations, local_vars);
+	}
+
+	for(SimpleNode s : declarations){
+		getChildren(s, functions, declarations, local_vars);
 	}
 
 	System.out.println("@modules");
@@ -355,6 +353,43 @@ boolean buildSymbolTable(SimpleNode astRoot){
 		System.out.println(s);
 	}
 
+	System.out.println("\n@errors");
+	for(String s : errors){
+		System.out.println(s);
+	}
+
 
 	return true;
+}
+
+JAVACODE
+void getChildren(SimpleNode parent, ArrayList<SimpleNode> errors, ArrayList<SimpleNode> functions, ArrayList<SimpleNode> declarations){
+	ArrayList<SimpleNode> return = new ArrayList<SimpleNode>();
+	for(int i = 0; i < parent.jjtGetNumChildren(); i++){
+		if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
+			if(!checkDuplicates(functions,(SimpleNode)parent.jjtGetChild(i)))
+				functions.add((SimpleNode)parent.jjtGetChild(i));
+			else{
+				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
+			}
+		}
+		else if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
+			if(!checkDuplicates(declarations,(SimpleNode)parent.jjtGetChild(i)))
+				declarations.add((SimpleNode)parent.jjtGetChild(i));
+			else{
+				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
+			}
+		}
+	}
+}
+
+JAVACODE
+boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
+	for(SimpleNode n : nodes){
+		if(n.jjtGetValue().equals(node.jjtGetValue())){
+			System.out.println("dup " + node.jjtGetValue());
+			return true;
+		}
+	}
+	return false;
 }
