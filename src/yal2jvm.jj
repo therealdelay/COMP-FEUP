@@ -32,7 +32,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 
 		astRoot = parser.Module();
 
-		//System.out.print("Error count: " + error_counter + "\n\n");
+		System.out.print("Error count: " + error_counter + "\n\n");
 		
 		//System.out.println("AST:");
 		//node.dump("");
@@ -97,7 +97,7 @@ SimpleNode Module() : {/*@bgen(jjtree) Module */
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN MODULE " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {RCHAVETA, EOF};
 			error_skipto(kinds);
 	}/*@bgen(jjtree)*/
@@ -136,19 +136,29 @@ void Declaration() : {/*@bgen(jjtree) Declaration */
 /*@egen*/Token t;}{/*@bgen(jjtree) Declaration */
         try {
 /*@egen*/
-	t=<ID>{jjtn000.jjtSetValue(t.image);} ["[" "]"] [<PVIRG>]
+
+	t=<ID>{jjtn000.jjtSetValue(t.image);} ["[" "]"]
 	[
 		<ASSIGN>
 		try{
-			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>) <PVIRG>
+			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>)
 		}
 		catch (ParseException e) {
 			System.out.println("EXCEPTION IN DECLARATION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {PVIRG};
 			error_skipto(kinds);
 		}
-	]/*@bgen(jjtree)*/
+	]
+	try{
+		<PVIRG>
+	}
+	catch(ParseException e){
+		System.out.println("EXCEPTION IN DECLARATION " + e.toString());
+		incErrorCounter();
+		int[] kinds = {PVIRG};
+		error_skipto(kinds);
+	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -184,7 +194,7 @@ void Function() : {/*@bgen(jjtree) Function */
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {PVIRG, LCHAVETA, LPAR, ID};
 			error_skipto(kinds);
 	}
@@ -194,7 +204,7 @@ void Function() : {/*@bgen(jjtree) Function */
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {RPAR};
 			error_skipto(kinds);
 	}
@@ -356,7 +366,7 @@ void Stmt() : {/*@bgen(jjtree) Stmt */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN STMT " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RPAR, PVIRG, LCHAVETA};
 		error_skipto(kinds);
 	}/*@bgen(jjtree)*/
@@ -396,7 +406,7 @@ void Assign() : {/*@bgen(jjtree) Assign */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN ASSIGN " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG};
 		error_skipto(kinds);
 	}/*@bgen(jjtree)*/
@@ -519,11 +529,16 @@ void Term() : {/*@bgen(jjtree) Term */
                ASTTerm jjtn000 = new ASTTerm(JJTTERM);
                boolean jjtc000 = true;
                jjtree.openNodeScope(jjtn000);
-/*@egen*/Token t;}
+/*@egen*/Token t1,t2,t3, t4;}
 {/*@bgen(jjtree) Term */
         try {
 /*@egen*/
-	[<ADDSUB_OP>] (<INTEGER> | LOOKAHEAD(3) Call() | (t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))))/*@bgen(jjtree)*/
+	[t1=<ADDSUB_OP>{jjtn000.jjtSetValue(t1.image);}] (t2=<INTEGER>/*@bgen(jjtree)*/
+                                                                      {
+                                                                        jjtree.closeNodeScope(jjtn000, true);
+                                                                        jjtc000 = false;
+                                                                      }
+/*@egen*/{jjtn000.jjtSetValue(t2.image);} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);}]))))/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -559,7 +574,7 @@ void Exprtest() : {/*@bgen(jjtree) Exprtest */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RPAR};
 		error_skipto(kinds);
 	}/*@bgen(jjtree)*/
@@ -631,7 +646,7 @@ void If() : {/*@bgen(jjtree) If */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN ELSE " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG};
 		error_skipto(kinds);
 	}/*@bgen(jjtree)*/
@@ -672,7 +687,7 @@ void Call() : {/*@bgen(jjtree) Call */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN CALL " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RCHAVETA, LCHAVETA, RPAR};
 		int ret = error_skipto(kinds);
 		if(ret == LCHAVETA){
@@ -716,7 +731,7 @@ void Callstmt()       : {/*@bgen(jjtree) Call */
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN CALL " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG, RCHAVETA, LCHAVETA};
 		int ret = error_skipto(kinds);
 		if(ret == LCHAVETA){
@@ -912,22 +927,16 @@ boolean buildSymbolTable(SimpleNode astRoot){/*@bgen(jjtree) buildSymbolTable */
 	ArrayList<String> errors = new ArrayList<String>();
 	ArrayList<SimpleNode> functions = new ArrayList<SimpleNode>();
 	ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
-	
-	for(int i = 0; i < astRoot.jjtGetNumChildren(); i++){
-		if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
-			if(!checkDuplicates(functions,(SimpleNode)astRoot.jjtGetChild(i)))
-				functions.add((SimpleNode)astRoot.jjtGetChild(i));
-			else{
-				errors.add("Semantic error: node \"" + astRoot.jjtGetChild(i) + "\" is duplicate.");
-			}
-		}
-		else if(astRoot.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
-			if(!checkDuplicates(declarations,(SimpleNode)astRoot.jjtGetChild(i)))
-				declarations.add((SimpleNode)astRoot.jjtGetChild(i));
-			else{
-				errors.add("Semantic error: node \"" + astRoot.jjtGetChild(i) + "\" is duplicate.");
-			}
-		}
+	ArrayList<SimpleNode> local_vars = new ArrayList<SimpleNode>();
+
+	getChildren(astRoot, errors, functions, declarations, local_vars);
+
+	for(SimpleNode s : functions){
+		getChildren(s, errors, functions, declarations, local_vars);
+	}
+
+	for(SimpleNode s : declarations){
+		getChildren(s, errors, functions, declarations, local_vars);
 	}
 
 	System.out.println("@modules");
@@ -959,6 +968,38 @@ boolean buildSymbolTable(SimpleNode astRoot){/*@bgen(jjtree) buildSymbolTable */
 }
 
 JAVACODE
+void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<SimpleNode> functions, ArrayList<SimpleNode> declarations, ArrayList<SimpleNode> local_vars){/*@bgen(jjtree) getChildren */
+     ASTgetChildren jjtn000 = new ASTgetChildren(JJTGETCHILDREN);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+	//ArrayList<SimpleNode> returnArray = new ArrayList<SimpleNode>();
+	for(int i = 0; i < parent.jjtGetNumChildren(); i++){
+		if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
+			if(!checkDuplicates(functions,(SimpleNode)parent.jjtGetChild(i)))
+				functions.add((SimpleNode)parent.jjtGetChild(i));
+			else{
+				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
+			}
+		}
+		else if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
+			if(!checkDuplicates(declarations,(SimpleNode)parent.jjtGetChild(i)))
+				declarations.add((SimpleNode)parent.jjtGetChild(i));
+			else{
+				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
+			}
+		}
+	}/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+}
+
+JAVACODE
 boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){/*@bgen(jjtree) checkDuplicates */
      ASTcheckDuplicates jjtn000 = new ASTcheckDuplicates(JJTCHECKDUPLICATES);
      boolean jjtc000 = true;
@@ -972,6 +1013,25 @@ boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){/*@bgen(jj
 		}
 	}
 	return false;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+}
+
+JAVACODE
+void incErrorCounter(){/*@bgen(jjtree) incErrorCounter */
+     ASTincErrorCounter jjtn000 = new ASTincErrorCounter(JJTINCERRORCOUNTER);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+	if(yal2jvm.error_counter++ == 10){
+		System.out.println("Too many errors found!");
+		System.exit(1);
+	}/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);

@@ -26,7 +26,9 @@ public interface yal2jvmTreeConstants
   public int JJTSCALARACCESS = 22;
   public int JJTINDEX = 23;
   public int JJTBUILDSYMBOLTABLE = 24;
-  public int JJTCHECKDUPLICATES = 25;
+  public int JJTGETCHILDREN = 25;
+  public int JJTCHECKDUPLICATES = 26;
+  public int JJTINCERRORCOUNTER = 27;
 
 
   public String[] jjtNodeName = {
@@ -55,7 +57,9 @@ public interface yal2jvmTreeConstants
     "ScalarAccess",
     "Index",
     "buildSymbolTable",
+    "getChildren",
     "checkDuplicates",
+    "incErrorCounter",
   };
 }
-/* JavaCC - OriginalChecksum=593805733bd6efde803b5af8e3286e67 (do not edit this line) */
+/* JavaCC - OriginalChecksum=069cee2554bff716b5df8f648378a146 (do not edit this line) */

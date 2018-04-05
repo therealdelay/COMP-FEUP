@@ -28,7 +28,7 @@ public class yal2jvm {
 
 		astRoot = parser.Module();
 
-		//System.out.print("Error count: " + error_counter + "\n\n");
+		System.out.print("Error count: " + error_counter + "\n\n");
 		
 		//System.out.println("AST:");
 		//node.dump("");
@@ -87,7 +87,7 @@ SimpleNode Module() : {Token t;}{
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN MODULE " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {RCHAVETA, EOF};
 			error_skipto(kinds);
 	}
@@ -95,19 +95,29 @@ SimpleNode Module() : {Token t;}{
 }
 
 void Declaration() : {Token t;}{
-	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"] [<PVIRG>]
+
+	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
 	[
 		<ASSIGN>
 		try{
-			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>) <PVIRG>
+			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>)
 		}
 		catch (ParseException e) {
 			System.out.println("EXCEPTION IN DECLARATION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {PVIRG};
 			error_skipto(kinds);
 		}
 	]
+	try{
+		<PVIRG>
+	}
+	catch(ParseException e){
+		System.out.println("EXCEPTION IN DECLARATION " + e.toString());
+		incErrorCounter();
+		int[] kinds = {PVIRG};
+		error_skipto(kinds);
+	}
 }
 
 void Function() : {Token t;}{
@@ -117,7 +127,7 @@ void Function() : {Token t;}{
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {PVIRG, LCHAVETA, LPAR, ID};
 			error_skipto(kinds);
 	}
@@ -127,7 +137,7 @@ void Function() : {Token t;}{
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			yal2jvm.error_counter++;
+			incErrorCounter();
 			int[] kinds = {RPAR};
 			error_skipto(kinds);
 	}
@@ -170,7 +180,7 @@ void Stmt() : {}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN STMT " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RPAR, PVIRG, LCHAVETA};
 		error_skipto(kinds);
 	}
@@ -184,7 +194,7 @@ void Assign() : {}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN ASSIGN " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG};
 		error_skipto(kinds);
 	}
@@ -205,9 +215,9 @@ void ArraySize() : {}
 	ScalarAccess() | <INTEGER>
 }
 
-void Term() : {Token t;}
+void Term() : {Token t1,t2,t3, t4;}
 {
-	[<ADDSUB_OP>] (<INTEGER> | LOOKAHEAD(3) Call() | (t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))))
+	[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
 }
 
 void Exprtest() : {}
@@ -217,7 +227,7 @@ void Exprtest() : {}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RPAR};
 		error_skipto(kinds);
 	}	
@@ -237,7 +247,7 @@ void If() : {}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN ELSE " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG};
 		error_skipto(kinds);
 	}
@@ -252,7 +262,7 @@ void Call() : {Token t1, t2;}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN CALL " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {RCHAVETA, LCHAVETA, RPAR};
 		int ret = error_skipto(kinds);
 		if(ret == LCHAVETA){
@@ -270,7 +280,7 @@ void Callstmt() #Call : {Token t1, t2;}
 	}
 	catch (ParseException e) {
 		System.out.println("EXCEPTION IN CALL " + e.toString());
-		yal2jvm.error_counter++;
+		incErrorCounter();
 		int[] kinds = {PVIRG, RCHAVETA, LCHAVETA};
 		int ret = error_skipto(kinds);
 		if(ret == LCHAVETA){
@@ -322,6 +332,14 @@ int error_skipto(int[] kinds) #void {
 }
 
 JAVACODE
+void incErrorCounter(){
+	if(yal2jvm.error_counter++ == 10){
+		System.out.println("Too many errors found!");
+		System.exit(1);
+	}
+}
+
+JAVACODE
 boolean buildSymbolTable(SimpleNode astRoot){
 
 	SimpleNode moduleNode = astRoot;
@@ -333,11 +351,11 @@ boolean buildSymbolTable(SimpleNode astRoot){
 	getChildren(astRoot, errors, functions, declarations, local_vars);
 
 	for(SimpleNode s : functions){
-		getChildren(s, functions, declarations, local_vars);
+		getChildren(s, errors, functions, declarations, local_vars);
 	}
 
 	for(SimpleNode s : declarations){
-		getChildren(s, functions, declarations, local_vars);
+		getChildren(s, errors, functions, declarations, local_vars);
 	}
 
 	System.out.println("@modules");
@@ -363,8 +381,8 @@ boolean buildSymbolTable(SimpleNode astRoot){
 }
 
 JAVACODE
-void getChildren(SimpleNode parent, ArrayList<SimpleNode> errors, ArrayList<SimpleNode> functions, ArrayList<SimpleNode> declarations){
-	ArrayList<SimpleNode> return = new ArrayList<SimpleNode>();
+void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<SimpleNode> functions, ArrayList<SimpleNode> declarations, ArrayList<SimpleNode> local_vars){
+	//ArrayList<SimpleNode> returnArray = new ArrayList<SimpleNode>();
 	for(int i = 0; i < parent.jjtGetNumChildren(); i++){
 		if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
 			if(!checkDuplicates(functions,(SimpleNode)parent.jjtGetChild(i)))
@@ -392,4 +410,32 @@ boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 		}
 	}
 	return false;
+}
+
+JAVACODE
+void DFSUtil(int v,boolean visited[])
+{
+    // Mark the current node as visited and print it
+    visited[v] = true;
+    System.out.print(v+" ");
+
+    // Recur for all the vertices adjacent to this vertex
+    Iterator<Integer> i = adj[v].listIterator();
+    while (i.hasNext())
+    {
+        int n = i.next();
+        if (!visited[n])
+            DFSUtil(n, visited);
+    }
+}
+
+// The function to do DFS traversal. It uses recursive DFSUtil()
+void DFS(int v)
+{
+    // Mark all the vertices as not visited(set as
+    // false by default in java)
+    boolean visited[] = new boolean[V];
+
+    // Call the recursive helper function to print DFS traversal
+    DFSUtil(v, visited);
 }
