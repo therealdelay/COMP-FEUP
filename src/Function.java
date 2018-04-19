@@ -1,4 +1,4 @@
-import java.util.*
+import java.util.*;
 
 public class Function extends SimpleNode{
 
@@ -8,7 +8,7 @@ public class Function extends SimpleNode{
 	protected ArrayList<SimpleNode> calls;
 	protected SimpleNode ret;
 
-	public Function(){
+	public Function(int id){
 		super(id);
 		this.params = new ArrayList<SimpleNode>();
 		this.variables = new ArrayList<SimpleNode>();
@@ -33,7 +33,7 @@ public class Function extends SimpleNode{
 	}
 
 	SimpleNode getReturn(){
-		return this.return;
+		return this.ret;
 	}
 
 	void addParams(SimpleNode param){
