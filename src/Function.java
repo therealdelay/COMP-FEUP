@@ -56,4 +56,49 @@ public class Function extends SimpleNode{
 		this.ret = ret;
 	}
 
+
+	void handleFunction(Function f, errors){
+
+		for (int i = 0; i < f.jjtGetNumChildren; i++){
+			if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.RETORNO DA FUNCAO)
+				handleFunctionRet(f, errors);
+			else if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTVARLIST)
+				handleFunctionParams(f, errors);
+			else if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTSTMTLST)
+				handleFunctionBody(f, errors);
+		}
+	}
+
+	void handleFunctionBody(Function parent, ArrayList<String> errors){	
+
+		SimpleNode functionStmts = parent.jjtGetChild(0);
+		for(int i = 0; i < functionStmts.jjtGetNumChildren(); i++){
+			SimpleNode stmt = functionStmts.jjtGetChild(i).jjtGetChild(i);
+			if(stmt.getId() == yal2jvmTreeConstants.JJTIF)
+				parent.addCondStatements(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTWHILE)
+				parent.addCondStatements(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTASSIGN)
+				parent.addVariables(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTCALL)
+				parent.addCalls(stmt);
+		}
+	}
+
+	void handleFunctionParam(Function parent, ArrayList<String> errors){	
+
+		SimpleNode functionStmts = parent.jjtGetChild(0);
+		for(int i = 0; i < functionStmts.jjtGetNumChildren(); i++){
+			SimpleNode stmt = functionStmts.jjtGetChild(i).jjtGetChild(i);
+			if(stmt.getId() == yal2jvmTreeConstants.JJTIF)
+				parent.addCondStatements(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTWHILE)
+				parent.addCondStatements(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTASSIGN)
+				parent.addVariables(stmt);
+			else if(stmt.getId() == yal2jvmTreeConstants.JJTCALL)
+				parent.addCalls(stmt);
+		}
+	}
+
 }
