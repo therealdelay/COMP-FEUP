@@ -57,10 +57,10 @@ public class Function extends SimpleNode{
 	}
 
 
-	void handleFunction(Function f, errors){
+	void handleFunction(Function f, ArrayList<String> errors){
 
-		for (int i = 0; i < f.jjtGetNumChildren; i++){
-			if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.RETORNO DA FUNCAO)
+		for (int i = 0; i < f.jjtGetNumChildren(); i++){
+			if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.RETORNODAFUNCAO) //we need to get function ret
 				handleFunctionRet(f, errors);
 			else if(f.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTVARLIST)
 				handleFunctionParams(f, errors);
@@ -71,9 +71,9 @@ public class Function extends SimpleNode{
 
 	void handleFunctionBody(Function parent, ArrayList<String> errors){	
 
-		SimpleNode functionStmts = parent.jjtGetChild(0);
+		SimpleNode functionStmts = (SimpleNode)parent.jjtGetChild(0);
 		for(int i = 0; i < functionStmts.jjtGetNumChildren(); i++){
-			SimpleNode stmt = functionStmts.jjtGetChild(i).jjtGetChild(i);
+			SimpleNode stmt = (SimpleNode) functionStmts.jjtGetChild(i).jjtGetChild(i);
 			if(stmt.getId() == yal2jvmTreeConstants.JJTIF)
 				parent.addCondStatements(stmt);
 			else if(stmt.getId() == yal2jvmTreeConstants.JJTWHILE)
@@ -85,20 +85,12 @@ public class Function extends SimpleNode{
 		}
 	}
 
-	void handleFunctionParam(Function parent, ArrayList<String> errors){	
+	void handleFunctionParams(Function parent, ArrayList<String> errors){	
 
-		SimpleNode functionStmts = parent.jjtGetChild(0);
-		for(int i = 0; i < functionStmts.jjtGetNumChildren(); i++){
-			SimpleNode stmt = functionStmts.jjtGetChild(i).jjtGetChild(i);
-			if(stmt.getId() == yal2jvmTreeConstants.JJTIF)
-				parent.addCondStatements(stmt);
-			else if(stmt.getId() == yal2jvmTreeConstants.JJTWHILE)
-				parent.addCondStatements(stmt);
-			else if(stmt.getId() == yal2jvmTreeConstants.JJTASSIGN)
-				parent.addVariables(stmt);
-			else if(stmt.getId() == yal2jvmTreeConstants.JJTCALL)
-				parent.addCalls(stmt);
-		}
 	}
 
+	void handleFunctionRet(Function parent, ArrayList<String> errors){	
+
+	}
+	
 }

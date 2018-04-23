@@ -123,7 +123,7 @@ void Declaration() : {Token t;}{
 	}
 }
 
-void Function() : {Token t;}{
+void Function() : {Token t, ret;}{
 
 	try{
 		<FUNCTION> t=<ID>{jjtThis.jjtSetValue(t.image);}
@@ -136,7 +136,7 @@ void Function() : {Token t;}{
 	}
 
 	try{
-		[["[" "]"] <ASSIGN> <ID>] <LPAR> [Varlist()] <RPAR>
+		[ ret=( ["[" "]"] <ASSIGN> <ID> ){jjThis.jjsetRet(ret.image);} ]  <LPAR> [Varlist()] <RPAR>
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
