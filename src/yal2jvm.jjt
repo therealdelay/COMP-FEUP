@@ -123,6 +123,7 @@ void Declaration() : {Token t;}{
 	}
 }
 
+
 void Function() : {Token t1, t2;}{
 
 	try{
@@ -347,18 +348,17 @@ boolean buildSymbolTable(SimpleNode astRoot){
 
 	SimpleNode moduleNode = astRoot;
 	ArrayList<SimpleNode> functions = new ArrayList<Function>();
-
 	ArrayList<String> errors = new ArrayList<String>();
 	ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
 
 	getChildren(astRoot, errors, functions, declarations);
 
-	for(Function f : functions){
-		//handleFunctions(f);
-	}
-
-	for(SimpleNode s : declarations){
+/*	for(SimpleNode s : declarations){
 		getChildren(s, errors, functions, declarations, local_vars);
+	}
+*/
+	for(Function f : functions){
+		f.handleFunction(f, errors);	
 	}
 
 	System.out.println("@modules");
@@ -384,7 +384,7 @@ boolean buildSymbolTable(SimpleNode astRoot){
 
 JAVACODE
 void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<Function> functions, ArrayList<SimpleNode> declarations){
-	//ArrayList<SimpleNode> returnArray = new ArrayList<SimpleNode>();
+	
 	for(int i = 0; i < parent.jjtGetNumChildren(); i++){
 		if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
 			if(!checkDuplicates(functions,(SimpleNode)parent.jjtGetChild(i))){
@@ -403,8 +403,14 @@ void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<Function
 			}
 		}
 	}
+<<<<<<< HEAD
 }*/
 /*
+=======
+}
+
+
+>>>>>>> 97250bf9849d5f09765781443814b17b8b6b91ef
 JAVACODE
 boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 	for(SimpleNode n : nodes){
