@@ -6,7 +6,7 @@ public interface yal2jvmTreeConstants
   public int JJTFUNCTION = 2;
   public int JJTVARLIST = 3;
   public int JJTARRAYELEMENT = 4;
-  public int JJTARRAYELEMENT2 = 5;
+  public int JJTELEMENT = 5;
   public int JJTSCALARELEMENT = 6;
   public int JJTSTMTLST = 7;
   public int JJTVOID = 8;
@@ -25,10 +25,7 @@ public interface yal2jvmTreeConstants
   public int JJTARRAYACCESS = 21;
   public int JJTSCALARACCESS = 22;
   public int JJTINDEX = 23;
-  public int JJTBUILDSYMBOLTABLE = 24;
-  public int JJTGETCHILDREN = 25;
-  public int JJTCHECKDUPLICATES = 26;
-  public int JJTINCERRORCOUNTER = 27;
+  public int JJTINCERRORCOUNTER = 24;
 
 
   public String[] jjtNodeName = {
@@ -37,7 +34,7 @@ public interface yal2jvmTreeConstants
     "Function",
     "Varlist",
     "ArrayElement",
-    "ArrayElement2",
+    "Element",
     "ScalarElement",
     "Stmtlst",
     "void",
@@ -56,10 +53,7 @@ public interface yal2jvmTreeConstants
     "ArrayAccess",
     "ScalarAccess",
     "Index",
-    "buildSymbolTable",
-    "getChildren",
-    "checkDuplicates",
     "incErrorCounter",
   };
 }
-/* JavaCC - OriginalChecksum=069cee2554bff716b5df8f648378a146 (do not edit this line) */
+/* JavaCC - OriginalChecksum=842a2d91db725a2b30a189abab20347f (do not edit this line) */

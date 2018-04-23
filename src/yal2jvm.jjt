@@ -5,7 +5,7 @@ options{
 
 PARSER_BEGIN(yal2jvm)
 
-package yal;
+ 
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +20,7 @@ public class yal2jvm {
 		InputStream f = null;
 
 		try { 
-			f = new FileInputStream("../yal_examples/" + args[0]);
+			f = new FileInputStream("../yalExamples/" + args[0]);
 		}catch(FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		}
@@ -33,10 +33,10 @@ public class yal2jvm {
 
 		System.out.print("Error count: " + error_counter + "\n\n");
 		
-		//System.out.println("AST:");
-		//node.dump("");
+		System.out.println("AST:");
+		astRoot.dump("");
 
-		buildSymbolTable(astRoot);
+		// buildSymbolTable(astRoot);
 
 		System.out.print("\n\n\n");
 	}
@@ -86,7 +86,7 @@ TOKEN : {
 
 SimpleNode Module() : {Token t;}{
 	try{
-		<MODULE> t=<ID>{jjtThis.jjtSetValue(t.image);} <LCHAVETA> (Declaration())* (Function())* <RCHAVETA>
+		<MODULE> t=<ID>{jjtThis.jjtSetValue(t.image);} <LCHAVETA> (LOOKAHEAD(3) Declaration())* (Function())* <RCHAVETA>
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN MODULE " + e.toString());
@@ -123,10 +123,10 @@ void Declaration() : {Token t;}{
 	}
 }
 
-void Function() : {Token t;}{
+void Function() : {Token t1, t2;}{
 
 	try{
-		<FUNCTION> t=<ID>{jjtThis.jjtSetValue(t.image);}
+		<FUNCTION> [LOOKAHEAD(2) t2=<ID>{jjtThis.jjtSetSecValue(t2.image);} ["[" "]"] <ASSIGN>] t1=<ID>{jjtThis.jjtSetValue(t1.image);}
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
@@ -136,7 +136,7 @@ void Function() : {Token t;}{
 	}
 
 	try{
-		[["[" "]"] <ASSIGN> <ID>] <LPAR> [Varlist()] <RPAR>
+		<LPAR> [Varlist()] <RPAR>
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
@@ -148,7 +148,7 @@ void Function() : {Token t;}{
 }
 
 void Varlist() : {}{
-	(ArrayElement2()) ( <VIRG> ArrayElement2() )*
+	(Element()) ( <VIRG> Element() )*
 }
 
 void ArrayElement() : {Token t;}
@@ -156,7 +156,7 @@ void ArrayElement() : {Token t;}
 	t=<ID>{jjtThis.jjtSetValue(t.image);} "[" "]"
 }
 
-void ArrayElement2() : {Token t;}
+void Element() : {Token t;}
 {
 	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
 }
@@ -342,7 +342,7 @@ void incErrorCounter(){
 	}
 }
 
-JAVACODE
+/*JAVACODE
 boolean buildSymbolTable(SimpleNode astRoot){
 
 	SimpleNode moduleNode = astRoot;
@@ -403,8 +403,8 @@ void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<Function
 			}
 		}
 	}
-}
-
+}*/
+/*
 JAVACODE
 boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 	for(SimpleNode n : nodes){
@@ -415,3 +415,13 @@ boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 	}
 	return false;
 }
+
+
+JAVACODE
+void buildSymbolTable(SimpleNode node){
+
+	for(int i = 0; i < node.jjtGetNumChildren(); i++){
+		SimpleNode child = node.jjtGetChild(i);
+	}
+
+}*/
