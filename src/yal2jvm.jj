@@ -24,11 +24,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 		InputStream f = null;
 
 		try { 
-<<<<<<< HEAD
 			f = new FileInputStream("../yalExamples/" + args[0]);
-=======
-			f = new FileInputStream("../yal examples/" + args[0]);
->>>>>>> 97250bf9849d5f09765781443814b17b8b6b91ef
 		}catch(FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		}
@@ -188,6 +184,7 @@ void Declaration() : {/*@bgen(jjtree) Declaration */
 /*@egen*/
 }
 
+
 void Function() : {/*@bgen(jjtree) Function */
                    ASTFunction jjtn000 = new ASTFunction(JJTFUNCTION);
                    boolean jjtc000 = true;
@@ -195,8 +192,6 @@ void Function() : {/*@bgen(jjtree) Function */
 /*@egen*/Token t1, t2;}{/*@bgen(jjtree) Function */
         try {
 /*@egen*/
-
-
 
 	try{
 		<FUNCTION> [LOOKAHEAD(2) t2=<ID>{jjtn000.jjtSetSecValue(t2.image);} ["[" "]"] <ASSIGN>] t1=<ID>{jjtn000.jjtSetValue(t1.image);}

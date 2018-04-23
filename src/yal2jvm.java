@@ -13,11 +13,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 InputStream f = null;
 
                 try {
-<<<<<<< HEAD
                         f = new FileInputStream("../yalExamples/" + args[0]);
-=======
-                        f = new FileInputStream("../yal examples/" + args[0]);
->>>>>>> 97250bf9849d5f09765781443814b17b8b6b91ef
                 }catch(FileNotFoundException e) {
                         System.out.println(e.getMessage());
                 }
@@ -1221,6 +1217,12 @@ if (jjtc000) {
     finally { jj_save(3, xla); }
   }
 
+  static private boolean jj_3R_29()
+ {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_27()
  {
     if (jj_scan_token(ID)) return true;
@@ -1386,15 +1388,15 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3R_31()
- {
-    if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
   static private boolean jj_3_1()
  {
     if (jj_3R_6()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_31()
+ {
+    if (jj_scan_token(ID)) return true;
     return false;
   }
 
@@ -1421,14 +1423,6 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3R_8()
- {
-    if (jj_3R_12()) return true;
-    if (jj_scan_token(ASSIGN)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_6()
  {
     if (jj_scan_token(ID)) return true;
@@ -1438,6 +1432,14 @@ if (jjtc000) {
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
     if (jj_scan_token(PVIRG)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_8()
+ {
+    if (jj_3R_12()) return true;
+    if (jj_scan_token(ASSIGN)) return true;
+    if (jj_3R_13()) return true;
     return false;
   }
 
@@ -1478,12 +1480,6 @@ if (jjtc000) {
   static private boolean jj_3_4()
  {
     if (jj_3R_9()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_29()
- {
-    if (jj_scan_token(ADDSUB_OP)) return true;
     return false;
   }
 

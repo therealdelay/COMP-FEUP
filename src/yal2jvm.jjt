@@ -353,10 +353,9 @@ boolean buildSymbolTable(SimpleNode astRoot){
 
 	getChildren(astRoot, errors, functions, declarations);
 
-/*	for(SimpleNode s : declarations){
+	for(SimpleNode s : declarations){
 		getChildren(s, errors, functions, declarations, local_vars);
 	}
-*/
 	for(Function f : functions){
 		f.handleFunction(f, errors);	
 	}
@@ -403,14 +402,9 @@ void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<Function
 			}
 		}
 	}
-<<<<<<< HEAD
-}*/
-/*
-=======
 }
 
 
->>>>>>> 97250bf9849d5f09765781443814b17b8b6b91ef
 JAVACODE
 boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 	for(SimpleNode n : nodes){
@@ -421,8 +415,8 @@ boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
 	}
 	return false;
 }
-
-
+*/
+/*
 JAVACODE
 void buildSymbolTable(SimpleNode node){
 
