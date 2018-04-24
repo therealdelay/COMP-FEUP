@@ -206,9 +206,13 @@ void Assign() : {}
 
 void Lhs() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))
+	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|( LhsArraySize() ))
 }
 
+void LhsArraySize() : {}
+{
+	["." <SIZE>]
+}
 void Rhs() : {}
 {
 	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize() "]"
