@@ -40,8 +40,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 
 		System.out.print("Error count: " + error_counter + "\n\n");
 		
-		//System.out.println("AST:");
-		//astRoot.dump("");
+		System.out.println("AST:");
+		astRoot.dump("");
 
 		// buildSymbolTable(astRoot);
 
@@ -202,7 +202,7 @@ void Function() : {/*@bgen(jjtree) Function */
 /*@egen*/
 
 	try{
-		<FUNCTION> [LOOKAHEAD(2) t2=<ID>{jjtn000.jjtSetSecValue(t2.image);} ["[" "]"] <ASSIGN>] t1=<ID>{jjtn000.jjtSetValue(t1.image);}
+		<FUNCTION>{jjtn000.jjtSetType(SimpleNode.Type.VOID);} [LOOKAHEAD(2) t2=<ID>{jjtn000.jjtSetSecValue(t2.image);jjtn000.jjtSetIntType();} ["[" "]"{jjtn000.jjtSetArrayType();}] <ASSIGN>] t1=<ID>{jjtn000.jjtSetValue(t1.image);}
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
@@ -452,7 +452,7 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 {/*@bgen(jjtree) Lhs */
         try {
 /*@egen*/
-	t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|( LhsArraySize() ))/*@bgen(jjtree)*/
+	t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|["." <SIZE>])/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -475,22 +475,6 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 /*@egen*/
 }
 
-void LhsArraySize() : {/*@bgen(jjtree) LhsArraySize */
-  ASTLhsArraySize jjtn000 = new ASTLhsArraySize(JJTLHSARRAYSIZE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
-{/*@bgen(jjtree) LhsArraySize */
-        try {
-/*@egen*/
-	["." <SIZE>]/*@bgen(jjtree)*/
-        } finally {
-          if (jjtc000) {
-            jjtree.closeNodeScope(jjtn000, true);
-          }
-        }
-/*@egen*/
-}
 void Rhs() : {/*@bgen(jjtree) Rhs */
   ASTRhs jjtn000 = new ASTRhs(JJTRHS);
   boolean jjtc000 = true;
@@ -499,7 +483,7 @@ void Rhs() : {/*@bgen(jjtree) Rhs */
 {/*@bgen(jjtree) Rhs */
         try {
 /*@egen*/
-	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtn000.jjtGetParent()).jjtSetArrayType();} "]"/*@bgen(jjtree)*/
+	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtn000).jjtSetArrayType();} "]"/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -557,7 +541,7 @@ void Term() : {/*@bgen(jjtree) Term */
                ASTTerm jjtn000 = new ASTTerm(JJTTERM);
                boolean jjtc000 = true;
                jjtree.openNodeScope(jjtn000);
-/*@egen*/Token t1,t2,t3, t4;}
+/*@egen*/Token t1,t2,t3,t4;}
 {/*@bgen(jjtree) Term */
 try {
 /*@egen*/
@@ -566,7 +550,7 @@ try {
                                                                 jjtree.closeNodeScope(jjtn000, true);
                                                                 jjtc000 = false;
                                                               }
-/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetIntType();jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);}]))))/*@bgen(jjtree)*/
+/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);}]))))/*@bgen(jjtree)*/
 } catch (Throwable jjte000) {
   if (jjtc000) {
     jjtree.clearNodeScope(jjtn000);
@@ -988,9 +972,9 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 			case JJTFUNCTION:
 
 				String functionName = (String) node.jjtGetValue();
-				String returnVariableName = (String) node.jjtGetSecValue();
 				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
 				SymbolTable.Function function = new SymbolTable.Function(signature);
+				signature.returnType = node.getDataType();
 				
 				/**
 				 * verificar se tem argumentos ou apenas statements
@@ -1013,15 +997,8 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function);
+				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
 				
-
-
-
-
-
-
-
 				//add function
 				symbolTable.addFunction(function);
 				break;
@@ -1118,7 +1095,7 @@ void moduleJavaBytecodes(Node root, PrintWriter writer){/*@bgen(jjtree) moduleJa
 }
 
 JAVACODE
-public void functionJavaBytecodes(Node functionNode, PrintWriter writer){/*@bgen(jjtree) functionJavaBytecodes */
+public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer){/*@bgen(jjtree) functionJavaBytecodes */
      ASTfunctionJavaBytecodes jjtn000 = new ASTfunctionJavaBytecodes(JJTFUNCTIONJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1129,21 +1106,18 @@ public void functionJavaBytecodes(Node functionNode, PrintWriter writer){/*@bgen
     // locals n\u00ba de argumentos da funcao + declara\u00e7oes locais
 	// stack n\u00ba max entre 2, n\u00ba de args das fucntions Calls
 	
-	String functionName = (String) ((SimpleNode) functionNode).jjtGetValue();
+	System.out.println(functionNode);
+
+	String functionName = (String) functionNode.jjtGetValue();
 
 	writer.print(".method public static " + functionName + "(");
 
-	Node statementList;
+	Node statementList = functionNode.jjtGetChild(0);
+	Node argumentList;
 
-	if (functionName.equals("main")) {
-		
-		writer.println("[Ljava/lang/String;");
-	}
+	// Argmunts
+	if (functionName.equals("main")) writer.print("[Ljava/lang/String;");
 	else{
-		
-		
-		Node argumentList;
-		statementList = functionNode.jjtGetChild(0);
 
 		if(functionNode.jjtGetNumChildren() == 2) {
 
@@ -1152,17 +1126,35 @@ public void functionJavaBytecodes(Node functionNode, PrintWriter writer){/*@bgen
 
 			int numArguments = argumentList.jjtGetNumChildren();
 			
-				for(int i = 0; i < numArguments; i++) {
-			
-					SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
-					
-					String argumentName = (String)argument.jjtGetValue();
-					SimpleNode.Type argumentDataType = argument.getDataType();
-					
-					writer.print(typeToStr(argumentDataType));
-				}
+			for(int i = 0; i < numArguments; i++) {
+		
+				SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+				
+				String argumentName = (String)argument.jjtGetValue();
+				SimpleNode.Type argumentDataType = argument.getDataType();
+				
+				writer.print(typeToStr(argumentDataType));
+			}
 
 		}
+	}
+	writer.print(")");
+
+	// Return type
+	writer.println(typeToStr(functionNode.getDataType()));
+
+	// Locals stack
+	writer.println(".limit locals 100");
+	writer.println(".limit stack 100");
+
+	// StmtList
+	int numStatements = statementList.jjtGetNumChildren();
+
+	for(int i = 0; i < numStatements; i++) {
+		
+		SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
+		
+		statementJavaBytecodes(statement, writer);
 	}/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1170,7 +1162,35 @@ public void functionJavaBytecodes(Node functionNode, PrintWriter writer){/*@bgen
        }
      }
 /*@egen*/
+	
+}
 
+JAVACODE
+public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer){/*@bgen(jjtree) statementJavaBytecodes */
+     ASTstatementJavaBytecodes jjtn000 = new ASTstatementJavaBytecodes(JJTSTATEMENTJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+
+	ArrayList<String> statementBytecodes = new ArrayList();
+
+	Node statementType = statementNode.jjtGetChild(0);
+	// switch (statementType.jjtget) {
+	// 	case value:
+			
+	// 		break;
+	
+	// 	default:
+	// 		break;
+	// }
+	System.out.println(statementType);/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
 }
 
 JAVACODE
@@ -1236,7 +1256,7 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 }
 
 JAVACODE 
-void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function) {/*@bgen(jjtree) updateSymbolTableFunctionStatements */
+void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {/*@bgen(jjtree) updateSymbolTableFunctionStatements */
      ASTupdateSymbolTableFunctionStatements jjtn000 = new ASTupdateSymbolTableFunctionStatements(JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1249,36 +1269,96 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 		SimpleNode node = (SimpleNode) statementList.jjtGetChild(i).jjtGetChild(0);
 
-		SimpleNode lfs = (SimpleNode)node.jjtGetChild(0);
+		SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
 
 		switch (node.getId()) {
 
-			
-			
 			case JJTASSIGN:
-
 			
-
 				if(node.getDataType() != null) {
 
-					
-
-
-					function.addLocalDeclaration((String)lfs.jjtGetValue(),node.getDataType());
-
+					function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
 
 				}
 				else {
 
+					if(node.getAssignId() != null) {
 
+						String previousVariable = node.getAssignId();
+						SimpleNode.Type type = function.localDeclarations.get(previousVariable);
+
+						if(type == null)
+							type = symbolTable.globalDeclarations.get(previousVariable);
+
+						// System.out.println("Variable:" + previousVariable);
+						// System.out.println("Type:" + type);
+
+						function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
+	
+					}
 
 				}
 
 				break;
-		
+
+			case JJTWHILE:
+			case JJTIF:
+
+				SimpleNode statementListIfWhile = (SimpleNode) node.jjtGetChild(1);
+				updateSymbolTableFunctionStatements(statementListIfWhile, function, symbolTable);
+
+				break;
+	
 			default:
+
 				break;
 		}
+
+	}/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+}
+
+
+
+JAVACODE
+void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function) {/*@bgen(jjtree) updateSymbolTableFunctionFunctionCalls */
+     ASTupdateSymbolTableFunctionFunctionCalls jjtn000 = new ASTupdateSymbolTableFunctionFunctionCalls(JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+
+	SimpleNode currentNode = (SimpleNode) node;
+
+	if(currentNode.getId() == JJTCALL) {
+
+		String functionName = (String)currentNode.jjtGetValue();
+		String moduleName = "";
+
+		if(currentNode.jjtGetSecValue() != null) {
+			moduleName = functionName;
+			functionName = (String) currentNode.jjtGetSecValue();
+		}
+
+
+		SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+
+	}
+
+	else {
+
+		for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
+
+			updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
+		
+		}
+
+		
 
 	}/*@bgen(jjtree)*/
      } finally {

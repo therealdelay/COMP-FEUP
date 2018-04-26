@@ -13,27 +13,28 @@ public interface yal2jvmTreeConstants
   public int JJTSTMT = 9;
   public int JJTASSIGN = 10;
   public int JJTLHS = 11;
-  public int JJTLHSARRAYSIZE = 12;
-  public int JJTRHS = 13;
-  public int JJTARRAYSIZE = 14;
-  public int JJTTERM = 15;
-  public int JJTEXPRTEST = 16;
-  public int JJTWHILE = 17;
-  public int JJTIF = 18;
-  public int JJTCALL = 19;
-  public int JJTARGUMENTLIST = 20;
-  public int JJTARGUMENT = 21;
-  public int JJTARRAYACCESS = 22;
-  public int JJTSCALARACCESS = 23;
-  public int JJTINDEX = 24;
-  public int JJTINCERRORCOUNTER = 25;
-  public int JJTGENERATESYMBOLTABLE = 26;
-  public int JJTGENERATEJAVABYTECODES = 27;
-  public int JJTMODULEJAVABYTECODES = 28;
-  public int JJTFUNCTIONJAVABYTECODES = 29;
+  public int JJTRHS = 12;
+  public int JJTARRAYSIZE = 13;
+  public int JJTTERM = 14;
+  public int JJTEXPRTEST = 15;
+  public int JJTWHILE = 16;
+  public int JJTIF = 17;
+  public int JJTCALL = 18;
+  public int JJTARGUMENTLIST = 19;
+  public int JJTARGUMENT = 20;
+  public int JJTARRAYACCESS = 21;
+  public int JJTSCALARACCESS = 22;
+  public int JJTINDEX = 23;
+  public int JJTINCERRORCOUNTER = 24;
+  public int JJTGENERATESYMBOLTABLE = 25;
+  public int JJTGENERATEJAVABYTECODES = 26;
+  public int JJTMODULEJAVABYTECODES = 27;
+  public int JJTFUNCTIONJAVABYTECODES = 28;
+  public int JJTSTATEMENTJAVABYTECODES = 29;
   public int JJTTYPETOSTR = 30;
   public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 31;
   public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 32;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 33;
 
 
   public String[] jjtNodeName = {
@@ -49,7 +50,6 @@ public interface yal2jvmTreeConstants
     "Stmt",
     "Assign",
     "Lhs",
-    "LhsArraySize",
     "Rhs",
     "ArraySize",
     "Term",
@@ -67,9 +67,11 @@ public interface yal2jvmTreeConstants
     "generateJavaBytecodes",
     "moduleJavaBytecodes",
     "functionJavaBytecodes",
+    "statementJavaBytecodes",
     "typeToStr",
     "updateSymbolTableFunctionArguments",
     "updateSymbolTableFunctionStatements",
+    "updateSymbolTableFunctionFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=949e380180c4b7cd146de4aff480e34e (do not edit this line) */
+/* JavaCC - OriginalChecksum=62905cefc10135f28452704ce63b25e1 (do not edit this line) */

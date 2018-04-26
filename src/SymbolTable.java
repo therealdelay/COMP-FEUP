@@ -35,7 +35,7 @@ class SymbolTable {
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(this.key,this.value);
+			return Objects.hash(this.value);
 		}
 	
 	}
@@ -45,8 +45,9 @@ class SymbolTable {
 		public Signature signature;
 		public String module;
 
-		public FunctionCall(Signature signature) {
+		public FunctionCall(Signature signature, String module) {
 			this.signature = signature;
+			this.module = module;
 		}
 	
 	}
@@ -116,7 +117,7 @@ class SymbolTable {
 		public Signature signature; 
 		public HashMap<String,SimpleNode.Type> localDeclarations = new HashMap<>();
 		public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
-		public ArrayList<Signature> functionCalls = new ArrayList<>();
+		public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
 
 		public Function(Signature signature) {
 			this.signature = signature;
@@ -138,8 +139,8 @@ class SymbolTable {
 		
 			}
 
-		public void addFunctionCall(Signature functionCall) {
-			this.functionCalls.add(functionCall);
+		public void addFunctionCall(Signature signature, String module) {
+			this.functionCalls.add(new FunctionCall(signature, module));
 		}
 
 		@Override
@@ -220,6 +221,8 @@ class SymbolTable {
 
 			out.println(function.signature.functionName + ":");
 
+			out.println("Return type: " + function.signature.returnType);
+
 			out.println("Function arguments:");
 			
 			for(SymbolTable.Pair argument : function.signature.arguments) {
@@ -233,7 +236,6 @@ class SymbolTable {
 			for(String variable : function.localDeclarations.keySet()) {
 
 				SimpleNode.Type type = function.localDeclarations.get(variable);
-
 				out.println(variable + " with data type: " + type);
 
 			}
@@ -245,12 +247,21 @@ class SymbolTable {
 
 			}
 
+			out.println("Function function calls:");
+
+			for(FunctionCall functionCall : function.functionCalls) {
+
+				out.println(functionCall.signature.functionName);
+
+			}
+
 
 		}
 
 		for(SymbolTable.Signature signature : this.repeatedFunctions) {
 
 			out.println("(Repeated function) " + signature.functionName + ":");
+			out.println("Return Type:" + signature.returnType);
 			
 			for(SymbolTable.Pair argument : signature.arguments) {
 
@@ -266,6 +277,8 @@ class SymbolTable {
 
 
 	}
+
+
 	
 
 }
