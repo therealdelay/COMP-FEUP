@@ -33,10 +33,15 @@ public class yal2jvm {
 
 		System.out.print("Error count: " + error_counter + "\n\n");
 		
-		System.out.println("AST:");
-		astRoot.dump("");
+		//System.out.println("AST:");
+		//astRoot.dump("");
 
 		// buildSymbolTable(astRoot);
+
+		SymbolTable symbolTable = generateSymbolTable(astRoot);
+
+		System.out.println(symbolTable);
+
 
 		System.out.print("\n\n\n");
 	}
@@ -97,13 +102,13 @@ SimpleNode Module() : {Token t;}{
 	{return jjtThis;}
 }
 
-void Declaration() : {Token t;}{
+void Declaration() : {Token t, t2;}{
 
 	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
 	[
 		<ASSIGN>
 		try{
-			(("[" ArraySize() "]") | [<ADDSUB_OP>] <INTEGER>)
+			(("[" ArraySize() "]") {jjtThis.jjtSetArrayType();} | [<ADDSUB_OP>] t2=<INTEGER>{jjtThis.jjtSetIntType();})
 		}
 		catch (ParseException e) {
 			System.out.println("EXCEPTION IN DECLARATION " + e.toString());
@@ -159,7 +164,7 @@ void ArrayElement() : {Token t;}
 
 void Element() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
+	t=<ID>{jjtThis.jjtSetValue(t.image); jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}]
 }
 
 void ScalarElement() : {Token t;}
@@ -211,7 +216,7 @@ void Lhs() : {Token t;}
 
 void Rhs() : {}
 {
-	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize() "]"
+	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtThis.jjtGetParent()).jjtSetArrayType();} "]"
 }
 
 void ArraySize() : {}
@@ -221,7 +226,7 @@ void ArraySize() : {}
 
 void Term() : {Token t1,t2,t3, t4;}
 {
-	[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetIntType();jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
 }
 
 void Exprtest() : {}
@@ -259,7 +264,7 @@ void If() : {}
 
 void Call() : {Token t1, t2;}
 {
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>	
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>	
 
 	try{
 		[ArgumentList()] <RPAR>
@@ -300,7 +305,7 @@ void ArgumentList() : {}
 
 void Argument() : {Token t;}
 {
-	( t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<STRING>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);} )
+	( t=<ID>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(t.image,null);} | t=<STRING>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image); jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.INT);})
 }
 
 void ArrayAccess() : {Token t;}
@@ -343,85 +348,141 @@ void incErrorCounter(){
 	}
 }
 
-/*JAVACODE
-boolean buildSymbolTable(SimpleNode astRoot){
+JAVACODE
+SymbolTable generateSymbolTable(Node root) {
 
-	SimpleNode moduleNode = astRoot;
-	ArrayList<SimpleNode> functions = new ArrayList<Function>();
-	ArrayList<String> errors = new ArrayList<String>();
-	ArrayList<SimpleNode> declarations = new ArrayList<SimpleNode>();
+	SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
+	int numChildren = root.jjtGetNumChildren();
 
-	getChildren(astRoot, errors, functions, declarations);
+	for(int i = 0; i < numChildren; i++) {
 
-	for(SimpleNode s : declarations){
-		getChildren(s, errors, functions, declarations, local_vars);
+		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+		int nodeType = node.getId();
+
+		switch (nodeType) {
+			case JJTDECLARATION:
+				
+				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+
+				break;
+
+			case JJTFUNCTION:
+
+				String functionName = (String) node.jjtGetValue();
+				String returnVariableName = (String) node.jjtGetSecValue();
+				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+				SymbolTable.Function function = new SymbolTable.Function(signature);
+				
+				/**
+				 * verificar se tem argumentos ou apenas statements
+				 */
+
+				Node argumentList;
+				Node statementList;
+
+				int functionChildrenNum = node.jjtGetNumChildren();
+				statementList = node.jjtGetChild(0);
+
+				// System.out.println("Function Name: " + signature.functionName);
+
+				if(functionChildrenNum == 2) {
+
+					argumentList = statementList;
+					statementList = node.jjtGetChild(1);
+					updateSymbolTableFunctionArguments(argumentList, function);
+
+
+				}
+
+				updateSymbolTableFunctionStatements(statementList,function);
+				
+
+
+
+
+
+
+
+				//add function
+				symbolTable.addFunction(function);
+				break;
+
+			default:
+				break;
+		}
 	}
-	for(Function f : functions){
-		f.handleFunction(f, errors);	
-	}
 
-	System.out.println("@modules");
-	System.out.println(moduleNode + "\n");
+	return symbolTable;
 
-	System.out.println("@functions");
-	for(Function f : functions){
-		System.out.println(f);
-	}
 
-	System.out.println("\n@global variables");
-	for(SimpleNode s : declarations){
-		System.out.println(s);
-	}
-
-	System.out.println("\n@errors");
-	for(String s : errors){
-		System.out.println(s);
-	}
-
-	return true;
 }
 
 JAVACODE
-void getChildren(SimpleNode parent, ArrayList<String> errors, ArrayList<Function> functions, ArrayList<SimpleNode> declarations){
-	
-	for(int i = 0; i < parent.jjtGetNumChildren(); i++){
-		if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTFUNCTION){
-			if(!checkDuplicates(functions,(SimpleNode)parent.jjtGetChild(i))){
-				Function f = new Function(parent.jjtGetChild(i).getId());
-				functions.add(f);
-			}
-			else{
-				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
-			}
+void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
+
+	int numArguments = argumentList.jjtGetNumChildren();
+
+	for(int i = 0; i < numArguments; i++) {
+
+		SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+
+		//apenas uma verificação redundante se é do tipo elemento
+		if(argument.getId() != JJTELEMENT) {
+
+			System.out.println("Argument not of ELEMENT type, check why.");
+			continue;
 		}
-		else if(parent.jjtGetChild(i).getId() == yal2jvmTreeConstants.JJTDECLARATION){
-			if(!checkDuplicates(declarations,(SimpleNode)parent.jjtGetChild(i)))
-				declarations.add((SimpleNode)parent.jjtGetChild(i));
-			else{
-				errors.add("Semantic error: node \"" + parent.jjtGetChild(i) + "\" is duplicate.");
-			}
-		}
+		
+		String argumentName = (String)argument.jjtGetValue();
+		SimpleNode.Type argumentDataType = argument.getDataType();
+		function.signature.addArgumentType(argumentName,argumentDataType);
+
 	}
+
 }
 
+JAVACODE 
+void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function) {
 
-JAVACODE
-boolean checkDuplicates(ArrayList<SimpleNode> nodes, SimpleNode node){
-	for(SimpleNode n : nodes){
-		if(n.jjtGetValue().equals(node.jjtGetValue())){
-			System.out.println("dup " + node.jjtGetValue());
-			return true;
+	int numStatements = statementList.jjtGetNumChildren();
+
+	for(int i = 0; i < numStatements; i++) {
+
+		SimpleNode node = (SimpleNode) statementList.jjtGetChild(i).jjtGetChild(0);
+
+		SimpleNode lfs = (SimpleNode)node.jjtGetChild(0);
+
+		switch (node.getId()) {
+
+			
+			
+			case JJTASSIGN:
+
+			
+
+				if(node.getDataType() != null) {
+
+					
+
+
+					function.addLocalDeclaration((String)lfs.jjtGetValue(),node.getDataType());
+
+
+				}
+				else {
+
+
+
+				}
+
+				break;
+		
+			default:
+				break;
 		}
+
 	}
-	return false;
+
+
+
 }
-*/
-/*
-JAVACODE
-void buildSymbolTable(SimpleNode node){
-
-	for(int i = 0; i < node.jjtGetNumChildren(); i++){
-		SimpleNode child = node.jjtGetChild(i);
-	}
-
-}*/

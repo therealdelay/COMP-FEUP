@@ -1,0 +1,24 @@
+module test_jp {
+
+    a = 10;
+    a = [10];
+    b = [10];
+    c;
+    d[];
+
+    function a=f1(a,b[],c) {
+
+        g = 10;
+        j = b;
+
+    }
+
+    function f2(a[]) {
+
+    }
+
+    function f2(a[]) {
+
+    }
+
+}

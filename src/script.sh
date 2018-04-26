@@ -20,7 +20,7 @@ javac *.java
 # java yal2jvm MyFirstYalExamples/aval3.yal
 # java yal2jvm MyFirstYalExamples/aval4.yal
 # java yal2jvm MyFirstYalExamples/aval5.yal
-java yal2jvm MyFirstYalExamples/aval6.yal
+# java yal2jvm MyFirstYalExamples/aval6.yal
 # java yal2jvm MyFirstYalExamples/aval7.yal
 # java yal2jvm MyFirstYalExamples/aval8.yal
 # java yal2jvm MyFirstYalExamples/library1.yal
@@ -32,3 +32,4 @@ java yal2jvm MyFirstYalExamples/aval6.yal
 # java yal2jvm MyFirstYalExamples/programa2.yal
 # java yal2jvm MyFirstYalExamples/programa3.yal
 # java yal2jvm MyFirstYalExamples/sqrt.yal
+java yal2jvm MyFirstYalExamples/test_jp.yal
