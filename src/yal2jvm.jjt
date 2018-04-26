@@ -104,7 +104,7 @@ SimpleNode Module() : {Token t;}{
 
 void Declaration() : {Token t, t2;}{
 
-	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]"]
+	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]" {jjtThis.jjtSetArrayType();}]
 	[
 		<ASSIGN>
 		try{
