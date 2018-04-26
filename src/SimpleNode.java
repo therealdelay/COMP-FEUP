@@ -5,11 +5,17 @@ import java.util.*;
 public
 class SimpleNode implements Node {
 
+  public static enum Type { INT, ARRAY_INT, VOID, STRING };
+
   protected Node parent;
   protected Node[] children;
   protected int id;
   protected Object value;
   protected Object secvalue;
+  protected Type dataType;
+  protected String assignIdModule;
+  protected String assignId;
+  protected ArrayList<SymbolTable.Pair<String,Type>> assignFunctionParameters = new ArrayList<>();
   protected yal2jvm parser;
 
   public SimpleNode(int i) {
@@ -39,6 +45,17 @@ class SimpleNode implements Node {
       children = c;
     }
     children[i] = n;
+    children[i].jjtSetParent(this);
+
+    SimpleNode child = (SimpleNode) children[i];
+
+    if(child.getId() == yal2jvmTreeConstants.JJTRHS) {
+
+      this.dataType = ((SimpleNode)child.children[0]).getDataType();
+
+    }
+
+
   }
 
   public Node jjtGetChild(int i) {
@@ -84,6 +101,62 @@ class SimpleNode implements Node {
   public int getId() {
     return id;
   }
+
+  public void jjtSetType(Type type) {
+    this.dataType = type;
+  }
+
+  public void jjtSetIntType() {
+    this.dataType = Type.INT;
+  }
+
+  public void jjtSetArrayType() {
+    this.dataType = Type.ARRAY_INT;
+  }
+
+  public Type getDataType() {
+    return this.dataType;
+  }
+
+  public void jjtSetAssignId(String assignId) {
+    this.assignId = assignId;
+  }
+
+  public String getAssignId() {
+    return this.assignId;
+  }
+
+  public ArrayList<SymbolTable.Pair<String,Type>> getAssignFunctionParameters() {
+    return this.assignFunctionParameters;
+  }
+
+  public void addAssignFunctionParameter(String variable,Type parameter) {
+    
+    this.assignFunctionParameters.add(new SymbolTable.Pair(variable,parameter));
+  }
+
+  public void setAssignIdModule(String module) {
+    this.assignIdModule = module;
+  }
+
+  public String getAssignIdModule() {
+    return this.assignIdModule;
+  }
+
+  SimpleNode getAncestor(int level) {
+
+    SimpleNode simpleNode = this;
+    
+    while(level > 0) {
+      simpleNode = (SimpleNode)simpleNode.jjtGetParent();
+      level--;
+    }
+
+    return simpleNode;
+
+  }
+
+
 }
 
 /* JavaCC - OriginalChecksum=a18553b8ef6880d94e885b7367412b11 (do not edit this line) */

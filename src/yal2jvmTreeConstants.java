@@ -6,29 +6,30 @@ public interface yal2jvmTreeConstants
   public int JJTFUNCTION = 2;
   public int JJTVARLIST = 3;
   public int JJTARRAYELEMENT = 4;
-  public int JJTARRAYELEMENT2 = 5;
+  public int JJTELEMENT = 5;
   public int JJTSCALARELEMENT = 6;
   public int JJTSTMTLST = 7;
   public int JJTVOID = 8;
   public int JJTSTMT = 9;
   public int JJTASSIGN = 10;
   public int JJTLHS = 11;
-  public int JJTRHS = 12;
-  public int JJTARRAYSIZE = 13;
-  public int JJTTERM = 14;
-  public int JJTEXPRTEST = 15;
-  public int JJTWHILE = 16;
-  public int JJTIF = 17;
-  public int JJTCALL = 18;
-  public int JJTARGUMENTLIST = 19;
-  public int JJTARGUMENT = 20;
-  public int JJTARRAYACCESS = 21;
-  public int JJTSCALARACCESS = 22;
-  public int JJTINDEX = 23;
-  public int JJTBUILDSYMBOLTABLE = 24;
-  public int JJTGETCHILDREN = 25;
-  public int JJTCHECKDUPLICATES = 26;
-  public int JJTINCERRORCOUNTER = 27;
+  public int JJTLHSARRAYSIZE = 12;
+  public int JJTRHS = 13;
+  public int JJTARRAYSIZE = 14;
+  public int JJTTERM = 15;
+  public int JJTEXPRTEST = 16;
+  public int JJTWHILE = 17;
+  public int JJTIF = 18;
+  public int JJTCALL = 19;
+  public int JJTARGUMENTLIST = 20;
+  public int JJTARGUMENT = 21;
+  public int JJTARRAYACCESS = 22;
+  public int JJTSCALARACCESS = 23;
+  public int JJTINDEX = 24;
+  public int JJTINCERRORCOUNTER = 25;
+  public int JJTGENERATESYMBOLTABLE = 26;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 27;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 28;
 
 
   public String[] jjtNodeName = {
@@ -37,13 +38,14 @@ public interface yal2jvmTreeConstants
     "Function",
     "Varlist",
     "ArrayElement",
-    "ArrayElement2",
+    "Element",
     "ScalarElement",
     "Stmtlst",
     "void",
     "Stmt",
     "Assign",
     "Lhs",
+    "LhsArraySize",
     "Rhs",
     "ArraySize",
     "Term",
@@ -56,10 +58,10 @@ public interface yal2jvmTreeConstants
     "ArrayAccess",
     "ScalarAccess",
     "Index",
-    "buildSymbolTable",
-    "getChildren",
-    "checkDuplicates",
     "incErrorCounter",
+    "generateSymbolTable",
+    "updateSymbolTableFunctionArguments",
+    "updateSymbolTableFunctionStatements",
   };
 }
-/* JavaCC - OriginalChecksum=069cee2554bff716b5df8f648378a146 (do not edit this line) */
+/* JavaCC - OriginalChecksum=4a447380933d7b9f5e1d6611776b4a02 (do not edit this line) */

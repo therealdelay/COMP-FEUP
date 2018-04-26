@@ -13,7 +13,7 @@ javac *.java
 # java yal2jvm MyFirstYalExamples_1/array2_err.yal
 # java yal2jvm MyFirstYalExamples_1/array4_err.yal
 
-java yal2jvm MyFirstYalExamples/array1.yal
+# java yal2jvm MyFirstYalExamples/array1.yal
 # java yal2jvm MyFirstYalExamples/array2.yal
 # java yal2jvm MyFirstYalExamples/aval1.yal
 # java yal2jvm MyFirstYalExamples/aval2.yal
@@ -32,3 +32,4 @@ java yal2jvm MyFirstYalExamples/array1.yal
 # java yal2jvm MyFirstYalExamples/programa2.yal
 # java yal2jvm MyFirstYalExamples/programa3.yal
 # java yal2jvm MyFirstYalExamples/sqrt.yal
+java yal2jvm MyFirstYalExamples/test_jp.yal
