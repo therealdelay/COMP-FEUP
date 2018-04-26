@@ -10,19 +10,54 @@ module test_jp {
 
         g = 10;
         j = b;
-
+        i = 25;
         k = i;
-
         i = 10;
+        z = f2(4,ah,bc,"ola");
+        w = io.read();
+
+        aray = [2];
+
+        if(k == 2) {
+
+            y = 10;
+
+        }
+
+        while(i == 2) {
+
+            kl = y;
+            aray2 = aray;
+            aray3 = [5];
+
+            
+
+        }
 
     }
 
-    function f2(a[]) {
+    // function f2(b[]) {
 
-    }
+    // }
 
-    function f2(a[]) {
+    // function f2(a[]) {
 
-    }
+    // }
+
+    // function a[] = f2(b[]) {
+
+    // }
+
+    // function a = f2(b[]) {
+
+    // }
+
+    // function a[] = f3(a,b) {
+
+    // }
+
+    // function b[] = f3(a,c) {
+
+    // }
 
 }

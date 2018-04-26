@@ -201,13 +201,15 @@ if (jjtc000) {
     try {
       try {
         jj_consume_token(FUNCTION);
+jjtn000.jjtSetType(SimpleNode.Type.VOID);
         if (jj_2_2(2)) {
           t2 = jj_consume_token(ID);
-jjtn000.jjtSetSecValue(t2.image);
+jjtn000.jjtSetSecValue(t2.image);jjtn000.jjtSetIntType();
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case 31:{
             jj_consume_token(31);
             jj_consume_token(32);
+jjtn000.jjtSetArrayType();
             break;
             }
           default:
@@ -613,7 +615,7 @@ if (jjtc000) {
       case 31:{
         jj_consume_token(31);
         ArraySize();
-((SimpleNode)jjtn000.jjtGetParent()).jjtSetArrayType();
+((SimpleNode)jjtn000).jjtSetArrayType();
         jj_consume_token(32);
         break;
         }
@@ -714,7 +716,7 @@ jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case ID:{
             t3 = jj_consume_token(ID);
-jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetIntType();jjtn000.jjtSetAssignId(t3.image);
+jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);
             switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
             case 31:{
               jj_consume_token(31);
@@ -1230,9 +1232,9 @@ if (jjtc000) {
                         case JJTFUNCTION:
 
                                 String functionName = (String) node.jjtGetValue();
-                                String returnVariableName = (String) node.jjtGetSecValue();
                                 SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
                                 SymbolTable.Function function = new SymbolTable.Function(signature);
+                                signature.returnType = node.getDataType();
 
                                 /**
 				 * verificar se tem argumentos ou apenas statements
@@ -1255,14 +1257,7 @@ if (jjtc000) {
 
                                 }
 
-                                updateSymbolTableFunctionStatements(statementList,function);
-
-
-
-
-
-
-
+                                updateSymbolTableFunctionStatements(statementList,function,symbolTable);
 
                                 //add function
                                 symbolTable.addFunction(function);
@@ -1310,7 +1305,7 @@ if (jjtc000) {
      }
   }
 
-  static void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionStatements */
+  static void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionStatements */
      ASTupdateSymbolTableFunctionStatements jjtn000 = new ASTupdateSymbolTableFunctionStatements(JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1320,36 +1315,89 @@ if (jjtc000) {
 
                 SimpleNode node = (SimpleNode) statementList.jjtGetChild(i).jjtGetChild(0);
 
-                SimpleNode lfs = (SimpleNode)node.jjtGetChild(0);
+                SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
 
                 switch (node.getId()) {
 
-
-
                         case JJTASSIGN:
-
-
 
                                 if(node.getDataType() != null) {
 
-
-
-
-                                        function.addLocalDeclaration((String)lfs.jjtGetValue(),node.getDataType());
-
+                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
 
                                 }
                                 else {
 
+                                        if(node.getAssignId() != null) {
 
+                                                String previousVariable = node.getAssignId();
+                                                SimpleNode.Type type = function.localDeclarations.get(previousVariable);
+
+                                                if(type == null)
+                                                        type = symbolTable.globalDeclarations.get(previousVariable);
+
+                                                System.out.println("Variable:" + previousVariable);
+                                                System.out.println("Type:" + type);
+
+                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
+
+                                        }
 
                                 }
 
                                 break;
 
+                        case JJTWHILE:
+                        case JJTIF:
+
+                                SimpleNode statementListIfWhile = (SimpleNode) node.jjtGetChild(1);
+                                updateSymbolTableFunctionStatements(statementListIfWhile, function, symbolTable);
+
+                                break;
+
                         default:
+
                                 break;
                 }
+
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionFunctionCalls */
+     ASTupdateSymbolTableFunctionFunctionCalls jjtn000 = new ASTupdateSymbolTableFunctionFunctionCalls(JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {SimpleNode currentNode = (SimpleNode) node;
+
+        if(currentNode.getId() == JJTCALL) {
+
+                String functionName = (String)currentNode.jjtGetValue();
+                String moduleName = "";
+
+                if(currentNode.jjtGetSecValue() != null) {
+                        moduleName = functionName;
+                        functionName = (String) currentNode.jjtGetSecValue();
+                }
+
+
+                SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+
+        }
+
+        else {
+
+                for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
+
+                        updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
+
+                }
+
+
 
         }/*@bgen(jjtree)*/
      } finally {
@@ -1514,12 +1562,6 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3R_7()
- {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_11()
  {
     if (jj_scan_token(ASSIGN)) return true;
@@ -1558,16 +1600,6 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3_2()
- {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_7()) jj_scanpos = xsp;
-    if (jj_scan_token(ASSIGN)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_6()
  {
     if (jj_scan_token(ID)) return true;
@@ -1585,6 +1617,16 @@ if (jjtc000) {
     if (jj_3R_12()) return true;
     if (jj_scan_token(ASSIGN)) return true;
     if (jj_3R_13()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_7()) jj_scanpos = xsp;
+    if (jj_scan_token(ASSIGN)) return true;
     return false;
   }
 
@@ -1621,6 +1663,12 @@ if (jjtc000) {
     jj_scanpos = xsp;
     if (jj_3R_28()) return true;
     }
+    return false;
+  }
+
+  static private boolean jj_3R_7()
+ {
+    if (jj_scan_token(31)) return true;
     return false;
   }
 

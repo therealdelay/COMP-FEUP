@@ -132,7 +132,7 @@ void Declaration() : {Token t, t2;}{
 void Function() : {Token t1, t2;}{
 
 	try{
-		<FUNCTION> [LOOKAHEAD(2) t2=<ID>{jjtThis.jjtSetSecValue(t2.image);} ["[" "]"] <ASSIGN>] t1=<ID>{jjtThis.jjtSetValue(t1.image);}
+		<FUNCTION>{jjtThis.jjtSetType(SimpleNode.Type.VOID);} [LOOKAHEAD(2) t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}] <ASSIGN>] t1=<ID>{jjtThis.jjtSetValue(t1.image);}
 	}
 	catch (ParseException e) {
 			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
@@ -220,7 +220,7 @@ void LhsArraySize() : {}
 }
 void Rhs() : {}
 {
-	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtThis.jjtGetParent()).jjtSetArrayType();} "]"
+	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
 }
 
 void ArraySize() : {}
@@ -230,7 +230,7 @@ void ArraySize() : {}
 
 void Term() : {Token t1,t2,t3, t4;}
 {
-[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetIntType();jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
 }
 
 void Exprtest() : {}
@@ -373,9 +373,9 @@ SymbolTable generateSymbolTable(Node root) {
 			case JJTFUNCTION:
 
 				String functionName = (String) node.jjtGetValue();
-				String returnVariableName = (String) node.jjtGetSecValue();
 				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
 				SymbolTable.Function function = new SymbolTable.Function(signature);
+				signature.returnType = node.getDataType();
 				
 				/**
 				 * verificar se tem argumentos ou apenas statements
@@ -398,15 +398,8 @@ SymbolTable generateSymbolTable(Node root) {
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function);
+				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
 				
-
-
-
-
-
-
-
 				//add function
 				symbolTable.addFunction(function);
 				break;
@@ -446,7 +439,7 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 }
 
 JAVACODE 
-void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function) {
+void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
 	int numStatements = statementList.jjtGetNumChildren();
 
@@ -454,36 +447,85 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 		SimpleNode node = (SimpleNode) statementList.jjtGetChild(i).jjtGetChild(0);
 
-		SimpleNode lfs = (SimpleNode)node.jjtGetChild(0);
+		SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
 
 		switch (node.getId()) {
 
-			
-			
 			case JJTASSIGN:
-
 			
-
 				if(node.getDataType() != null) {
 
-					
-
-
-					function.addLocalDeclaration((String)lfs.jjtGetValue(),node.getDataType());
-
+					function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
 
 				}
 				else {
 
+					if(node.getAssignId() != null) {
 
+						String previousVariable = node.getAssignId();
+						SimpleNode.Type type = function.localDeclarations.get(previousVariable);
+
+						if(type == null)
+							type = symbolTable.globalDeclarations.get(previousVariable);
+
+						System.out.println("Variable:" + previousVariable);
+						System.out.println("Type:" + type);
+
+						function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
+	
+					}
 
 				}
 
 				break;
-		
+
+			case JJTWHILE:
+			case JJTIF:
+
+				SimpleNode statementListIfWhile = (SimpleNode) node.jjtGetChild(1);
+				updateSymbolTableFunctionStatements(statementListIfWhile, function, symbolTable);
+
+				break;
+	
 			default:
+
 				break;
 		}
+
+	}
+}
+
+
+
+JAVACODE
+void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function) {
+
+	SimpleNode currentNode = (SimpleNode) node;
+
+	if(currentNode.getId() == JJTCALL) {
+
+		String functionName = (String)currentNode.jjtGetValue();
+		String moduleName = "";
+
+		if(currentNode.jjtGetSecValue() != null) {
+			moduleName = functionName;
+			functionName = (String) currentNode.jjtGetSecValue();
+		}
+
+
+		SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+
+	}
+
+	else {
+
+		for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
+
+			updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
+		
+		}
+
+		
 
 	}
 

@@ -30,6 +30,7 @@ public interface yal2jvmTreeConstants
   public int JJTGENERATESYMBOLTABLE = 26;
   public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 27;
   public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 28;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 29;
 
 
   public String[] jjtNodeName = {
@@ -62,6 +63,7 @@ public interface yal2jvmTreeConstants
     "generateSymbolTable",
     "updateSymbolTableFunctionArguments",
     "updateSymbolTableFunctionStatements",
+    "updateSymbolTableFunctionFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=b5860491b39c6cdcdce40c16dbc49e12 (do not edit this line) */
+/* JavaCC - OriginalChecksum=f9774afd5a1ac19dc13975922f78550c (do not edit this line) */
