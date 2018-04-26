@@ -145,7 +145,7 @@ void Declaration() : {/*@bgen(jjtree) Declaration */
         try {
 /*@egen*/
 
-	t=<ID>{jjtn000.jjtSetValue(t.image);} ["[" "]"]
+	t=<ID>{jjtn000.jjtSetValue(t.image);} ["[" "]" {jjtn000.jjtSetArrayType();}]
 	[
 		<ASSIGN>
 		try{

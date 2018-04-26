@@ -114,6 +114,7 @@ jjtn000.jjtSetValue(t.image);
       case 31:{
         jj_consume_token(31);
         jj_consume_token(32);
+jjtn000.jjtSetArrayType();
         break;
         }
       default:
