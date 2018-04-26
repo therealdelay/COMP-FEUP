@@ -5,7 +5,7 @@ options{
 
 PARSER_BEGIN(yal2jvm)
 
- 
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,29 +19,32 @@ public class yal2jvm {
 	public static void main(String args[]) throws ParseException {
 		InputStream f = null;
 
-		try { 
+		try {
 			f = new FileInputStream("../yalExamples/" + args[0]);
 		}catch(FileNotFoundException e) {
 			System.out.println(e.getMessage());
 		}
 
-		System.out.println("File: " + args[0]);
+		//System.out.println("File: " + args[0]);
 
 		yal2jvm parser = new yal2jvm(f);
 
 		astRoot = parser.Module();
 
-		System.out.print("Error count: " + error_counter + "\n\n");
-		
+		//System.out.print("Error count: " + error_counter + "\n\n");
+
 		//System.out.println("AST:");
 		//astRoot.dump("");
 
 		// buildSymbolTable(astRoot);
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
+		
+		// System.out.println(symbolTable);
+		
+		updateNullTypesFunctionCalls(symbolTable);
 
-		System.out.println(symbolTable);
-
+		// System.out.println(symbolTable);
 
 		System.out.print("\n\n\n");
 	}
@@ -175,12 +178,12 @@ void ScalarElement() : {Token t;}
 void Stmtlst() : {}
 {
 	( Stmt() )*
-} 
+}
 
 void SpecialStmtlst() #void : {}
 {
 	Stmtlst() <RCHAVETA>
-} 
+}
 
 void Stmt() : {}
 {
@@ -243,7 +246,7 @@ void Exprtest() : {}
 		incErrorCounter();
 		int[] kinds = {RPAR};
 		error_skipto(kinds);
-	}	
+	}
 }
 
 void While() : {}
@@ -253,7 +256,7 @@ void While() : {}
 
 void If() : {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA> 
+	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
 
 	try{
 		[<ELSE> <LCHAVETA> Stmtlst() <RCHAVETA>]
@@ -268,7 +271,7 @@ void If() : {}
 
 void Call() : {Token t1, t2;}
 {
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>	
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
 
 	try{
 		[ArgumentList()] <RPAR>
@@ -286,7 +289,7 @@ void Call() : {Token t1, t2;}
 
 void Callstmt() #Call : {Token t1, t2;}
 {
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>	
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>
 
 	try{
 		[ArgumentList()] <RPAR> <PVIRG>
@@ -365,7 +368,7 @@ SymbolTable generateSymbolTable(Node root) {
 
 		switch (nodeType) {
 			case JJTDECLARATION:
-				
+
 				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
 
 				break;
@@ -373,10 +376,10 @@ SymbolTable generateSymbolTable(Node root) {
 			case JJTFUNCTION:
 
 				String functionName = (String) node.jjtGetValue();
+				SimpleNode.Type returnType = node.getDataType();
 				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-				SymbolTable.Function function = new SymbolTable.Function(signature);
-				signature.returnType = node.getDataType();
-				
+				SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+
 				/**
 				 * verificar se tem argumentos ou apenas statements
 				 */
@@ -399,9 +402,11 @@ SymbolTable generateSymbolTable(Node root) {
 				}
 
 				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				
+				updateSymbolTableFunctionFunctionCalls(node, function);
+
 				//add function
 				symbolTable.addFunction(function);
+
 				break;
 
 			default:
@@ -429,7 +434,7 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 			System.out.println("Argument not of ELEMENT type, check why.");
 			continue;
 		}
-		
+
 		String argumentName = (String)argument.jjtGetValue();
 		SimpleNode.Type argumentDataType = argument.getDataType();
 		function.signature.addArgumentType(argumentName,argumentDataType);
@@ -438,7 +443,7 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 
 }
 
-JAVACODE 
+JAVACODE
 void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
 	int numStatements = statementList.jjtGetNumChildren();
@@ -452,10 +457,10 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 		switch (node.getId()) {
 
 			case JJTASSIGN:
-			
+
 				if(node.getDataType() != null) {
 
-					function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
+					function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType(),null,null);
 
 				}
 				else {
@@ -471,8 +476,31 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 						System.out.println("Variable:" + previousVariable);
 						System.out.println("Type:" + type);
 
-						function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
-	
+						String localVariable = null;
+						SymbolTable.Signature signature = null;
+
+						SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
+
+						if(((SimpleNode)rhs.jjtGetChild(0)).getId() == JJTTERM) {
+
+							SimpleNode term = (SimpleNode) rhs.jjtGetChild(0);
+
+							if(term.jjtGetNumChildren() > 0 && ((SimpleNode) term.jjtGetChild(0)).getId() == JJTCALL) {
+
+								SimpleNode call = (SimpleNode) term.jjtGetChild(0);
+
+								signature = new SymbolTable.Signature(call.getAssignId(),call.getAssignFunctionParameters());
+
+							}
+
+							else
+								localVariable = (String) term.jjtGetValue();
+
+
+						}
+
+						function.addLocalDeclaration((String)lhs.jjtGetValue(),type, localVariable, signature);
+
 					}
 
 				}
@@ -486,7 +514,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 				updateSymbolTableFunctionStatements(statementListIfWhile, function, symbolTable);
 
 				break;
-	
+
 			default:
 
 				break;
@@ -504,6 +532,8 @@ void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function func
 
 	if(currentNode.getId() == JJTCALL) {
 
+		System.out.println("Entrei no call");
+
 		String functionName = (String)currentNode.jjtGetValue();
 		String moduleName = "";
 
@@ -512,8 +542,17 @@ void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function func
 			functionName = (String) currentNode.jjtGetSecValue();
 		}
 
+		String leftVariable = null;
+		SimpleNode parent = (SimpleNode) currentNode.jjtGetParent();
+		if(parent.getId() == JJTTERM) {
 
-		SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+			SimpleNode greatGrandParent = (SimpleNode) parent.jjtGetParent();
+			SimpleNode lhs = (SimpleNode)greatGrandParent.jjtGetChild(0);
+			leftVariable = (String)lhs.jjtGetValue();
+	
+		}
+
+		function.addFunctionCall(new SymbolTable.Signature(functionName, currentNode.assignFunctionParameters),moduleName);
 
 	}
 
@@ -522,13 +561,63 @@ void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function func
 		for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
 
 			updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
-		
+
 		}
 
-		
+
 
 	}
 
 
+
+}
+
+
+JAVACODE
+void updateNullTypesFunctionCalls(SymbolTable symbolTable) {
+
+	HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
+
+	for(SymbolTable.Signature signature: functions.keySet()) {
+
+		SymbolTable.Function function = functions.get(signature);
+
+		ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
+
+		for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
+			
+			SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
+
+			int argumentsSize = functionCallSignature.arguments.size();
+
+			System.out.println("Argument Types size:" + argumentsSize);
+
+			ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
+
+			// for(int i = 0; i < argumentsSize; i++) {
+
+			// 	if(functionCallSignature.argumentTypes.get(i) != null) {
+			// 		argumentTypesFunctionCall.add(i, functionCallSignature.argumentTypes.get(i));
+			// 		System.out.println("Argument type: " + argumentTypesFunctionCall.get(i));
+			// 	}
+
+
+
+			// }
+
+			// SimpleNode.Type nullType = function.localDeclarations.get(nullDeclarationsFunctionCall.key);
+			// SymbolTable.Signature signatureFunctionCall = nullDeclarationsFunctionCall.value;
+
+			
+			// SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+
+			// System.out.println("FUNCTION NAME: " + functionFunctionCall.signature.functionName);
+
+
+			// nullType = functionReturnType;
+
+		}
+
+	}
 
 }

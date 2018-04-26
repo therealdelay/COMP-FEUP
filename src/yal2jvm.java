@@ -18,13 +18,13 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         System.out.println(e.getMessage());
                 }
 
-                System.out.println("File: " + args[0]);
+                //System.out.println("File: " + args[0]);
 
                 yal2jvm parser = new yal2jvm(f);
 
                 astRoot = parser.Module();
 
-                System.out.print("Error count: " + error_counter + "\u005cn\u005cn");
+                //System.out.print("Error count: " + error_counter + "\n\n");
 
                 //System.out.println("AST:");
                 //astRoot.dump("");
@@ -33,8 +33,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 SymbolTable symbolTable = generateSymbolTable(astRoot);
 
-                System.out.println(symbolTable);
+                // System.out.println(symbolTable);
 
+                updateNullTypesFunctionCalls(symbolTable);
+
+                // System.out.println(symbolTable);
 
                 System.out.print("\u005cn\u005cn\u005cn");
         }
@@ -1232,9 +1235,9 @@ if (jjtc000) {
                         case JJTFUNCTION:
 
                                 String functionName = (String) node.jjtGetValue();
+                                SimpleNode.Type returnType = node.getDataType();
                                 SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-                                SymbolTable.Function function = new SymbolTable.Function(signature);
-                                signature.returnType = node.getDataType();
+                                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
 
                                 /**
 				 * verificar se tem argumentos ou apenas statements
@@ -1258,9 +1261,11 @@ if (jjtc000) {
                                 }
 
                                 updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+                                updateSymbolTableFunctionFunctionCalls(node, function);
 
                                 //add function
                                 symbolTable.addFunction(function);
+
                                 break;
 
                         default:
@@ -1323,7 +1328,7 @@ if (jjtc000) {
 
                                 if(node.getDataType() != null) {
 
-                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
+                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType(),null,null);
 
                                 }
                                 else {
@@ -1339,7 +1344,30 @@ if (jjtc000) {
                                                 System.out.println("Variable:" + previousVariable);
                                                 System.out.println("Type:" + type);
 
-                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
+                                                String localVariable = null;
+                                                SymbolTable.Signature signature = null;
+
+                                                SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
+
+                                                if(((SimpleNode)rhs.jjtGetChild(0)).getId() == JJTTERM) {
+
+                                                        SimpleNode term = (SimpleNode) rhs.jjtGetChild(0);
+
+                                                        if(term.jjtGetNumChildren() > 0 && ((SimpleNode) term.jjtGetChild(0)).getId() == JJTCALL) {
+
+                                                                SimpleNode call = (SimpleNode) term.jjtGetChild(0);
+
+                                                                signature = new SymbolTable.Signature(call.getAssignId(),call.getAssignFunctionParameters());
+
+                                                        }
+
+                                                        else
+                                                                localVariable = (String) term.jjtGetValue();
+
+
+                                                }
+
+                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type, localVariable, signature);
 
                                         }
 
@@ -1376,6 +1404,8 @@ if (jjtc000) {
 
         if(currentNode.getId() == JJTCALL) {
 
+                System.out.println("Entrei no call");
+
                 String functionName = (String)currentNode.jjtGetValue();
                 String moduleName = "";
 
@@ -1384,8 +1414,17 @@ if (jjtc000) {
                         functionName = (String) currentNode.jjtGetSecValue();
                 }
 
+                String leftVariable = null;
+                SimpleNode parent = (SimpleNode) currentNode.jjtGetParent();
+                if(parent.getId() == JJTTERM) {
 
-                SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+                        SimpleNode greatGrandParent = (SimpleNode) parent.jjtGetParent();
+                        SimpleNode lhs = (SimpleNode)greatGrandParent.jjtGetChild(0);
+                        leftVariable = (String)lhs.jjtGetValue();
+
+                }
+
+                function.addFunctionCall(new SymbolTable.Signature(functionName, currentNode.assignFunctionParameters),moduleName);
 
         }
 
@@ -1398,6 +1437,60 @@ if (jjtc000) {
                 }
 
 
+
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static void updateNullTypesFunctionCalls(SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) updateNullTypesFunctionCalls */
+     ASTupdateNullTypesFunctionCalls jjtn000 = new ASTupdateNullTypesFunctionCalls(JJTUPDATENULLTYPESFUNCTIONCALLS);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
+
+        for(SymbolTable.Signature signature: functions.keySet()) {
+
+                SymbolTable.Function function = functions.get(signature);
+
+                ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
+
+                for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
+
+                        SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
+
+                        int argumentsSize = functionCallSignature.arguments.size();
+
+                        System.out.println("Argument Types size:" + argumentsSize);
+
+                        ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
+
+                        // for(int i = 0; i < argumentsSize; i++) {
+
+                        // 	if(functionCallSignature.argumentTypes.get(i) != null) {
+                        // 		argumentTypesFunctionCall.add(i, functionCallSignature.argumentTypes.get(i));
+                        // 		System.out.println("Argument type: " + argumentTypesFunctionCall.get(i));
+                        // 	}
+
+
+
+                        // }
+
+                        // SimpleNode.Type nullType = function.localDeclarations.get(nullDeclarationsFunctionCall.key);
+                        // SymbolTable.Signature signatureFunctionCall = nullDeclarationsFunctionCall.value;
+
+
+                        // SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+
+                        // System.out.println("FUNCTION NAME: " + functionFunctionCall.signature.functionName);
+
+
+                        // nullType = functionReturnType;
+
+                }
 
         }/*@bgen(jjtree)*/
      } finally {
@@ -1437,58 +1530,6 @@ if (jjtc000) {
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
-  }
-
-  static private boolean jj_3R_25()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_31()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_32()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_19()
- {
-    if (jj_3R_24()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(LPAR)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAR)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_20()
- {
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_13()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_20()) {
-    jj_scanpos = xsp;
-    if (jj_3R_21()) return true;
-    }
-    return false;
   }
 
   static private boolean jj_3R_16()
@@ -1708,6 +1749,58 @@ if (jjtc000) {
   static private boolean jj_3R_28()
  {
     if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_25()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_31()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) {
+    jj_scanpos = xsp;
+    if (jj_3R_32()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_19()
+ {
+    if (jj_3R_24()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) jj_scanpos = xsp;
+    if (jj_scan_token(LPAR)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAR)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_20()
+ {
+    if (jj_3R_25()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_13()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_20()) {
+    jj_scanpos = xsp;
+    if (jj_3R_21()) return true;
+    }
     return false;
   }
 
