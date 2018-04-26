@@ -10,8 +10,11 @@ PARSER_BEGIN(yal2jvm)
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/*@bgen(jjtree)*/
@@ -20,7 +23,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 /*@egen*/
 	public static int error_counter = 0;
 	private static SimpleNode astRoot = null;
-	public static void main(String args[]) throws ParseException {
+	public static void main(String args[]) throws ParseException, IOException {
 		InputStream f = null;
 
 		try { 
@@ -43,8 +46,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 		// buildSymbolTable(astRoot);
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
-
-		System.out.println(symbolTable);
+		generateJavaBytecodes(astRoot);
+		// System.out.println(symbolTable);
 
 
 		System.out.print("\n\n\n");
@@ -1037,6 +1040,164 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 /*@egen*/
 
 
+}
+
+JAVACODE
+void generateJavaBytecodes(Node root) throws IOException {/*@bgen(jjtree) generateJavaBytecodes */
+     ASTgenerateJavaBytecodes jjtn000 = new ASTgenerateJavaBytecodes(JJTGENERATEJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+
+	String fileName = ((SimpleNode) root).jjtGetValue() + ".j";
+	File jFile = new File(fileName);
+	FileOutputStream jFileOS = new FileOutputStream(jFile);
+	PrintWriter writer = new PrintWriter(jFileOS);
+
+	moduleJavaBytecodes(root, writer);/*@bgen(jjtree)*/
+     } catch (Throwable jjte000) {
+       if (jjtc000) {
+         jjtree.clearNodeScope(jjtn000);
+         jjtc000 = false;
+       } else {
+         jjtree.popNode();
+       }
+       if (jjte000 instanceof IOException) {
+         throw (IOException)jjte000;
+       }
+       throw (Error)jjte000;
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+}
+
+JAVACODE
+void moduleJavaBytecodes(Node root, PrintWriter writer){/*@bgen(jjtree) moduleJavaBytecodes */
+     ASTmoduleJavaBytecodes jjtn000 = new ASTmoduleJavaBytecodes(JJTMODULEJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+
+	System.out.println(root);
+
+	writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
+	writer.println(".super java/lang/Object\n");
+
+	int numChildren = root.jjtGetNumChildren();
+
+	for(int i = 0; i < numChildren; i++) {
+
+		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+
+		int nodeType = node.getId();
+
+		switch (nodeType) {
+			case JJTFUNCTION:
+
+			functionJavaBytecodes(node, writer);
+
+
+			default:
+				break;
+		}
+	}	
+	
+	writer.close();/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+
+}
+
+JAVACODE
+public void functionJavaBytecodes(Node functionNode, PrintWriter writer){/*@bgen(jjtree) functionJavaBytecodes */
+     ASTfunctionJavaBytecodes jjtn000 = new ASTfunctionJavaBytecodes(JJTFUNCTIONJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+
+
+    // locals n\u00ba de argumentos da funcao + declara\u00e7oes locais
+	// stack n\u00ba max entre 2, n\u00ba de args das fucntions Calls
+	
+	String functionName = (String) ((SimpleNode) functionNode).jjtGetValue();
+
+	writer.print(".method public static " + functionName + "(");
+
+	Node statementList;
+
+	if (functionName.equals("main")) {
+		
+		writer.println("[Ljava/lang/String;");
+	}
+	else{
+		
+		
+		Node argumentList;
+		statementList = functionNode.jjtGetChild(0);
+
+		if(functionNode.jjtGetNumChildren() == 2) {
+
+			argumentList = statementList;
+			statementList = functionNode.jjtGetChild(1);
+
+			int numArguments = argumentList.jjtGetNumChildren();
+			
+				for(int i = 0; i < numArguments; i++) {
+			
+					SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+					
+					String argumentName = (String)argument.jjtGetValue();
+					SimpleNode.Type argumentDataType = argument.getDataType();
+					
+					writer.print(typeToStr(argumentDataType));
+				}
+
+		}
+	}/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+
+}
+
+JAVACODE
+String typeToStr(SimpleNode.Type type) {/*@bgen(jjtree) typeToStr */
+     ASTtypeToStr jjtn000 = new ASTtypeToStr(JJTTYPETOSTR);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+	switch (type) {
+	case INT:
+		return "I";
+	case ARRAY_INT:
+		return "[I";
+	case VOID:
+		return "V";
+	case STRING:
+		return "Ljava/lang/String;";
+	default:
+		return "";
+	}/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
 }
 
 JAVACODE
