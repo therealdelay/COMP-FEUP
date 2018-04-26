@@ -449,7 +449,7 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 {/*@bgen(jjtree) Lhs */
         try {
 /*@egen*/
-	t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|(["." <SIZE>]))/*@bgen(jjtree)*/
+	t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|( LhsArraySize() ))/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -472,6 +472,22 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 /*@egen*/
 }
 
+void LhsArraySize() : {/*@bgen(jjtree) LhsArraySize */
+  ASTLhsArraySize jjtn000 = new ASTLhsArraySize(JJTLHSARRAYSIZE);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+/*@egen*/}
+{/*@bgen(jjtree) LhsArraySize */
+        try {
+/*@egen*/
+	["." <SIZE>]/*@bgen(jjtree)*/
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+        }
+/*@egen*/
+}
 void Rhs() : {/*@bgen(jjtree) Rhs */
   ASTRhs jjtn000 = new ASTRhs(JJTRHS);
   boolean jjtc000 = true;

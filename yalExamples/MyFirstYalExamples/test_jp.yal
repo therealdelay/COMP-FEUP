@@ -11,6 +11,10 @@ module test_jp {
         g = 10;
         j = b;
 
+        k = i;
+
+        i = 10;
+
     }
 
     function f2(a[]) {
