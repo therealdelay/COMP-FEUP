@@ -970,7 +970,6 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 			case JJTDECLARATION:
 
 				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-
 				break;
 
 			case JJTFUNCTION:
@@ -1001,8 +1000,8 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				updateSymbolTableFunctionFunctionCalls(node, function);
+				// updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+				// updateSymbolTableFunctionFunctionCalls(node, function);
 
 				//add function
 				symbolTable.addFunction(function);
@@ -1085,9 +1084,11 @@ void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable)
 
 			default:
 				break;
+
 		}
 	}	
-	
+	clinitJavaBytecodes(writer);
+
 	writer.close();/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1160,14 +1161,26 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 		SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 		
 		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-	}/*@bgen(jjtree)*/
+	}
+
+	switch(symbolTable.functions.get(sign).returnType){
+		case INT:
+			writer.print("i");
+			break;
+		case ARRAY_INT:
+			writer.print("a");
+			break;
+		default:
+			break;
+	}
+	writer.println("return");
+	writer.println(".end method\n");/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
        }
      }
 /*@egen*/
-	
 }
 
 JAVACODE
@@ -1235,7 +1248,33 @@ public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<S
 			case "*":
 				writer.println("imul");
 				break;
-			// TODO: /, + , -, ...
+			case "/":
+				writer.println("idiv");
+				break;
+			case "+":
+				writer.println("iadd");
+				break;
+			case "-":
+				writer.println("isub");
+				break;
+			case "<<":
+				writer.println("ishl");
+				break;
+			case ">>":
+				writer.println("ishr");
+				break;
+			case ">>>":
+				writer.println("iushl");
+				break;
+			case "&":
+				writer.println("iand");
+				break;
+			case "|":
+				writer.println("ior");
+				break;
+			case "^":
+				writer.println("ixor");
+				break;
 			default:
 				break;
 		}
@@ -1427,6 +1466,27 @@ String loadIntegerToBytecodes(Integer value){/*@bgen(jjtree) loadIntegerToByteco
 /*@egen*/	
 }
 
+JAVACODE 
+void clinitJavaBytecodes(PrintWriter writer){/*@bgen(jjtree) clinitJavaBytecodes */
+     ASTclinitJavaBytecodes jjtn000 = new ASTclinitJavaBytecodes(JJTCLINITJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+	writer.println("method static public <clinit>()V");
+	writer.println(".limit stack 0");
+	writer.println(".limit locals 0");
+	writer.println("return");
+	writer.println(".end method ");/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+	 
+}
+
 JAVACODE
 void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {/*@bgen(jjtree) updateSymbolTableFunctionArguments */
      ASTupdateSymbolTableFunctionArguments jjtn000 = new ASTupdateSymbolTableFunctionArguments(JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS);
@@ -1495,7 +1555,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 					}
 
 					else
-						function.addLocalDeclaration(variableName,node.getDataType(),null,null);
+						function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
 
 				}
 				else {
@@ -1531,7 +1591,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 						}
 
-						function.addLocalDeclaration(variableName,type, localVariable, signature);
+						function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
 							
 
 					}
@@ -1561,7 +1621,6 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
      }
 /*@egen*/
 }
-
 
 
 JAVACODE

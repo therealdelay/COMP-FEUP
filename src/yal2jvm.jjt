@@ -370,7 +370,6 @@ SymbolTable generateSymbolTable(Node root) {
 			case JJTDECLARATION:
 
 				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-
 				break;
 
 			case JJTFUNCTION:
@@ -401,8 +400,8 @@ SymbolTable generateSymbolTable(Node root) {
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				updateSymbolTableFunctionFunctionCalls(node, function);
+				// updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+				// updateSymbolTableFunctionFunctionCalls(node, function);
 
 				//add function
 				symbolTable.addFunction(function);
@@ -452,9 +451,11 @@ void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable)
 
 			default:
 				break;
+
 		}
 	}	
-	
+	clinitJavaBytecodes(writer);
+
 	writer.close();
 
 }
@@ -517,7 +518,19 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 		
 		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
 	}
-	
+
+	switch(symbolTable.functions.get(sign).returnType){
+		case INT:
+			writer.print("i");
+			break;
+		case ARRAY_INT:
+			writer.print("a");
+			break;
+		default:
+			break;
+	}
+	writer.println("return");
+	writer.println(".end method\n");
 }
 
 JAVACODE
@@ -569,7 +582,33 @@ public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<S
 			case "*":
 				writer.println("imul");
 				break;
-			// TODO: /, + , -, ...
+			case "/":
+				writer.println("idiv");
+				break;
+			case "+":
+				writer.println("iadd");
+				break;
+			case "-":
+				writer.println("isub");
+				break;
+			case "<<":
+				writer.println("ishl");
+				break;
+			case ">>":
+				writer.println("ishr");
+				break;
+			case ">>>":
+				writer.println("iushl");
+				break;
+			case "&":
+				writer.println("iand");
+				break;
+			case "|":
+				writer.println("ior");
+				break;
+			case "^":
+				writer.println("ixor");
+				break;
 			default:
 				break;
 		}
@@ -700,6 +739,16 @@ String loadIntegerToBytecodes(Integer value){
 		return "iconst_" + value;	
 }
 
+JAVACODE 
+void clinitJavaBytecodes(PrintWriter writer){
+	writer.println("method static public <clinit>()V");
+	writer.println(".limit stack 0");
+	writer.println(".limit locals 0");
+	writer.println("return");
+	writer.println(".end method ");
+	 
+}
+
 JAVACODE
 void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
 
@@ -752,7 +801,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 					}
 
 					else
-						function.addLocalDeclaration(variableName,node.getDataType(),null,null);
+						function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
 
 				}
 				else {
@@ -788,7 +837,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 						}
 
-						function.addLocalDeclaration(variableName,type, localVariable, signature);
+						function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
 							
 
 					}
@@ -812,7 +861,6 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 	}
 }
-
 
 
 JAVACODE

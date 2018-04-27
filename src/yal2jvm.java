@@ -1206,7 +1206,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         case JJTDECLARATION:
 
                                 symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-
                                 break;
 
                         case JJTFUNCTION:
@@ -1237,8 +1236,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                                 }
 
-                                updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-                                updateSymbolTableFunctionFunctionCalls(node, function);
+                                // updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+                                // updateSymbolTableFunctionFunctionCalls(node, function);
 
                                 //add function
                                 symbolTable.addFunction(function);
@@ -1311,8 +1310,10 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                         default:
                                 break;
+
                 }
         }
+        clinitJavaBytecodes(writer);
 
         writer.close();/*@bgen(jjtree)*/
      } finally {
@@ -1380,7 +1381,20 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 
                 statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-        }/*@bgen(jjtree)*/
+        }
+
+        switch(symbolTable.functions.get(sign).returnType){
+                case INT:
+                        writer.print("i");
+                        break;
+                case ARRAY_INT:
+                        writer.print("a");
+                        break;
+                default:
+                        break;
+        }
+        writer.println("return");
+        writer.println(".end method\u005cn");/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
@@ -1447,7 +1461,33 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         case "*":
                                 writer.println("imul");
                                 break;
-                        // TODO: /, + , -, ...
+                        case "/":
+                                writer.println("idiv");
+                                break;
+                        case "+":
+                                writer.println("iadd");
+                                break;
+                        case "-":
+                                writer.println("isub");
+                                break;
+                        case "<<":
+                                writer.println("ishl");
+                                break;
+                        case ">>":
+                                writer.println("ishr");
+                                break;
+                        case ">>>":
+                                writer.println("iushl");
+                                break;
+                        case "&":
+                                writer.println("iand");
+                                break;
+                        case "|":
+                                writer.println("ior");
+                                break;
+                        case "^":
+                                writer.println("ixor");
+                                break;
                         default:
                                 break;
                 }
@@ -1619,6 +1659,23 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
+  static void clinitJavaBytecodes(PrintWriter writer) throws ParseException {
+                                             /*@bgen(jjtree) clinitJavaBytecodes */
+     ASTclinitJavaBytecodes jjtn000 = new ASTclinitJavaBytecodes(JJTCLINITJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {writer.println("method static public <clinit>()V");
+        writer.println(".limit stack 0");
+        writer.println(".limit locals 0");
+        writer.println("return");
+        writer.println(".end method ");/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
   static void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) throws ParseException {
                                                                                            /*@bgen(jjtree) updateSymbolTableFunctionArguments */
      ASTupdateSymbolTableFunctionArguments jjtn000 = new ASTupdateSymbolTableFunctionArguments(JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS);
@@ -1679,7 +1736,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                         }
 
                                         else
-                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null);
+                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
 
                                 }
                                 else {
@@ -1715,7 +1772,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                                                 }
 
-                                                function.addLocalDeclaration(variableName,type, localVariable, signature);
+                                                function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
 
 
                                         }

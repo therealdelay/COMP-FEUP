@@ -43,12 +43,20 @@ module test_jp {
         global1 = f2(global2);
 
         global1 = f3(global1);
-        global4 = f3(global1);
+        global4 = 2;
+        global4 = f2(global1);
 
         global3 = [12];
 
         local15 = global3;
         local16 = local15;
+
+        
+        local300 = f2(global2);
+        local300 = 2;
+        
+
+        local7 = [20];
 
     }
 
