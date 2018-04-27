@@ -37,7 +37,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 updateNullTypesFunctionCalls(symbolTable);
 
-                // System.out.println(symbolTable);
+                System.out.println(symbolTable);
 
                 System.out.print("\u005cn\u005cn\u005cn");
         }
@@ -1322,13 +1322,24 @@ if (jjtc000) {
 
                 SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
 
+                String variableName = (String) lhs.jjtGetValue();
+
                 switch (node.getId()) {
 
                         case JJTASSIGN:
 
                                 if(node.getDataType() != null) {
 
-                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType(),null,null);
+                                        if(symbolTable.globalDeclarations.containsKey(variableName)) {
+
+                                                if(symbolTable.addGlobalDeclaration(variableName,node.getDataType()) == false) {
+                                                        System.out.println("Repeated global variable found in function");
+                                                }
+
+                                        }
+
+                                        else
+                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null);
 
                                 }
                                 else {
@@ -1340,9 +1351,6 @@ if (jjtc000) {
 
                                                 if(type == null)
                                                         type = symbolTable.globalDeclarations.get(previousVariable);
-
-                                                System.out.println("Variable:" + previousVariable);
-                                                System.out.println("Type:" + type);
 
                                                 String localVariable = null;
                                                 SymbolTable.Signature signature = null;
@@ -1367,7 +1375,8 @@ if (jjtc000) {
 
                                                 }
 
-                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type, localVariable, signature);
+                                                function.addLocalDeclaration(variableName,type, localVariable, signature);
+
 
                                         }
 
@@ -1403,8 +1412,6 @@ if (jjtc000) {
      try {SimpleNode currentNode = (SimpleNode) node;
 
         if(currentNode.getId() == JJTCALL) {
-
-                System.out.println("Entrei no call");
 
                 String functionName = (String)currentNode.jjtGetValue();
                 String moduleName = "";
@@ -1464,31 +1471,82 @@ if (jjtc000) {
 
                         int argumentsSize = functionCallSignature.arguments.size();
 
-                        System.out.println("Argument Types size:" + argumentsSize);
-
                         ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
 
-                        // for(int i = 0; i < argumentsSize; i++) {
+                        for(int i = 0; i < argumentsSize; i++) {
 
-                        // 	if(functionCallSignature.argumentTypes.get(i) != null) {
-                        // 		argumentTypesFunctionCall.add(i, functionCallSignature.argumentTypes.get(i));
-                        // 		System.out.println("Argument type: " + argumentTypesFunctionCall.get(i));
-                        // 	}
+                                argumentTypesFunctionCall.add(SimpleNode.Type.INT);
 
+                        }
 
+                        for(int i = 0; i < argumentsSize; i++) {
 
-                        // }
+                                if(functionCallSignature.argumentTypes.get(i) != null) {
+                                        argumentTypesFunctionCall.set(i, functionCallSignature.argumentTypes.get(i));
+                                }
+                                else {
 
-                        // SimpleNode.Type nullType = function.localDeclarations.get(nullDeclarationsFunctionCall.key);
-                        // SymbolTable.Signature signatureFunctionCall = nullDeclarationsFunctionCall.value;
+                                        String variable = functionCallSignature.arguments.get(i);
 
+                                        SimpleNode.Type type = symbolTable.globalDeclarations.get(variable);
 
-                        // SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+                                        if(type == null)
+                                                type = function.localDeclarations.get(variable);
 
-                        // System.out.println("FUNCTION NAME: " + functionFunctionCall.signature.functionName);
+                                        argumentTypesFunctionCall.set(i, type);
 
+                                        if(type == null) {
 
-                        // nullType = functionReturnType;
+                                                System.out.println("Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
+                                                continue;
+                                        }
+
+                                }
+
+                        }
+
+                        SymbolTable.Signature signatureFunctionCall = new SymbolTable.Signature(argumentTypesFunctionCall,functionCallSignature.functionName);
+
+                        SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+
+                        if(functionFunctionCall == null) {
+
+                                System.out.print("Function " + signatureFunctionCall.functionName + "(");
+
+                                for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
+                                        System.out.print(signatureFunctionCall.argumentTypes.get(i));
+
+                                        if(i < signatureFunctionCall.argumentTypes.size()-1)
+                                                System.out.print(", ");
+
+                                }
+
+                                System.out.println(") does not exist");
+                                continue;
+
+                        }
+
+                        //Ver se já era global e se o tipo é o mesmo, se não for, meter nas repetidas, se ainda não tiver tipo, atribuir o do return
+                        //da função
+
+                        String nullFunctionCallAssignVariable = nullDeclarationsFunctionCall.key;
+                        SimpleNode.Type returnType = functionFunctionCall.returnType;
+
+                        if(symbolTable.globalDeclarations.containsKey(nullFunctionCallAssignVariable)) {
+
+                                SimpleNode.Type currentType = symbolTable.globalDeclarations.get(nullFunctionCallAssignVariable);
+
+                                symbolTable.addGlobalDeclaration(nullFunctionCallAssignVariable, returnType);
+                                function.localDeclarations.remove(nullFunctionCallAssignVariable);
+
+                        }
+
+                        else {
+
+                                SimpleNode.Type nullType = function.localDeclarations.get(nullFunctionCallAssignVariable);
+                                function.localDeclarations.put(nullFunctionCallAssignVariable, returnType);
+
+                        }
 
                 }
 

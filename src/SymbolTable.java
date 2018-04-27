@@ -71,6 +71,19 @@ class SymbolTable {
 
 		}
 
+		public Signature(ArrayList<SimpleNode.Type> argumentTypes, String functionName) {
+
+			this.functionName = functionName;
+
+			for(SimpleNode.Type type : argumentTypes) {
+
+				this.arguments.add("");
+				this.argumentTypes.add(type);
+
+			}
+
+		}
+
 		public Signature(String functionName) {
 			this.functionName = functionName;
 			this.arguments = new ArrayList<>();
@@ -191,10 +204,10 @@ class SymbolTable {
 		}
 
 		if(exists != value) {
-
 			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key,value));
-
 		}
+
+
 			
 		return false;
 
@@ -222,7 +235,7 @@ class SymbolTable {
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		PrintWriter out = new PrintWriter(outStream);
 
-		out.println("Module " + this.moduleName + ":\n");
+		out.println("\n\n---------Module " + this.moduleName + "---------\n\n");
 		out.println("Global Variables:");
 
 		for(String globalDeclaration : this.globalDeclarations.keySet()) {
@@ -261,7 +274,7 @@ class SymbolTable {
 			for(String variable : function.localDeclarations.keySet()) {
 
 				SimpleNode.Type type = function.localDeclarations.get(variable);
-				out.println(variable + " with data type: " + type);
+				out.println("\t" + variable + " with data type: " + type);
 
 			}
 
@@ -285,32 +298,6 @@ class SymbolTable {
 				}
 
 			}
-
-			out.println("Null declarations for variables");
-
-			for(Pair<String,String> nullDeclarationVatiable : function.nullDeclarationsVariables) {
-
-				out.println("Left: " + nullDeclarationVatiable.key + " Right: " + nullDeclarationVatiable.value);
-
-			}
-
-			out.println("Null declarations for function calls");
-
-			for(Pair<String,Signature> nullDeclarationsFunctionCall : function.nullDeclarationsFunctionCalls) {
-
-				out.println("Left: " + nullDeclarationsFunctionCall.key + " Right: " + nullDeclarationsFunctionCall.value.functionName);
-
-				out.println("With Parameters: ");
-
-				for(int i = 0; i < nullDeclarationsFunctionCall.value.arguments.size(); i++) {
-
-					out.println("\tArgument " + nullDeclarationsFunctionCall.value.arguments.get(i) + ", of type " + nullDeclarationsFunctionCall.value.argumentTypes.get(i));
-	
-				}
-
-
-			}
-
 
 		}
 
