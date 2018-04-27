@@ -288,7 +288,8 @@ void Call() : {Token t1, t2;}
 
 void Callstmt() #Call : {Token t1, t2;}
 {
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>
+	// t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>
+	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
 
 	try{
 		[ArgumentList()] <RPAR> <PVIRG>
@@ -433,7 +434,7 @@ JAVACODE
 void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable){
 
 	writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
-	writer.println(".super java/lang/Object\n");
+	writer.println(".super java/lang/Object");
 
 	int numChildren = root.jjtGetNumChildren();
 
@@ -468,7 +469,7 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 	String functionName = (String) functionNode.jjtGetValue();
 	ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
 
-	writer.print(".method public static ");
+	writer.print("\n.method public static ");
 
 	Node statementList = functionNode.jjtGetChild(0);
 	Node argumentList;
@@ -536,7 +537,9 @@ public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer,
 
 			writer.println(lhsBytecode);
 			break;
-	
+		case yal2jvmTreeConstants.JJTCALL:
+			SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
+			functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
 		default:
 			break;
 	}
@@ -592,45 +595,65 @@ public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList
 	else{ //function call
 		SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
 
-		String functionName = (String) callNode.jjtGetValue();
-
-		SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
-
-		ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
-
-		ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
-		for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
-			SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
-
-			System.out.println("functionName: " + functionName);
-			System.out.println("assignFunctionParameters size: " + assignFunctionParameters.size());
-			for (SymbolTable.Pair<String, SimpleNode.Type> pair : assignFunctionParameters) {
-				System.out.println("assignFunctionParameters content: [" + pair.key + ", " + pair.value + "]");
-			}
-			String argName = assignFunctionParameters.get(i).key;
-			if(argName != null){
-
-				SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
-
-				if(type == null){
-					SymbolTable.Function function = symbolTable.functions.get(sign);
-					type = function.localDeclarations.get(argName);
-				}
-				argumentTypes.add(type);
-				int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
-				writer.println("iload_LEO" + rIndex);
-			}
-			else{
-				argumentTypes.add(assignFunctionParameters.get(i).value);
-				writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
-			}
-		}
-
-		SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
-
+		functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
 	}
 }
 
+JAVACODE
+public void functionCallJavaBytecodes(SimpleNode callNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+	
+	System.out.println("callNode.id: " + callNode.getId());
+
+	String functionName = (String) callNode.getAssignId();
+	String moduleName = (String) callNode.getAssignIdModule();
+	if(moduleName == null) moduleName = symbolTable.moduleName;
+	
+	
+	SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
+	
+	ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+	
+	ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
+	
+	System.out.println("functionName: " + moduleName + "/" + functionName);
+	for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
+		SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
+
+		String argName = assignFunctionParameters.get(i).key;
+		if(argName != null){
+
+			SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
+
+			if(type == null){
+				SymbolTable.Function function = symbolTable.functions.get(sign);
+				System.out.println("argName: " + argName);
+				type = function.localDeclarations.get(argName);
+				System.out.println("Type: " + type);
+			}
+			argumentTypes.add(type);
+			int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
+			writer.println("iload_" + rIndex);
+		}
+		else{
+			argumentTypes.add(assignFunctionParameters.get(i).value);
+			writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
+		}
+	}
+
+	for (SimpleNode.Type type : argumentTypes) {
+		System.out.println("argType: " + type);
+	}
+	SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
+	SymbolTable.Function function = symbolTable.functions.get(funcCallSign);
+	if(function == null){
+		System.out.println("NULL FUNCTION");
+	} 
+	else{
+
+		writer.println("invokestatic " + moduleName + "/" + functionToBytecodes(function) + "\n");
+	}
+
+}
 
 JAVACODE
 String typeToBytecodes(SimpleNode.Type type) {
