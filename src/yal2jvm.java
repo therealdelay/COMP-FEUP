@@ -1339,7 +1339,7 @@ if (jjtc000) {
                                         }
 
                                         else
-                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null);
+                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
 
                                 }
                                 else {
@@ -1375,7 +1375,7 @@ if (jjtc000) {
 
                                                 }
 
-                                                function.addLocalDeclaration(variableName,type, localVariable, signature);
+                                                function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
 
 
                                         }

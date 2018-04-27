@@ -139,7 +139,21 @@ class SymbolTable {
 			this.returnType = type;
 		}
 
-		public boolean addLocalDeclaration(String key, SimpleNode.Type value, String localVariable, Signature functionCall) {
+		public SimpleNode.Type getType(String variableName, HashMap<String,SimpleNode.Type> globalDeclarations) {
+
+			SimpleNode.Type type = this.localDeclarations.get(variableName);
+
+			if(type == null) {
+
+				return globalDeclarations.get(variableName);
+
+			}
+
+			return type;
+
+		}
+
+		public boolean addLocalDeclaration(String key, SimpleNode.Type value, String localVariable, Signature functionCall, HashMap<String,SimpleNode.Type> globalDeclarations) {
 
 			SimpleNode.Type exists = this.localDeclarations.get(key);
 
@@ -151,8 +165,34 @@ class SymbolTable {
 
 					if(localVariable != null)
 						this.nullDeclarationsVariables.add(new Pair(key,localVariable));
-					else
-						this.nullDeclarationsFunctionCalls.add(new Pair(key,functionCall));
+					else {
+
+						if(functionCall != null) {
+
+							boolean insert = true;
+
+							for(int i = 0; i < functionCall.argumentTypes.size(); i++) {
+
+								if(functionCall.argumentTypes.get(i) == null) {
+
+									if(this.getType(functionCall.arguments.get(i), globalDeclarations) == null) {
+										insert = false;
+										break;
+									}
+
+								}
+
+							}
+
+							if(insert)
+								this.nullDeclarationsFunctionCalls.add(new Pair(key,functionCall));
+
+						}
+
+						
+
+					}
+						
 
 				}
 					
@@ -207,8 +247,6 @@ class SymbolTable {
 			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key,value));
 		}
 
-
-			
 		return false;
 
 	}
@@ -293,7 +331,12 @@ class SymbolTable {
 
 				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
-					out.println("\tArgument " + functionCall.signature.arguments.get(i) + ", of type " + functionCall.signature.argumentTypes.get(i));
+					SimpleNode.Type type = functionCall.signature.argumentTypes.get(i);
+
+					if(type == null)
+						type = function.getType(functionCall.signature.arguments.get(i), this.globalDeclarations);
+
+					out.println("\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
 	
 				}
 

@@ -50,6 +50,13 @@ module test_jp {
         local15 = global3;
         local16 = local15;
 
+        
+        local300 = f2(global2);
+        local300 = 2;
+        global4 = [2];
+
+        local7 = [20];
+
     }
 
     function ret[] = f2(arg1[]) {

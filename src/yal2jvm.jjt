@@ -370,7 +370,6 @@ SymbolTable generateSymbolTable(Node root) {
 			case JJTDECLARATION:
 
 				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-
 				break;
 
 			case JJTFUNCTION:
@@ -471,7 +470,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 					}
 
 					else
-						function.addLocalDeclaration(variableName,node.getDataType(),null,null);
+						function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
 
 				}
 				else {
@@ -507,7 +506,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 						}
 
-						function.addLocalDeclaration(variableName,type, localVariable, signature);
+						function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
 							
 
 					}
@@ -531,7 +530,6 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 
 	}
 }
-
 
 
 JAVACODE
