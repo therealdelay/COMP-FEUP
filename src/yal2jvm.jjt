@@ -354,68 +354,6 @@ void incErrorCounter(){
 	}
 }
 
-JAVACODE
-SymbolTable generateSymbolTable(Node root) {
-
-	SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
-	int numChildren = root.jjtGetNumChildren();
-
-	for(int i = 0; i < numChildren; i++) {
-
-		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
-		int nodeType = node.getId();
-
-		switch (nodeType) {
-			case JJTDECLARATION:
-
-				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-				break;
-
-			case JJTFUNCTION:
-
-				String functionName = (String) node.jjtGetValue();
-				SimpleNode.Type returnType = node.getDataType();
-				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-				SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
-
-				/**
-				 * verificar se tem argumentos ou apenas statements
-				 */
-
-				Node argumentList;
-				Node statementList;
-
-				int functionChildrenNum = node.jjtGetNumChildren();
-				statementList = node.jjtGetChild(0);
-
-				// System.out.println("Function Name: " + signature.functionName);
-
-				if(functionChildrenNum == 2) {
-
-					argumentList = statementList;
-					statementList = node.jjtGetChild(1);
-					updateSymbolTableFunctionArguments(argumentList, function);
-
-
-				}
-
-				// updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				// updateSymbolTableFunctionFunctionCalls(node, function);
-
-				//add function
-				symbolTable.addFunction(function);
-
-				break;
-
-			default:
-				break;
-		}
-	}
-
-	return symbolTable;
-
-
-}
 
 JAVACODE
 void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws IOException {
@@ -676,6 +614,84 @@ String loadIntegerToBytecodes(Integer value){
 		return "iconst_" + value;	
 }
 
+
+
+
+JAVACODE
+SymbolTable generateSymbolTable(Node root) {
+
+	SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
+	int numChildren = root.jjtGetNumChildren();
+
+	ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
+	ArrayList<Node> allStatementsListNodes = new ArrayList();
+	ArrayList<Node> allFunctionsNodes = new ArrayList();
+
+
+	for(int i = 0; i < numChildren; i++) {
+
+		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+		int nodeType = node.getId();
+
+		switch (nodeType) {
+			case JJTDECLARATION:
+
+				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+				break;
+
+			case JJTFUNCTION:
+
+				String functionName = (String) node.jjtGetValue();
+				SimpleNode.Type returnType = node.getDataType();
+				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+				SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+
+				/**
+				 * verificar se tem argumentos ou apenas statements
+				 */
+
+				Node argumentList;
+				Node statementList;
+
+				int functionChildrenNum = node.jjtGetNumChildren();
+				statementList = node.jjtGetChild(0);
+
+				// System.out.println("Function Name: " + signature.functionName);
+
+				if(functionChildrenNum == 2) {
+
+					argumentList = statementList;
+					statementList = node.jjtGetChild(1);
+					updateSymbolTableFunctionArguments(argumentList, function);
+
+
+				}
+
+				
+				//add function
+				symbolTable.addFunction(function);
+				allFunctions.add(function);
+				allStatementsListNodes.add(statementList);
+				allFunctionsNodes.add(node);
+
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	for(int i=0 ; i < allFunctions.size(); i++){
+		updateSymbolTableFunctionAssigns(allStatementsListNodes.get(i),allFunctions.get(i),symbolTable);
+		// updateSymbolTableFunctionFunctionCalls(node, function);
+	}
+
+	return symbolTable;
+
+
+}
+
+
 JAVACODE
 void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
 
@@ -701,9 +717,61 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 }
 
 JAVACODE
-void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
+void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
-	int numStatements = statementList.jjtGetNumChildren();
+	for(int i = 0; i < statementList.jjtGetNumChildren(); i++){
+		
+		SimpleNode statement = (SimpleNode)statementList.jjtGetChild(i);
+		
+		SimpleNode statementChild = (SimpleNode)statement.jjtGetChild(0);
+		
+		switch(statementChild.getId()){
+			case JJTASSIGN:
+
+				SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+				SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
+				SimpleNode rhsChild = (SimpleNode)rhs.jjtGetChild(0);
+
+				String rhsValue = (String)rhs.jjtGetValue();
+				if(rhsValue == null)
+					rhsValue = (String)rhsChild.jjtGetValue();
+
+				SimpleNode.Type rhsType = rhs.getDataType();
+				if(rhsType == null)
+					rhsType = rhsChild.getDataType();
+
+				System.out.println("RHS Type: " + rhsType);
+
+				// verificar se os types dos 2 membros do assign coincidem
+				if(lhs.getDataType() == null)
+					lhs.jjtSetType(rhsType);
+				else{
+					if(lhs.getDataType() != rhsType){
+						System.out.println("Semantic error: conflict types between " + lhs.value + " and " + rhsValue);
+					}
+				}
+				System.out.println("LHS Type: " + lhs.getDataType());
+				function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
+				break;
+
+			case JJTIF:
+			case JJTWHILE:
+				System.out.println("If/While: " + statementChild);
+				System.out.println("If/While children: " + statementChild.jjtGetNumChildren());
+				break;
+
+			default:
+				break;
+		}
+
+
+
+
+
+	}
+
+	System.out.println();
+	/*int numStatements = statementList.jjtGetNumChildren();
 
 	for(int i = 0; i < numStatements; i++) {
 
@@ -786,7 +854,7 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
 				break;
 		}
 
-	}
+	}*/
 }
 
 

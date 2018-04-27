@@ -37,7 +37,7 @@ class SymbolTable {
 		public int hashCode() {
 			return Objects.hash(this.value);
 		}
-	
+
 	}
 
 	public static class FunctionCall {
@@ -49,7 +49,7 @@ class SymbolTable {
 			this.signature = signature;
 			this.module = module;
 		}
-	
+
 	}
 
 	public static class Signature {
@@ -108,26 +108,26 @@ class SymbolTable {
 				if(this.argumentTypes.get(i) != s2.argumentTypes.get(i))
 					return false;
 
-			return true;
+				return true;
 
+
+			}
+
+			@Override
+			public int hashCode() {
+
+				return Objects.hash(this.functionName,this.argumentTypes);
+			}
 
 		}
 
-		@Override
-		public int hashCode() {
 
-			return Objects.hash(this.functionName,this.argumentTypes);
-		}
+		public static class Function {
 
-	}
-
-
-	public static class Function {
-
-		public Signature signature; 
-		public HashMap<String,SimpleNode.Type> localDeclarations = new HashMap<>();
-		public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
-		public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
+			public Signature signature; 
+			public HashMap<String,SimpleNode.Type> localDeclarations = new HashMap<>();
+			public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
+			public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
 		public SimpleNode.Type returnType; //tipo de retorno
 
 		public ArrayList<Pair<String,String>> nullDeclarationsVariables = new ArrayList<>();
@@ -153,63 +153,29 @@ class SymbolTable {
 
 		}
 
-		public boolean addLocalDeclaration(String key, SimpleNode.Type value, String localVariable, Signature functionCall, HashMap<String,SimpleNode.Type> globalDeclarations) {
+		public boolean addLocalDeclaration(String key, SimpleNode.Type value, HashMap<String,SimpleNode.Type> globalDeclarations) {
 
-			SimpleNode.Type exists = this.localDeclarations.get(key);
+			SimpleNode.Type isGlobal = globalDeclarations.get(key);
 
-			if(exists == null) {
-
-				this.localDeclarations.put(key, value);
-
-				if(value == null) {
-
-					if(localVariable != null)
-						this.nullDeclarationsVariables.add(new Pair(key,localVariable));
-					else {
-
-						if(functionCall != null) {
-
-							boolean insert = true;
-
-							for(int i = 0; i < functionCall.argumentTypes.size(); i++) {
-
-								if(functionCall.argumentTypes.get(i) == null) {
-
-									if(this.getType(functionCall.arguments.get(i), globalDeclarations) == null) {
-										insert = false;
-										break;
-									}
-
-								}
-
-							}
-
-							if(insert)
-								this.nullDeclarationsFunctionCalls.add(new Pair(key,functionCall));
-
-						}
-
-						
-
-					}
-						
-
-				}
-					
-
+			if(isGlobal != null){ // lhs é variável global
+				if(value != isGlobal)
+					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
 				return true;
-
 			}
-
-			if(exists != value) {
-
-				this.repeatedLocalDeclarationsDiffType.add(new Pair(key,value));
-
+			else{ //lhs é variável local
+				SimpleNode.Type alreadyLocal = this.localDeclarations.get(key);
+				if(alreadyLocal == null){
+					localDeclarations.put(key,value);
+					return true;
+				}
+				if(alreadyLocal != value){
+					System.out.println(value);
+					System.out.println("A variavel esta a ser atualizada com um tipo diferente de quando foi declarada/instanciada");
+					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
+					return false;
+				}
+				return true;
 			}
-
-			
-			return false;
-		
 		}
 
 		public void addFunctionCall(Signature signature, String module) {
@@ -224,7 +190,7 @@ class SymbolTable {
 			return this.signature.equals(f2.signature);
 
 		}
-	
+
 	}
 
 	public SymbolTable(String moduleName) {
@@ -266,6 +232,17 @@ class SymbolTable {
 		return false;
 
 	}
+
+	public SimpleNode.Type getType(String variableName, Function function) {
+
+		SimpleNode.Type result = this.globalDeclarations.get(variableName);
+		if(result == null)
+			result = function.localDeclarations.get(variableName);
+		
+		return result;
+
+	}
+
 
 	@Override
 	public String toString() {
@@ -337,7 +314,7 @@ class SymbolTable {
 						type = function.getType(functionCall.signature.arguments.get(i), this.globalDeclarations);
 
 					out.println("\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
-	
+
 				}
 
 			}
