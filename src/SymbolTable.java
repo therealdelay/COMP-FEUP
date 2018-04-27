@@ -5,6 +5,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 
+import javax.lang.model.util.ElementScanner6;
+
+// import SimpleNode.Type;
+
 class SymbolTable {
 
 	public String moduleName;
@@ -40,16 +44,93 @@ class SymbolTable {
 	
 	}
 
+	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName, ArrayList<Pair<String,SimpleNode.Type>> functionCallParameters, Function processingFunction) {
+
+		//Check if all parameters are initialized
+
+		String errorFunctionCall = "";
+		int numberOfNotInitializedParameters = 0;
+
+		for(SymbolTable.Pair<String,SimpleNode.Type> argument : functionCallParameters) {
+
+			if(argument.value == null) {
+
+				argument.value = this.getType(argument.key, processingFunction);
+				if(argument.value == null) {
+					errorFunctionCall += "Parameter " + argument.key + " not initialized";
+					numberOfNotInitializedParameters++;
+				}
+
+			}
+				
+		}
+
+		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+
+		//if function is from another module OK
+
+		if(moduleName != null) {
+
+			return new FunctionCall(signature, moduleName, true, "OK", SimpleNode.Type.INT);
+
+		}
+			
+		//Parameters not initialized
+
+		if(numberOfNotInitializedParameters > 0) {
+
+			return new FunctionCall(signature, moduleName, false, errorFunctionCall, null);
+
+		}
+
+		// check if function exists
+		Function calledFunction = this.functions.get(signature);
+
+		if(calledFunction == null) {
+
+			String error = functionName + "(";
+			
+			for(int i = 0; i < signature.argumentTypes.size(); i++) {
+
+				error += signature.argumentTypes.get(i);
+
+				if(i < signature.argumentTypes.size() - 1)
+					error += ", ";
+
+			}
+
+			error += ") does not exist!";
+
+			return new FunctionCall(signature, moduleName, false, error, null);
+
+		}
+
+
+		return new FunctionCall(signature, moduleName, true, "OK", calledFunction.returnType);
+
+	}
+
 	public static class FunctionCall {
 		
 		public Signature signature;
 		public String module;
+		public String error;
+		public boolean ok = true;
 
-		public FunctionCall(Signature signature, String module) {
+		public SimpleNode.Type funcionCallReturnType; // return type da função que chama, null no caso de ser uma chamada inválida
+
+		public FunctionCall(Signature signature, String module, boolean ok, String error, SimpleNode.Type callReturnType) {
 			this.signature = signature;
 			this.module = module;
+			this.ok = ok;
+			this.error = error;
+			this.funcionCallReturnType = callReturnType;
 		}
-	
+		public void setErrorCall(String error) {
+			this.error = error;
+			this.ok = false;
+		}
+
 	}
 
 	public static class Signature {
@@ -212,8 +293,8 @@ class SymbolTable {
 		
 		}
 
-		public void addFunctionCall(Signature signature, String module) {
-			this.functionCalls.add(new FunctionCall(signature, module));
+		public void addFunctionCall(FunctionCall functionCall) {
+			this.functionCalls.add(functionCall);
 		}
 
 		@Override
@@ -264,6 +345,16 @@ class SymbolTable {
 
 		this.repeatedFunctions.add(function.signature);
 		return false;
+
+	}
+
+	public SimpleNode.Type getType(String variableName, Function function) {
+
+		SimpleNode.Type result = this.globalDeclarations.get(variableName);
+		if(result == null)
+			result = function.localDeclarations.get(variableName);
+		
+		return result;
 
 	}
 
@@ -329,15 +420,26 @@ class SymbolTable {
 
 				out.println(functionCall.signature.functionName);
 
+				out.print("Module: ");
+				if(functionCall.module != null)
+					out.println(functionCall.module);
+				else
+					 out.println(this.moduleName);
+					 
+				if(functionCall.ok)
+					out.println("Call is ok: ");
+				else 
+					out.println("Call NOT ok " + functionCall.error);
+
 				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
-					SimpleNode.Type type = functionCall.signature.argumentTypes.get(i);
+					if(functionCall.ok) {
 
-					if(type == null)
-						type = function.getType(functionCall.signature.arguments.get(i), this.globalDeclarations);
+						SimpleNode.Type type = functionCall.signature.argumentTypes.get(i);
 
-					out.println("\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
-	
+						out.println("\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
+
+					}
 				}
 
 			}

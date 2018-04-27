@@ -1204,73 +1204,6 @@ if (jjtc000) {
      }
   }
 
-  static SymbolTable generateSymbolTable(Node root) throws ParseException {/*@bgen(jjtree) generateSymbolTable */
-     ASTgenerateSymbolTable jjtn000 = new ASTgenerateSymbolTable(JJTGENERATESYMBOLTABLE);
-     boolean jjtc000 = true;
-     jjtree.openNodeScope(jjtn000);
-     try {SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
-        int numChildren = root.jjtGetNumChildren();
-
-        for(int i = 0; i < numChildren; i++) {
-
-                SimpleNode node = (SimpleNode) root.jjtGetChild(i);
-                int nodeType = node.getId();
-
-                switch (nodeType) {
-                        case JJTDECLARATION:
-
-                                symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-                                break;
-
-                        case JJTFUNCTION:
-
-                                String functionName = (String) node.jjtGetValue();
-                                SimpleNode.Type returnType = node.getDataType();
-                                SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-                                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
-
-                                /**
-				 * verificar se tem argumentos ou apenas statements
-				 */
-
-                                Node argumentList;
-                                Node statementList;
-
-                                int functionChildrenNum = node.jjtGetNumChildren();
-                                statementList = node.jjtGetChild(0);
-
-                                // System.out.println("Function Name: " + signature.functionName);
-
-                                if(functionChildrenNum == 2) {
-
-                                        argumentList = statementList;
-                                        statementList = node.jjtGetChild(1);
-                                        updateSymbolTableFunctionArguments(argumentList, function);
-
-
-                                }
-
-                                // updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-                                // updateSymbolTableFunctionFunctionCalls(node, function);
-
-                                //add function
-                                symbolTable.addFunction(function);
-
-                                break;
-
-                        default:
-                                break;
-                }
-        }
-
-        return symbolTable;/*@bgen(jjtree)*/
-     } finally {
-       if (jjtc000) {
-         jjtree.closeNodeScope(jjtn000, true);
-       }
-     }
-  }
-
   static void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws ParseException, IOException {/*@bgen(jjtree) generateJavaBytecodes */
      ASTgenerateJavaBytecodes jjtn000 = new ASTgenerateJavaBytecodes(JJTGENERATEJAVABYTECODES);
      boolean jjtc000 = true;
@@ -1594,6 +1527,88 @@ if (jjtc000) {
      }
   }
 
+  static SymbolTable generateSymbolTable(Node root) throws ParseException {/*@bgen(jjtree) generateSymbolTable */
+     ASTgenerateSymbolTable jjtn000 = new ASTgenerateSymbolTable(JJTGENERATESYMBOLTABLE);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
+        int numChildren = root.jjtGetNumChildren();
+
+        ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
+        ArrayList<Node> allStatementsListNodes = new ArrayList();
+        ArrayList<Node> allFunctionsNodes = new ArrayList();
+
+        for(int i = 0; i < numChildren; i++) {
+
+                SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+                int nodeType = node.getId();
+
+                switch (nodeType) {
+                        case JJTDECLARATION:
+
+                                symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+                                break;
+
+                        case JJTFUNCTION:
+
+                                String functionName = (String) node.jjtGetValue();
+                                SimpleNode.Type returnType = node.getDataType();
+                                SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+                                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+
+                                /**
+				 * verificar se tem argumentos ou apenas statements
+				 */
+
+                                Node argumentList;
+                                Node statementList;
+
+                                int functionChildrenNum = node.jjtGetNumChildren();
+                                statementList = node.jjtGetChild(0);
+
+                                // System.out.println("Function Name: " + signature.functionName);
+
+                                if(functionChildrenNum == 2) {
+
+                                        argumentList = statementList;
+                                        statementList = node.jjtGetChild(1);
+                                        updateSymbolTableFunctionArguments(argumentList, function);
+
+
+                                }
+
+                                allFunctions.add(function);
+                                allStatementsListNodes.add(statementList);
+                                allFunctionsNodes.add(node);
+
+                                // updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+                                // updateSymbolTableFunctionFunctionCalls(node, function);
+
+                                //add function
+                                symbolTable.addFunction(function);
+
+                                break;
+
+                        default:
+                                break;
+                }
+        }
+
+        for(int i = 0; i < allFunctions.size(); i++) {
+
+                // updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+                updateSymbolTableFunctionFunctionCalls(allFunctionsNodes.get(i), allFunctions.get(i), symbolTable);
+
+        }
+
+        return symbolTable;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
   static void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionArguments */
      ASTupdateSymbolTableFunctionArguments jjtn000 = new ASTupdateSymbolTableFunctionArguments(JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS);
      boolean jjtc000 = true;
@@ -1718,7 +1733,7 @@ if (jjtc000) {
      }
   }
 
-  static void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionFunctionCalls */
+  static void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function, SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionFunctionCalls */
      ASTupdateSymbolTableFunctionFunctionCalls jjtn000 = new ASTupdateSymbolTableFunctionFunctionCalls(JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1727,24 +1742,83 @@ if (jjtc000) {
         if(currentNode.getId() == JJTCALL) {
 
                 String functionName = (String)currentNode.jjtGetValue();
-                String moduleName = "";
+                String moduleName = null;
 
                 if(currentNode.jjtGetSecValue() != null) {
                         moduleName = functionName;
                         functionName = (String) currentNode.jjtGetSecValue();
                 }
 
-                String leftVariable = null;
-                SimpleNode parent = (SimpleNode) currentNode.jjtGetParent();
-                if(parent.getId() == JJTTERM) {
+                ArrayList<SymbolTable.Pair<String,SimpleNode.Type>> functionCallParameters = currentNode.assignFunctionParameters;
 
-                        SimpleNode greatGrandParent = (SimpleNode) parent.jjtGetParent();
-                        SimpleNode lhs = (SimpleNode)greatGrandParent.jjtGetChild(0);
-                        leftVariable = (String)lhs.jjtGetValue();
+                SymbolTable.FunctionCall functionCall = symbolTable.checkGoodFunctionCall(functionName, moduleName, functionCallParameters, function);
 
-                }
+                function.addFunctionCall(functionCall);
 
-                function.addFunctionCall(new SymbolTable.Signature(functionName, currentNode.assignFunctionParameters),moduleName);
+                // //Check if all parameters are initialized
+
+                // String errorFunctionCall = "";
+                // int numberOfNotInitializedParameters = 0;
+
+                // for(SymbolTable.Pair<String,SimpleNode.Type> argument : functionCallParameters) {
+
+                // 	if(argument.value == null) {
+
+                // 		argument.value = symbolTable.getType(argument.key, function);
+                // 		if(argument.value == null) {
+                // 			errorFunctionCall += "Parameter " + argument.key + " not initialized";
+                // 			numberOfNotInitializedParameters++;
+                // 		}
+
+                // 	}
+
+                // }
+
+                // SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+
+                // //if function is from another module OK
+
+                // if(moduleName != null) {
+
+                // 	function.addFunctionCall(signature, moduleName, true, "OK");
+                // 	return;
+
+                // }
+
+                // //Parameters not initialized
+
+                // if(numberOfNotInitializedParameters > 0) {
+
+                // 	function.addFunctionCall(signature, moduleName, false, errorFunctionCall);
+                // 	return;
+
+                // }
+
+                // // check if function exists
+                // SymbolTable.Function calledFunction = symbolTable.functions.get(signature);
+
+                // if(calledFunction == null) {
+
+                // 	String error = functionName + "(";
+
+                // 	for(int i = 0; i < signature.argumentTypes.size(); i++) {
+
+                // 		error += signature.argumentTypes.get(i);
+
+                // 		if(i < signature.argumentTypes.size() - 1)
+                // 			error += ", ";
+
+                // 	}
+
+                // 	error += ") does not exist!";
+
+                // 	function.addFunctionCall(signature, moduleName, false, error);
+                // 	return;
+
+                // }
+
+
+                // function.addFunctionCall(signature,moduleName,true,"OK");
 
         }
 
@@ -1752,7 +1826,7 @@ if (jjtc000) {
 
                 for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
 
-                        updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
+                        updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function, symbolTable);
 
                 }
 
