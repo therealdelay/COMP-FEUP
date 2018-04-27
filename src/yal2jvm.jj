@@ -47,12 +47,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
 		// generateJavaBytecodes(astRoot, symbolTable);
-		// System.out.println(symbolTable);
-		
-		// updateNullTypesFunctionCalls(symbolTable);
-
 		System.out.println(symbolTable);
-
+		
 		System.out.print("\n\n\n");
 	}
 }
@@ -1010,9 +1006,11 @@ void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable)
 
 			default:
 				break;
+
 		}
 	}	
-	
+	clinitJavaBytecodes(writer);
+
 	writer.close();/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1085,14 +1083,26 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 		SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 		
 		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-	}/*@bgen(jjtree)*/
+	}
+
+	switch(symbolTable.functions.get(sign).returnType){
+		case INT:
+			writer.print("i");
+			break;
+		case ARRAY_INT:
+			writer.print("a");
+			break;
+		default:
+			break;
+	}
+	writer.println("return");
+	writer.println(".end method\n");/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
        }
      }
 /*@egen*/
-	
 }
 
 JAVACODE
@@ -1158,7 +1168,33 @@ public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<S
 			case "*":
 				writer.println("imul");
 				break;
-			// TODO: /, + , -, ...
+			case "/":
+				writer.println("idiv");
+				break;
+			case "+":
+				writer.println("iadd");
+				break;
+			case "-":
+				writer.println("isub");
+				break;
+			case "<<":
+				writer.println("ishl");
+				break;
+			case ">>":
+				writer.println("ishr");
+				break;
+			case ">>>":
+				writer.println("iushl");
+				break;
+			case "&":
+				writer.println("iand");
+				break;
+			case "|":
+				writer.println("ior");
+				break;
+			case "^":
+				writer.println("ixor");
+				break;
 			default:
 				break;
 		}
@@ -1317,6 +1353,27 @@ String loadIntegerToBytecodes(Integer value){/*@bgen(jjtree) loadIntegerToByteco
        }
      }
 /*@egen*/	
+}
+
+JAVACODE 
+void clinitJavaBytecodes(PrintWriter writer){/*@bgen(jjtree) clinitJavaBytecodes */
+     ASTclinitJavaBytecodes jjtn000 = new ASTclinitJavaBytecodes(JJTCLINITJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {
+/*@egen*/
+	writer.println("method static public <clinit>()V");
+	writer.println(".limit stack 0");
+	writer.println(".limit locals 0");
+	writer.println("return");
+	writer.println(".end method ");/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+/*@egen*/
+	 
 }
 
 JAVACODE
@@ -1569,71 +1626,6 @@ void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function func
 		SymbolTable.FunctionCall functionCall = symbolTable.checkGoodFunctionCall(functionName, moduleName, functionCallParameters, function);
 
 		function.addFunctionCall(functionCall);
-
-		// //Check if all parameters are initialized
-
-		// String errorFunctionCall = "";
-		// int numberOfNotInitializedParameters = 0;
-
-		// for(SymbolTable.Pair<String,SimpleNode.Type> argument : functionCallParameters) {
-
-		// 	if(argument.value == null) {
-
-		// 		argument.value = symbolTable.getType(argument.key, function);
-		// 		if(argument.value == null) {
-		// 			errorFunctionCall += "Parameter " + argument.key + " not initialized";
-		// 			numberOfNotInitializedParameters++;
-		// 		}
-
-		// 	}
-				
-		// }
-
-		// SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
-
-		// //if function is from another module OK
-
-		// if(moduleName != null) {
-
-		// 	function.addFunctionCall(signature, moduleName, true, "OK");
-		// 	return;
-
-		// }
-			
-		// //Parameters not initialized
-
-		// if(numberOfNotInitializedParameters > 0) {
-
-		// 	function.addFunctionCall(signature, moduleName, false, errorFunctionCall);
-		// 	return;
-
-		// }
-
-		// // check if function exists
-		// SymbolTable.Function calledFunction = symbolTable.functions.get(signature);
-
-		// if(calledFunction == null) {
-
-		// 	String error = functionName + "(";
-			
-		// 	for(int i = 0; i < signature.argumentTypes.size(); i++) {
-
-		// 		error += signature.argumentTypes.get(i);
-
-		// 		if(i < signature.argumentTypes.size() - 1)
-		// 			error += ", ";
-
-		// 	}
-
-		// 	error += ") does not exist!";
-
-		// 	function.addFunctionCall(signature, moduleName, false, error);
-		// 	return;
-
-		// }
-
-
-		// function.addFunctionCall(signature,moduleName,true,"OK");
 
 	}
 

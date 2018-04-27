@@ -36,10 +36,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 SymbolTable symbolTable = generateSymbolTable(astRoot);
                 // generateJavaBytecodes(astRoot, symbolTable);
-                // System.out.println(symbolTable);
-
-                // updateNullTypesFunctionCalls(symbolTable);
-
                 System.out.println(symbolTable);
 
                 System.out.print("\u005cn\u005cn\u005cn");
@@ -1255,8 +1251,10 @@ if (jjtc000) {
 
                         default:
                                 break;
+
                 }
         }
+        clinitJavaBytecodes(writer);
 
         writer.close();/*@bgen(jjtree)*/
      } finally {
@@ -1323,7 +1321,20 @@ if (jjtc000) {
                 SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 
                 statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-        }/*@bgen(jjtree)*/
+        }
+
+        switch(symbolTable.functions.get(sign).returnType){
+                case INT:
+                        writer.print("i");
+                        break;
+                case ARRAY_INT:
+                        writer.print("a");
+                        break;
+                default:
+                        break;
+        }
+        writer.println("return");
+        writer.println(".end method\u005cn");/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
@@ -1386,7 +1397,33 @@ if (jjtc000) {
                         case "*":
                                 writer.println("imul");
                                 break;
-                        // TODO: /, + , -, ...
+                        case "/":
+                                writer.println("idiv");
+                                break;
+                        case "+":
+                                writer.println("iadd");
+                                break;
+                        case "-":
+                                writer.println("isub");
+                                break;
+                        case "<<":
+                                writer.println("ishl");
+                                break;
+                        case ">>":
+                                writer.println("ishr");
+                                break;
+                        case ">>>":
+                                writer.println("iushl");
+                                break;
+                        case "&":
+                                writer.println("iand");
+                                break;
+                        case "|":
+                                writer.println("ior");
+                                break;
+                        case "^":
+                                writer.println("ixor");
+                                break;
                         default:
                                 break;
                 }
@@ -1520,6 +1557,22 @@ if (jjtc000) {
                 return "bipush " + value;
         else
                 return "iconst_" + value;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static void clinitJavaBytecodes(PrintWriter writer) throws ParseException {/*@bgen(jjtree) clinitJavaBytecodes */
+     ASTclinitJavaBytecodes jjtn000 = new ASTclinitJavaBytecodes(JJTCLINITJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {writer.println("method static public <clinit>()V");
+        writer.println(".limit stack 0");
+        writer.println(".limit locals 0");
+        writer.println("return");
+        writer.println(".end method ");/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
@@ -1755,71 +1808,6 @@ if (jjtc000) {
 
                 function.addFunctionCall(functionCall);
 
-                // //Check if all parameters are initialized
-
-                // String errorFunctionCall = "";
-                // int numberOfNotInitializedParameters = 0;
-
-                // for(SymbolTable.Pair<String,SimpleNode.Type> argument : functionCallParameters) {
-
-                // 	if(argument.value == null) {
-
-                // 		argument.value = symbolTable.getType(argument.key, function);
-                // 		if(argument.value == null) {
-                // 			errorFunctionCall += "Parameter " + argument.key + " not initialized";
-                // 			numberOfNotInitializedParameters++;
-                // 		}
-
-                // 	}
-
-                // }
-
-                // SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
-
-                // //if function is from another module OK
-
-                // if(moduleName != null) {
-
-                // 	function.addFunctionCall(signature, moduleName, true, "OK");
-                // 	return;
-
-                // }
-
-                // //Parameters not initialized
-
-                // if(numberOfNotInitializedParameters > 0) {
-
-                // 	function.addFunctionCall(signature, moduleName, false, errorFunctionCall);
-                // 	return;
-
-                // }
-
-                // // check if function exists
-                // SymbolTable.Function calledFunction = symbolTable.functions.get(signature);
-
-                // if(calledFunction == null) {
-
-                // 	String error = functionName + "(";
-
-                // 	for(int i = 0; i < signature.argumentTypes.size(); i++) {
-
-                // 		error += signature.argumentTypes.get(i);
-
-                // 		if(i < signature.argumentTypes.size() - 1)
-                // 			error += ", ";
-
-                // 	}
-
-                // 	error += ") does not exist!";
-
-                // 	function.addFunctionCall(signature, moduleName, false, error);
-                // 	return;
-
-                // }
-
-
-                // function.addFunctionCall(signature,moduleName,true,"OK");
-
         }
 
         else {
@@ -1975,6 +1963,53 @@ if (jjtc000) {
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
+  }
+
+  static private boolean jj_3R_29()
+ {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_28()
+ {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16()
+ {
+    if (jj_scan_token(31)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_25()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_29()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) {
+    jj_scanpos = xsp;
+    if (jj_3R_31()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) jj_scanpos = xsp;
+    if (jj_scan_token(LPAR)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAR)) return true;
+    return false;
   }
 
   static private boolean jj_3R_20()
@@ -2193,53 +2228,6 @@ if (jjtc000) {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_24()) jj_scanpos = xsp;
-    return false;
-  }
-
-  static private boolean jj_3R_29()
- {
-    if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_28()
- {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_16()
- {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_25()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_29()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(LPAR)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAR)) return true;
     return false;
   }
 

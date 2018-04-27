@@ -43,12 +43,8 @@ public class yal2jvm {
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
 		// generateJavaBytecodes(astRoot, symbolTable);
-		// System.out.println(symbolTable);
-		
-		// updateNullTypesFunctionCalls(symbolTable);
-
 		System.out.println(symbolTable);
-
+		
 		System.out.print("\n\n\n");
 	}
 }
@@ -388,9 +384,11 @@ void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable)
 
 			default:
 				break;
+
 		}
 	}	
-	
+	clinitJavaBytecodes(writer);
+
 	writer.close();
 
 }
@@ -453,7 +451,19 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 		
 		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
 	}
-	
+
+	switch(symbolTable.functions.get(sign).returnType){
+		case INT:
+			writer.print("i");
+			break;
+		case ARRAY_INT:
+			writer.print("a");
+			break;
+		default:
+			break;
+	}
+	writer.println("return");
+	writer.println(".end method\n");
 }
 
 JAVACODE
@@ -503,7 +513,33 @@ public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<S
 			case "*":
 				writer.println("imul");
 				break;
-			// TODO: /, + , -, ...
+			case "/":
+				writer.println("idiv");
+				break;
+			case "+":
+				writer.println("iadd");
+				break;
+			case "-":
+				writer.println("isub");
+				break;
+			case "<<":
+				writer.println("ishl");
+				break;
+			case ">>":
+				writer.println("ishr");
+				break;
+			case ">>>":
+				writer.println("iushl");
+				break;
+			case "&":
+				writer.println("iand");
+				break;
+			case "|":
+				writer.println("ior");
+				break;
+			case "^":
+				writer.println("ixor");
+				break;
 			default:
 				break;
 		}
@@ -612,6 +648,16 @@ String loadIntegerToBytecodes(Integer value){
 		return "bipush " + value;
 	else 
 		return "iconst_" + value;	
+}
+
+JAVACODE 
+void clinitJavaBytecodes(PrintWriter writer){
+	writer.println("method static public <clinit>()V");
+	writer.println(".limit stack 0");
+	writer.println(".limit locals 0");
+	writer.println("return");
+	writer.println(".end method ");
+	 
 }
 
 JAVACODE
