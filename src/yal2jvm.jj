@@ -44,7 +44,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
 		
-		// System.out.println(symbolTable);
+		//System.out.println(symbolTable);
 		
 		updateNullTypesFunctionCalls(symbolTable);
 
@@ -982,7 +982,6 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 			case JJTDECLARATION:
 
 				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-
 				break;
 
 			case JJTFUNCTION:
@@ -1013,8 +1012,8 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				updateSymbolTableFunctionFunctionCalls(node, function);
+				// updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+				// updateSymbolTableFunctionFunctionCalls(node, function);
 
 				//add function
 				symbolTable.addFunction(function);
@@ -1171,7 +1170,6 @@ void updateSymbolTableFunctionStatements(Node statementList, SymbolTable.Functio
      }
 /*@egen*/
 }
-
 
 
 JAVACODE

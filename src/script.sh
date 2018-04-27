@@ -30,6 +30,6 @@ javac *.java
 # java yal2jvm MyFirstYalExamples/maxmin.yal
 # java yal2jvm MyFirstYalExamples/programa1.yal
 # java yal2jvm MyFirstYalExamples/programa2.yal
-# java yal2jvm MyFirstYalExamples/programa3.yal
+java yal2jvm MyFirstYalExamples/programa3.yal
 # java yal2jvm MyFirstYalExamples/sqrt.yal
-java yal2jvm MyFirstYalExamples/test_jp.yal
+# java yal2jvm MyFirstYalExamples/test_jp.yal

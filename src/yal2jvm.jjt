@@ -40,7 +40,7 @@ public class yal2jvm {
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
 		
-		// System.out.println(symbolTable);
+		//System.out.println(symbolTable);
 		
 		updateNullTypesFunctionCalls(symbolTable);
 
@@ -400,8 +400,8 @@ SymbolTable generateSymbolTable(Node root) {
 
 				}
 
-				updateSymbolTableFunctionStatements(statementList,function,symbolTable);
-				updateSymbolTableFunctionFunctionCalls(node, function);
+				// updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+				// updateSymbolTableFunctionFunctionCalls(node, function);
 
 				//add function
 				symbolTable.addFunction(function);
