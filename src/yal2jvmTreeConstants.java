@@ -13,25 +13,33 @@ public interface yal2jvmTreeConstants
   public int JJTSTMT = 9;
   public int JJTASSIGN = 10;
   public int JJTLHS = 11;
-  public int JJTLHSARRAYSIZE = 12;
-  public int JJTRHS = 13;
-  public int JJTARRAYSIZE = 14;
-  public int JJTTERM = 15;
-  public int JJTEXPRTEST = 16;
-  public int JJTWHILE = 17;
-  public int JJTIF = 18;
-  public int JJTCALL = 19;
-  public int JJTARGUMENTLIST = 20;
-  public int JJTARGUMENT = 21;
-  public int JJTARRAYACCESS = 22;
-  public int JJTSCALARACCESS = 23;
-  public int JJTINDEX = 24;
-  public int JJTINCERRORCOUNTER = 25;
-  public int JJTGENERATESYMBOLTABLE = 26;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 27;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 28;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 29;
-  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 30;
+  public int JJTRHS = 12;
+  public int JJTARRAYSIZE = 13;
+  public int JJTTERM = 14;
+  public int JJTEXPRTEST = 15;
+  public int JJTWHILE = 16;
+  public int JJTIF = 17;
+  public int JJTCALL = 18;
+  public int JJTARGUMENTLIST = 19;
+  public int JJTARGUMENT = 20;
+  public int JJTARRAYACCESS = 21;
+  public int JJTSCALARACCESS = 22;
+  public int JJTINDEX = 23;
+  public int JJTINCERRORCOUNTER = 24;
+  public int JJTGENERATESYMBOLTABLE = 25;
+  public int JJTGENERATEJAVABYTECODES = 26;
+  public int JJTMODULEJAVABYTECODES = 27;
+  public int JJTFUNCTIONJAVABYTECODES = 28;
+  public int JJTSTATEMENTJAVABYTECODES = 29;
+  public int JJTRHSJAVABYTECODES = 30;
+  public int JJTTERMJAVABYTECODES = 31;
+  public int JJTTYPETOBYTECODES = 32;
+  public int JJTFUNCTIONTOBYTECODES = 33;
+  public int JJTLOADINTEGERTOBYTECODES = 34;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 35;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 36;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 37;
+  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 38;
 
 
   public String[] jjtNodeName = {
@@ -47,7 +55,6 @@ public interface yal2jvmTreeConstants
     "Stmt",
     "Assign",
     "Lhs",
-    "LhsArraySize",
     "Rhs",
     "ArraySize",
     "Term",
@@ -62,10 +69,19 @@ public interface yal2jvmTreeConstants
     "Index",
     "incErrorCounter",
     "generateSymbolTable",
+    "generateJavaBytecodes",
+    "moduleJavaBytecodes",
+    "functionJavaBytecodes",
+    "statementJavaBytecodes",
+    "rhsJavaBytecodes",
+    "termJavaBytecodes",
+    "typeToBytecodes",
+    "functionToBytecodes",
+    "loadIntegerToBytecodes",
     "updateSymbolTableFunctionArguments",
     "updateSymbolTableFunctionStatements",
     "updateSymbolTableFunctionFunctionCalls",
     "updateNullTypesFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=4f341d182f80233a882ed281d51dd9c0 (do not edit this line) */
+/* JavaCC - OriginalChecksum=89e4fa295f493d6f3db8982baae99361 (do not edit this line) */

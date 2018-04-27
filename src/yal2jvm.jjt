@@ -9,14 +9,17 @@ PARSER_BEGIN(yal2jvm)
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class yal2jvm {
 	public static int error_counter = 0;
 	private static SimpleNode astRoot = null;
-	public static void main(String args[]) throws ParseException {
+	public static void main(String args[]) throws ParseException, IOException {
 		InputStream f = null;
 
 		try {
@@ -31,18 +34,18 @@ public class yal2jvm {
 
 		astRoot = parser.Module();
 
-		//System.out.print("Error count: " + error_counter + "\n\n");
-
-		//System.out.println("AST:");
-		//astRoot.dump("");
+		System.out.print("Error count: " + error_counter + "\n\n");
+		
+		// System.out.println("AST:");
+		// astRoot.dump("");
 
 		// buildSymbolTable(astRoot);
 
 		SymbolTable symbolTable = generateSymbolTable(astRoot);
+		// generateJavaBytecodes(astRoot, symbolTable);
+		// System.out.println(symbolTable);
 		
-		//System.out.println(symbolTable);
-		
-		updateNullTypesFunctionCalls(symbolTable);
+		// updateNullTypesFunctionCalls(symbolTable);
 
 		System.out.println(symbolTable);
 
@@ -214,16 +217,12 @@ void Assign() : {}
 
 void Lhs() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|( LhsArraySize() ))
+	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|["." <SIZE>])
 }
 
-void LhsArraySize() : {}
+void Rhs() : {Token t;}
 {
-	["." <SIZE>]
-}
-void Rhs() : {}
-{
-	(Term() [(<ARITH_OP> | <BITWISE_OP> | <ADDSUB_OP>) Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
+	(Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
 }
 
 void ArraySize() : {}
@@ -231,9 +230,9 @@ void ArraySize() : {}
 	ScalarAccess() | <INTEGER>
 }
 
-void Term() : {Token t1,t2,t3, t4;}
+void Term() : {Token t1,t2,t3,t4;}
 {
-[t1=<ADDSUB_OP>{jjtThis.jjtSetValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+[t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
 }
 
 void Exprtest() : {}
@@ -416,6 +415,265 @@ SymbolTable generateSymbolTable(Node root) {
 	return symbolTable;
 
 
+}
+
+JAVACODE
+void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws IOException {
+
+	String fileName = ((SimpleNode) root).jjtGetValue() + ".j";
+	File jFile = new File(fileName);
+	FileOutputStream jFileOS = new FileOutputStream(jFile);
+	PrintWriter writer = new PrintWriter(jFileOS);
+
+	moduleJavaBytecodes(root, writer, symbolTable);
+}
+
+JAVACODE
+void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable){
+
+	writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
+	writer.println(".super java/lang/Object\n");
+
+	int numChildren = root.jjtGetNumChildren();
+
+	for(int i = 0; i < numChildren; i++) {
+
+		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+
+		int nodeType = node.getId();
+
+		switch (nodeType) {
+			case JJTFUNCTION:
+
+			functionJavaBytecodes(node, writer, symbolTable);
+
+
+			default:
+				break;
+		}
+	}	
+	
+	writer.close();
+
+}
+
+JAVACODE
+public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, SymbolTable symbolTable){
+
+
+    // locals nº de argumentos da funcao + declaraçoes locais
+	// stack nº max entre 2, nº de args das fucntions Calls
+	
+	String functionName = (String) functionNode.jjtGetValue();
+	ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+
+	writer.print(".method public static ");
+
+	Node statementList = functionNode.jjtGetChild(0);
+	Node argumentList;
+
+	// Locals stack
+	// calculateLimitLocals(function);
+	// calculateLimitStack(function);
+	int limitLocals = 10, limitStack = 10;
+
+	ArrayList<String> register_variables = new ArrayList();
+	for(int i=0; i<limitLocals; i++) register_variables.add(null);
+
+	// Arguments
+	if(functionNode.jjtGetNumChildren() == 2) {
+
+		argumentList = statementList;
+		statementList = functionNode.jjtGetChild(1);
+
+		int numArguments = argumentList.jjtGetNumChildren();
+		
+		for(int i = 0; i < numArguments; i++) {
+	
+			SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+			
+			String argumentName = (String)argument.jjtGetValue();
+			register_variables.set(register_variables.indexOf(null), argumentName);
+		
+			SimpleNode.Type argumentDataType = argument.getDataType();
+			argumentTypes.add(argumentDataType);
+		}
+
+	}
+
+	SymbolTable.Signature sign = new SymbolTable.Signature(argumentTypes, functionName);
+	writer.println(functionToBytecodes(symbolTable.functions.get(sign)));
+
+	writer.println(".limit locals " + limitLocals);
+	writer.println(".limit stack " + limitStack);
+
+	// StmtList
+	int numStatements = statementList.jjtGetNumChildren();
+	for(int i = 0; i < numStatements; i++) {
+		
+		SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
+		
+		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
+	}
+	
+}
+
+JAVACODE
+public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+
+	SimpleNode statementChild = (SimpleNode) statementNode.jjtGetChild(0);
+	switch (statementChild.getId()) {
+		case yal2jvmTreeConstants.JJTASSIGN:
+			
+			int register_index = register_variables.indexOf(null);
+			register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
+			String lhsBytecode = "istore_" + register_index;
+
+			SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
+
+			rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
+
+			writer.println(lhsBytecode);
+			break;
+	
+		default:
+			break;
+	}
+}
+
+JAVACODE
+public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+	SimpleNode rhs1stChild = (SimpleNode) rhsNode.jjtGetChild(0);
+
+	switch (rhs1stChild.getId()) {
+		case yal2jvmTreeConstants.JJTTERM:
+			
+			termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable, sign);
+			break;
+	
+		default:
+		// ARRAY SIZE DEF
+			break;
+	}
+
+	if(rhsNode.jjtGetNumChildren() == 2){
+				
+		SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
+		termJavaBytecodes(term2, writer, register_variables, symbolTable, sign);
+
+		switch ((String)rhsNode.jjtGetValue()) {
+			case "*":
+				writer.println("imul");
+				break;
+			// TODO: /, + , -, ...
+			default:
+				break;
+		}
+	}
+}
+
+JAVACODE
+public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+
+	if(termNode.jjtGetNumChildren() == 0){
+		if(termNode.getDataType() == SimpleNode.Type.INT){
+
+			if((Integer) termNode.jjtGetValue()>5)
+				writer.println("bipush " + (String) termNode.jjtGetValue());
+			else
+				writer.println("iconst_" + (String) termNode.jjtGetValue());
+		}
+		else{ // ID
+			int rIndex = register_variables.indexOf((String) termNode.jjtGetValue());
+			writer.println("iload_" + rIndex);
+		}
+	}
+	else{ //function call
+		SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
+
+		String functionName = (String) callNode.jjtGetValue();
+
+		SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
+
+		ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+
+		ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
+		for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
+			SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
+
+			System.out.println("functionName: " + functionName);
+			System.out.println("assignFunctionParameters size: " + assignFunctionParameters.size());
+			for (SymbolTable.Pair<String, SimpleNode.Type> pair : assignFunctionParameters) {
+				System.out.println("assignFunctionParameters content: [" + pair.key + ", " + pair.value + "]");
+			}
+			String argName = assignFunctionParameters.get(i).key;
+			if(argName != null){
+
+				SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
+
+				if(type == null){
+					SymbolTable.Function function = symbolTable.functions.get(sign);
+					type = function.localDeclarations.get(argName);
+				}
+				argumentTypes.add(type);
+				int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
+				writer.println("iload_LEO" + rIndex);
+			}
+			else{
+				argumentTypes.add(assignFunctionParameters.get(i).value);
+				writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
+			}
+		}
+
+		SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
+
+	}
+}
+
+
+JAVACODE
+String typeToBytecodes(SimpleNode.Type type) {
+	switch (type) {
+	case INT:
+		return "I";
+	case ARRAY_INT:
+		return "[I";
+	case VOID:
+		return "V";
+	case STRING:
+		return "Ljava/lang/String;";
+	default:
+		return "";
+	}
+}
+
+JAVACODE
+String functionToBytecodes(SymbolTable.Function function){
+	String result = function.signature.functionName + "(";
+	
+	if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
+	else{
+		ArrayList<SimpleNode.Type> argumentTypes = function.signature.argumentTypes;
+		for (SimpleNode.Type type : argumentTypes) {
+			result += typeToBytecodes(type);
+		}
+	}
+
+	result += ")";
+
+	// Return type
+	result += typeToBytecodes(function.returnType);
+
+	return result;
+}
+
+JAVACODE 
+String loadIntegerToBytecodes(Integer value){
+
+	if(value > 5) 
+		return "bipush " + value;
+	else 
+		return "iconst_" + value;	
 }
 
 JAVACODE
