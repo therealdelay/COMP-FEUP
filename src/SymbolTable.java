@@ -55,14 +55,19 @@ class SymbolTable {
 	public static class Signature {
 		
 		public String functionName; //nome da funcao
-		public SimpleNode.Type returnType; //tipo de retorno
-		public ArrayList<Pair<String,SimpleNode.Type>> arguments; //quantidade e tipo de argumentos
+		public ArrayList<String> arguments = new ArrayList<>();
+		public ArrayList<SimpleNode.Type> argumentTypes = new ArrayList<>();
 
-		public Signature(String functionName, SimpleNode.Type returnType, ArrayList<Pair<String,SimpleNode.Type>> arguments) {
+		public Signature(String functionName, ArrayList<Pair<String,SimpleNode.Type>> arguments) {
 
 			this.functionName = functionName;
-			this.returnType = returnType;
-			this.arguments = arguments;
+
+			for(Pair<String,SimpleNode.Type> pair : arguments) {
+
+				this.arguments.add(pair.key);
+				this.argumentTypes.add(pair.value);
+
+			}
 
 		}
 
@@ -71,15 +76,10 @@ class SymbolTable {
 			this.arguments = new ArrayList<>();
 		}
 
-		public void setReturnType(SimpleNode.Type type) {
-			this.returnType = type;
-		}
-
 		public void addArgumentType(String argName, SimpleNode.Type type) {
 
-			//System.out.println("Adding argument: " + argName + " " + type);
-
-			this.arguments.add(new Pair(argName,type));
+			this.arguments.add(argName);
+			this.argumentTypes.add(type);
 		}
 
 		@Override
@@ -89,13 +89,10 @@ class SymbolTable {
 
 			if(!this.functionName.equals(s2.functionName))
 				return false;
-			if(this.returnType != s2.returnType)
-				return false;
 			if(this.arguments.size() != s2.arguments.size())
 				return false;
-
 			for(int i = 0; i < this.arguments.size(); i++)
-				if(this.arguments.get(i).value != s2.arguments.get(i).value)
+				if(this.argumentTypes.get(i) != s2.argumentTypes.get(i))
 					return false;
 
 			return true;
@@ -106,7 +103,7 @@ class SymbolTable {
 		@Override
 		public int hashCode() {
 
-			return Objects.hash(this.functionName,this.returnType,this.arguments);
+			return Objects.hash(this.functionName,this.argumentTypes);
 		}
 
 	}
@@ -118,26 +115,49 @@ class SymbolTable {
 		public HashMap<String,SimpleNode.Type> localDeclarations = new HashMap<>();
 		public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
 		public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
+		public SimpleNode.Type returnType; //tipo de retorno
 
-		public Function(Signature signature) {
+		public ArrayList<Pair<String,String>> nullDeclarationsVariables = new ArrayList<>();
+		public ArrayList<Pair<String,Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
+
+
+		public Function(Signature signature, SimpleNode.Type type) {
 			this.signature = signature;
+			this.returnType = type;
 		}
 
-		public boolean addLocalDeclaration(String key, SimpleNode.Type value) {
+		public boolean addLocalDeclaration(String key, SimpleNode.Type value, String localVariable, Signature functionCall) {
 
 			SimpleNode.Type exists = this.localDeclarations.get(key);
 
 			if(exists == null) {
 
 				this.localDeclarations.put(key, value);
+
+				if(value == null) {
+
+					if(localVariable != null)
+						this.nullDeclarationsVariables.add(new Pair(key,localVariable));
+					else
+						this.nullDeclarationsFunctionCalls.add(new Pair(key,functionCall));
+
+				}
+					
+
 				return true;
 
 			}
 
-			this.repeatedLocalDeclarationsDiffType.add(new Pair(key,value));
+			if(exists != value) {
+
+				this.repeatedLocalDeclarationsDiffType.add(new Pair(key,value));
+
+			}
+
+			
 			return false;
 		
-			}
+		}
 
 		public void addFunctionCall(Signature signature, String module) {
 			this.functionCalls.add(new FunctionCall(signature, module));
@@ -170,7 +190,12 @@ class SymbolTable {
 
 		}
 
-		this.repeatedGlobalDeclarationsDiffType.add(new Pair(key,value));
+		if(exists != value) {
+
+			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key,value));
+
+		}
+			
 		return false;
 
 	}
@@ -221,13 +246,13 @@ class SymbolTable {
 
 			out.println(function.signature.functionName + ":");
 
-			out.println("Return type: " + function.signature.returnType);
+			out.println("Return type: " + function.returnType);
 
 			out.println("Function arguments:");
 			
-			for(SymbolTable.Pair argument : function.signature.arguments) {
+			for(int i = 0; i < function.signature.arguments.size(); i++) {
 
-				out.println("\tArgument " + argument.key + ", of type " + argument.value);
+				out.println("\tArgument " + function.signature.arguments.get(i) + ", of type " + function.signature.argumentTypes.get(i));
 
 			}
 
@@ -253,6 +278,37 @@ class SymbolTable {
 
 				out.println(functionCall.signature.functionName);
 
+				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
+
+					out.println("\tArgument " + functionCall.signature.arguments.get(i) + ", of type " + functionCall.signature.argumentTypes.get(i));
+	
+				}
+
+			}
+
+			out.println("Null declarations for variables");
+
+			for(Pair<String,String> nullDeclarationVatiable : function.nullDeclarationsVariables) {
+
+				out.println("Left: " + nullDeclarationVatiable.key + " Right: " + nullDeclarationVatiable.value);
+
+			}
+
+			out.println("Null declarations for function calls");
+
+			for(Pair<String,Signature> nullDeclarationsFunctionCall : function.nullDeclarationsFunctionCalls) {
+
+				out.println("Left: " + nullDeclarationsFunctionCall.key + " Right: " + nullDeclarationsFunctionCall.value.functionName);
+
+				out.println("With Parameters: ");
+
+				for(int i = 0; i < nullDeclarationsFunctionCall.value.arguments.size(); i++) {
+
+					out.println("\tArgument " + nullDeclarationsFunctionCall.value.arguments.get(i) + ", of type " + nullDeclarationsFunctionCall.value.argumentTypes.get(i));
+	
+				}
+
+
 			}
 
 
@@ -261,11 +317,10 @@ class SymbolTable {
 		for(SymbolTable.Signature signature : this.repeatedFunctions) {
 
 			out.println("(Repeated function) " + signature.functionName + ":");
-			out.println("Return Type:" + signature.returnType);
-			
-			for(SymbolTable.Pair argument : signature.arguments) {
 
-				out.println("\tArgument " + argument.key + ", of type " + argument.value);
+			for(int i = 0; i < signature.arguments.size(); i++) {
+
+				out.println("\tArgument " + signature.arguments.get(i) + ", of type " + signature.argumentTypes.get(i));
 
 			}
 

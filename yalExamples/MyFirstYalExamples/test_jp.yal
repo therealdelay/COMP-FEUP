@@ -13,8 +13,16 @@ module test_jp {
         i = 25;
         k = i;
         i = 10;
-        z = f2(4,ah,bc,"ola");
-        w = io.read();
+        z = f2(4,g,i,"ola");
+        // w = io.read();
+
+        r = [10];
+        s = r;
+        s = [20];
+        s = 2;
+
+        c2 = c;
+
 
         aray = [2];
 
@@ -30,34 +38,36 @@ module test_jp {
             aray2 = aray;
             aray3 = [5];
 
-            
+
 
         }
 
+        // x = f2(s);
+
     }
 
-    // function f2(b[]) {
+    function r = f2(b[]) {
 
-    // }
+    }
 
-    // function f2(a[]) {
+    function f2(a[]) {
 
-    // }
+    }
 
-    // function a[] = f2(b[]) {
+    function a[] = f2(b[]) {
 
-    // }
+    }
 
-    // function a = f2(b[]) {
+    function a = f2(b[]) {
 
-    // }
+    }
 
-    // function a[] = f3(a,b) {
+    function a[] = f3(a,b) {
 
-    // }
+    }
 
-    // function b[] = f3(a,c) {
+    function b[] = f3(a,c) {
 
-    // }
+    }
 
 }

@@ -20,7 +20,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         System.out.println(e.getMessage());
                 }
 
-                System.out.println("File: " + args[0]);
+                //System.out.println("File: " + args[0]);
 
                 yal2jvm parser = new yal2jvm(f);
 
@@ -34,9 +34,12 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 // buildSymbolTable(astRoot);
 
                 SymbolTable symbolTable = generateSymbolTable(astRoot);
-                generateJavaBytecodes(astRoot);
+                generateJavaBytecodes(astRoot, symbolTable);
                 // System.out.println(symbolTable);
 
+                // updateNullTypesFunctionCalls(symbolTable);
+
+                // System.out.println(symbolTable);
 
                 System.out.print("\u005cn\u005cn\u005cn");
         }
@@ -557,9 +560,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static final public void Rhs() throws ParseException {
               /*@bgen(jjtree) Rhs */
-  ASTRhs jjtn000 = new ASTRhs(JJTRHS);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+              ASTRhs jjtn000 = new ASTRhs(JJTRHS);
+              boolean jjtc000 = true;
+              jjtree.openNodeScope(jjtn000);Token t;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ADDSUB_OP:
@@ -572,19 +575,20 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         case BITWISE_OP:
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case ARITH_OP:
-            jj_consume_token(ARITH_OP);
+            t = jj_consume_token(ARITH_OP);
             break;
           case BITWISE_OP:
-            jj_consume_token(BITWISE_OP);
+            t = jj_consume_token(BITWISE_OP);
             break;
           case ADDSUB_OP:
-            jj_consume_token(ADDSUB_OP);
+            t = jj_consume_token(ADDSUB_OP);
             break;
           default:
             jj_la1[14] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
+                                                                jjtn000.jjtSetValue(t.image);
           Term();
           break;
         default:
@@ -595,7 +599,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       case 31:
         jj_consume_token(31);
         ArraySize();
-                                                                                      ((SimpleNode)jjtn000).jjtSetArrayType();
+                                                                                                                           ((SimpleNode)jjtn000).jjtSetArrayType();
         jj_consume_token(32);
         break;
       default:
@@ -672,7 +676,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ADDSUB_OP:
         t1 = jj_consume_token(ADDSUB_OP);
-                jjtn000.jjtSetValue(t1.image);
+                jjtn000.jjtSetSecValue(t1.image);
         break;
       default:
         jj_la1[18] = jj_gen;
@@ -681,9 +685,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
         t2 = jj_consume_token(INTEGER);
-                                                                jjtree.closeNodeScope(jjtn000, true);
-                                                                jjtc000 = false;
-                                                               jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();
+                                                                   jjtree.closeNodeScope(jjtn000, true);
+                                                                   jjtc000 = false;
+                                                                  jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();
         break;
       default:
         jj_la1[21] = jj_gen;
@@ -693,7 +697,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case ID:
             t3 = jj_consume_token(ID);
-                                                                                                                                                        jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);
+                                                                                                                                                           jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);
             switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
             case 31:
               jj_consume_token(31);
@@ -706,7 +710,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
               case 33:
                 jj_consume_token(33);
                 t4 = jj_consume_token(SIZE);
-                                                                                                                                                                                                                                                            jjtn000.jjtSetValue(t4.image);
+                                                                                                                                                                                                                                                               jjtn000.jjtSetValue(t4.image);
                 break;
               default:
                 jj_la1[19] = jj_gen;
@@ -1207,9 +1211,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         case JJTFUNCTION:
 
                                 String functionName = (String) node.jjtGetValue();
+                                SimpleNode.Type returnType = node.getDataType();
                                 SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-                                SymbolTable.Function function = new SymbolTable.Function(signature);
-                                signature.returnType = node.getDataType();
+                                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
 
                                 /**
 				 * verificar se tem argumentos ou apenas statements
@@ -1233,9 +1237,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                 }
 
                                 updateSymbolTableFunctionStatements(statementList,function,symbolTable);
+                                updateSymbolTableFunctionFunctionCalls(node, function);
 
                                 //add function
                                 symbolTable.addFunction(function);
+
                                 break;
 
                         default:
@@ -1251,8 +1257,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static void generateJavaBytecodes(Node root) throws ParseException, IOException {
-                                                          /*@bgen(jjtree) generateJavaBytecodes */
+  static void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws ParseException, IOException {
+                                                                                   /*@bgen(jjtree) generateJavaBytecodes */
      ASTgenerateJavaBytecodes jjtn000 = new ASTgenerateJavaBytecodes(JJTGENERATEJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1261,7 +1267,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         FileOutputStream jFileOS = new FileOutputStream(jFile);
         PrintWriter writer = new PrintWriter(jFileOS);
 
-        moduleJavaBytecodes(root, writer);/*@bgen(jjtree)*/
+        moduleJavaBytecodes(root, writer, symbolTable);/*@bgen(jjtree)*/
      } catch (Throwable jjte000) {
        if (jjtc000) {
          jjtree.clearNodeScope(jjtn000);
@@ -1280,14 +1286,12 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static void moduleJavaBytecodes(Node root, PrintWriter writer) throws ParseException {
-                                                        /*@bgen(jjtree) moduleJavaBytecodes */
+  static void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable) throws ParseException {
+                                                                                 /*@bgen(jjtree) moduleJavaBytecodes */
      ASTmoduleJavaBytecodes jjtn000 = new ASTmoduleJavaBytecodes(JJTMODULEJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
-     try {System.out.println(root);
-
-        writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
+     try {writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
         writer.println(".super java/lang/Object\u005cn");
 
         int numChildren = root.jjtGetNumChildren();
@@ -1301,7 +1305,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 switch (nodeType) {
                         case JJTFUNCTION:
 
-                        functionJavaBytecodes(node, writer);
+                        functionJavaBytecodes(node, writer, symbolTable);
 
 
                         default:
@@ -1317,24 +1321,29 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer) throws ParseException {
-                                                                               /*@bgen(jjtree) functionJavaBytecodes */
+  static public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, SymbolTable symbolTable) throws ParseException {
+                                                                                                        /*@bgen(jjtree) functionJavaBytecodes */
      ASTfunctionJavaBytecodes jjtn000 = new ASTfunctionJavaBytecodes(JJTFUNCTIONJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
      try {// locals nº de argumentos da funcao + declaraçoes locais
         // stack nº max entre 2, nº de args das fucntions Calls
 
-        System.out.println(functionNode);
-
         String functionName = (String) functionNode.jjtGetValue();
-
         writer.print(".method public static " + functionName + "(");
 
         Node statementList = functionNode.jjtGetChild(0);
         Node argumentList;
 
-        // Argmunts
+        // Locals stack
+        // calculateLimitLocals(function);
+        // calculateLimitStack(function);
+        int limitLocals = 10, limitStack = 10;
+
+        ArrayList<String> register_variables = new ArrayList();
+        for(int i=0; i<limitLocals; i++) register_variables.add(null);
+
+        // Arguments
         if (functionName.equals("main")) writer.print("[Ljava/lang/String;");
         else{
 
@@ -1350,6 +1359,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                 SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
                                 String argumentName = (String)argument.jjtGetValue();
+                                register_variables.set(register_variables.indexOf(null), argumentName);
+
                                 SimpleNode.Type argumentDataType = argument.getDataType();
 
                                 writer.print(typeToStr(argumentDataType));
@@ -1362,9 +1373,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         // Return type
         writer.println(typeToStr(functionNode.getDataType()));
 
-        // Locals stack
-        writer.println(".limit locals 100");
-        writer.println(".limit stack 100");
+
+        writer.println(".limit locals " + limitLocals);
+        writer.println(".limit stack " + limitStack);
 
         // StmtList
         int numStatements = statementList.jjtGetNumChildren();
@@ -1373,7 +1384,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 
-                statementJavaBytecodes(statement, writer);
+                statementJavaBytecodes(statement, writer, register_variables, symbolTable);
         }/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1382,23 +1393,98 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer) throws ParseException {
-                                                                                 /*@bgen(jjtree) statementJavaBytecodes */
+  static public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
+                                                                                                                                                /*@bgen(jjtree) statementJavaBytecodes */
      ASTstatementJavaBytecodes jjtn000 = new ASTstatementJavaBytecodes(JJTSTATEMENTJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
-     try {ArrayList<String> statementBytecodes = new ArrayList();
+     try {SimpleNode statementChild = (SimpleNode) statementNode.jjtGetChild(0);
+        switch (statementChild.getId()) {
+                case yal2jvmTreeConstants.JJTASSIGN:
 
-        Node statementType = statementNode.jjtGetChild(0);
-        // switch (statementType.jjtget) {
-        // 	case value:
+                        int register_index = register_variables.indexOf(null);
+                        register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
+                        String lhsBytecode = "istore_" + register_index;
 
-        // 		break;
+                        SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
 
-        // 	default:
-        // 		break;
-        // }
-        System.out.println(statementType);/*@bgen(jjtree)*/
+                        rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable);
+
+                        writer.println(lhsBytecode);
+                        break;
+
+                default:
+                        break;
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
+                                                                                                                                    /*@bgen(jjtree) rhsJavaBytecodes */
+     ASTrhsJavaBytecodes jjtn000 = new ASTrhsJavaBytecodes(JJTRHSJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {SimpleNode rhs1stChild = (SimpleNode) rhsNode.jjtGetChild(0);
+
+        switch (rhs1stChild.getId()) {
+                case yal2jvmTreeConstants.JJTTERM:
+
+                        termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable);
+                        break;
+
+                default:
+                // ARRAY SIZE DEF
+                        break;
+        }
+
+        if(rhsNode.jjtGetNumChildren() == 2){
+
+                SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
+                termJavaBytecodes(term2, writer, register_variables, symbolTable);
+
+                switch ((String)rhsNode.jjtGetValue()) {
+                        case "*":
+                                writer.println("imul");
+                                break;
+                        // TODO: /, + , -, ...
+                        default:
+                                break;
+                }
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
+                                                                                                                                      /*@bgen(jjtree) termJavaBytecodes */
+     ASTtermJavaBytecodes jjtn000 = new ASTtermJavaBytecodes(JJTTERMJAVABYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {if(termNode.jjtGetNumChildren() == 0){
+                if(termNode.getDataType() == SimpleNode.Type.INT){
+
+                        if((Integer) termNode.jjtGetValue()>5)
+                                writer.println("bipush " + (String) termNode.jjtGetValue());
+                        else
+                                writer.println("iconst_" + (String) termNode.jjtGetValue());
+                }
+                else{ // ID
+                        int rIndex = register_variables.indexOf((String) termNode.jjtGetValue());
+                        writer.println("iload_" + rIndex);
+                }
+        }
+        else{ //function call
+                SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
+
+                // String functionCall = "invokestatic aval1/f(II)I"
+        }/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
@@ -1479,7 +1565,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                                 if(node.getDataType() != null) {
 
-                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType());
+                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType(),null,null);
 
                                 }
                                 else {
@@ -1495,7 +1581,30 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                                 // System.out.println("Variable:" + previousVariable);
                                                 // System.out.println("Type:" + type);
 
-                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type);
+                                                String localVariable = null;
+                                                SymbolTable.Signature signature = null;
+
+                                                SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
+
+                                                if(((SimpleNode)rhs.jjtGetChild(0)).getId() == JJTTERM) {
+
+                                                        SimpleNode term = (SimpleNode) rhs.jjtGetChild(0);
+
+                                                        if(term.jjtGetNumChildren() > 0 && ((SimpleNode) term.jjtGetChild(0)).getId() == JJTCALL) {
+
+                                                                SimpleNode call = (SimpleNode) term.jjtGetChild(0);
+
+                                                                signature = new SymbolTable.Signature(call.getAssignId(),call.getAssignFunctionParameters());
+
+                                                        }
+
+                                                        else
+                                                                localVariable = (String) term.jjtGetValue();
+
+
+                                                }
+
+                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type, localVariable, signature);
 
                                         }
 
@@ -1533,6 +1642,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
         if(currentNode.getId() == JJTCALL) {
 
+                System.out.println("Entrei no call");
+
                 String functionName = (String)currentNode.jjtGetValue();
                 String moduleName = "";
 
@@ -1541,8 +1652,17 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                         functionName = (String) currentNode.jjtGetSecValue();
                 }
 
+                String leftVariable = null;
+                SimpleNode parent = (SimpleNode) currentNode.jjtGetParent();
+                if(parent.getId() == JJTTERM) {
 
-                SymbolTable.FunctionCall functionCall = new SymbolTable.FunctionCall(new SymbolTable.Signature(functionName),moduleName);
+                        SimpleNode greatGrandParent = (SimpleNode) parent.jjtGetParent();
+                        SimpleNode lhs = (SimpleNode)greatGrandParent.jjtGetChild(0);
+                        leftVariable = (String)lhs.jjtGetValue();
+
+                }
+
+                function.addFunctionCall(new SymbolTable.Signature(functionName, currentNode.assignFunctionParameters),moduleName);
 
         }
 
@@ -1555,6 +1675,61 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 }
 
 
+
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static void updateNullTypesFunctionCalls(SymbolTable symbolTable) throws ParseException {
+                                                            /*@bgen(jjtree) updateNullTypesFunctionCalls */
+     ASTupdateNullTypesFunctionCalls jjtn000 = new ASTupdateNullTypesFunctionCalls(JJTUPDATENULLTYPESFUNCTIONCALLS);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
+
+        for(SymbolTable.Signature signature: functions.keySet()) {
+
+                SymbolTable.Function function = functions.get(signature);
+
+                ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
+
+                for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
+
+                        SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
+
+                        int argumentsSize = functionCallSignature.arguments.size();
+
+                        System.out.println("Argument Types size:" + argumentsSize);
+
+                        ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
+
+                        // for(int i = 0; i < argumentsSize; i++) {
+
+                        // 	if(functionCallSignature.argumentTypes.get(i) != null) {
+                        // 		argumentTypesFunctionCall.add(i, functionCallSignature.argumentTypes.get(i));
+                        // 		System.out.println("Argument type: " + argumentTypesFunctionCall.get(i));
+                        // 	}
+
+
+
+                        // }
+
+                        // SimpleNode.Type nullType = function.localDeclarations.get(nullDeclarationsFunctionCall.key);
+                        // SymbolTable.Signature signatureFunctionCall = nullDeclarationsFunctionCall.value;
+
+
+                        // SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+
+                        // System.out.println("FUNCTION NAME: " + functionFunctionCall.signature.functionName);
+
+
+                        // nullType = functionReturnType;
+
+                }
 
         }/*@bgen(jjtree)*/
      } finally {
@@ -1590,48 +1765,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
-  }
-
-  static private boolean jj_3R_29() {
-    if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_28() {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_16() {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_25() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_29()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_9() {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(LPAR)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAR)) return true;
-    return false;
   }
 
   static private boolean jj_3R_20() {
@@ -1759,11 +1892,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_21() {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_7() {
     if (jj_scan_token(31)) return true;
     return false;
@@ -1797,6 +1925,16 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
+  static private boolean jj_3R_30() {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_31() {
+    if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_34() {
     if (jj_scan_token(INTEGER)) return true;
     return false;
@@ -1808,8 +1946,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_30() {
-    if (jj_scan_token(INTEGER)) return true;
+  static private boolean jj_3R_21() {
+    if (jj_scan_token(31)) return true;
     return false;
   }
 
@@ -1820,8 +1958,45 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_31() {
+  static private boolean jj_3R_29() {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_28() {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16() {
+    if (jj_scan_token(31)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_25() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_29()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) {
+    jj_scanpos = xsp;
+    if (jj_3R_31()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
     if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) jj_scanpos = xsp;
+    if (jj_scan_token(LPAR)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAR)) return true;
     return false;
   }
 

@@ -113,7 +113,20 @@ public class SimpleNode implements Node {
 
     if(this.getId() == yal2jvmTreeConstants.JJTCALL) {
 
+      if(this.jjtGetNumChildren() > 0 && this.jjtGetChild(0).getId() == yal2jvmTreeConstants.JJTARGUMENTLIST) {
 
+        SimpleNode arguments = (SimpleNode) this.jjtGetChild(0);
+
+        for(int l = 0; l < arguments.jjtGetNumChildren(); l++) {
+
+          SimpleNode arg = (SimpleNode) arguments.jjtGetChild(l);
+          SymbolTable.Pair<String, Type> argument = arg.assignFunctionParameters.get(0);
+          this.addAssignFunctionParameter(argument.key, argument.value);
+
+        }
+
+
+      }
 
     }
 
