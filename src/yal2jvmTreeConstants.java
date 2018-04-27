@@ -33,11 +33,13 @@ public interface yal2jvmTreeConstants
   public int JJTSTATEMENTJAVABYTECODES = 29;
   public int JJTRHSJAVABYTECODES = 30;
   public int JJTTERMJAVABYTECODES = 31;
-  public int JJTTYPETOSTR = 32;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 33;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 34;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 35;
-  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 36;
+  public int JJTTYPETOBYTECODES = 32;
+  public int JJTFUNCTIONTOBYTECODES = 33;
+  public int JJTLOADINTEGERTOBYTECODES = 34;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 35;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONSTATEMENTS = 36;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 37;
+  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 38;
 
 
   public String[] jjtNodeName = {
@@ -73,11 +75,13 @@ public interface yal2jvmTreeConstants
     "statementJavaBytecodes",
     "rhsJavaBytecodes",
     "termJavaBytecodes",
-    "typeToStr",
+    "typeToBytecodes",
+    "functionToBytecodes",
+    "loadIntegerToBytecodes",
     "updateSymbolTableFunctionArguments",
     "updateSymbolTableFunctionStatements",
     "updateSymbolTableFunctionFunctionCalls",
     "updateNullTypesFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=b4f16d1079e864eb7b163aa5be294366 (do not edit this line) */
+/* JavaCC - OriginalChecksum=37a085ea2e9ca097df76356458e2504e (do not edit this line) */

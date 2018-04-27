@@ -1,73 +1,80 @@
 module test_jp {
 
-    a = 10;
-    a = [10];
-    b = [10];
-    c;
-    d[];
+    global1 = 10;
+    global1 = [10];
+    
+    global2= [10];
+    global3;
+    global4;
+    global5 = [5];
 
-    function a=f1(a,b[],c) {
+    global6 = [10];
 
-        g = 10;
-        j = b;
-        i = 25;
-        k = i;
-        i = 10;
-        z = f2(4,g,i,"ola");
-        // w = io.read();
+    function ret=f1(arg1,arg2[],arg3) {
 
-        r = [10];
-        s = r;
-        s = [20];
-        s = 2;
+        global1 = [12];
+        local1 = global1;
+        local2 = local1;
+        local3 = f2(4,local15,local16,"ola");
 
-        c2 = c;
+        local100 = f2(local16);
 
+        local200 = global4;
 
-        aray = [2];
+        local101 = local16;
 
-        if(k == 2) {
+        local4 = io.read();
+        io.write("ola");
 
-            y = 10;
+        if(local5 == 2) {
 
-        }
-
-        while(i == 2) {
-
-            kl = y;
-            aray2 = aray;
-            aray3 = [5];
-
-
+            local6 = 10;
 
         }
 
-        // x = f2(s);
+        while(local1 <  2) {
+
+            local7 = 20;
+            local8 = [5];
+
+
+        }
+
+        global1 = f2(global2);
+
+        global1 = f3(global1);
+        global4 = f3(global1);
+
+        global3 = [12];
+
+        local15 = global3;
+        local16 = local15;
 
     }
 
-    function r = f2(b[]) {
+    function ret[] = f2(arg1[]) {
+
 
     }
 
-    function f2(a[]) {
+    // function f2(a[]) {
+
+    // }
+
+    // function a[] = f2(b[]) {
+
+    // }
+
+    // function a = f2(b[]) {
+
+    // }
+
+    function a = f3(a) {
 
     }
 
-    function a[] = f2(b[]) {
+    // function b[] = f3(a,c) {
 
-    }
-
-    function a = f2(b[]) {
-
-    }
-
-    function a[] = f3(a,b) {
-
-    }
-
-    function b[] = f3(a,c) {
-
-    }
+    // }
 
 }

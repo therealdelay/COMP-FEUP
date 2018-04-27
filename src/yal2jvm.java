@@ -1330,7 +1330,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         // stack nº max entre 2, nº de args das fucntions Calls
 
         String functionName = (String) functionNode.jjtGetValue();
-        writer.print(".method public static " + functionName + "(");
+        ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+
+        writer.print(".method public static ");
 
         Node statementList = functionNode.jjtGetChild(0);
         Node argumentList;
@@ -1344,47 +1346,39 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         for(int i=0; i<limitLocals; i++) register_variables.add(null);
 
         // Arguments
-        if (functionName.equals("main")) writer.print("[Ljava/lang/String;");
-        else{
+        if(functionNode.jjtGetNumChildren() == 2) {
 
-                if(functionNode.jjtGetNumChildren() == 2) {
+                argumentList = statementList;
+                statementList = functionNode.jjtGetChild(1);
 
-                        argumentList = statementList;
-                        statementList = functionNode.jjtGetChild(1);
+                int numArguments = argumentList.jjtGetNumChildren();
 
-                        int numArguments = argumentList.jjtGetNumChildren();
+                for(int i = 0; i < numArguments; i++) {
 
-                        for(int i = 0; i < numArguments; i++) {
+                        SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-                                SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+                        String argumentName = (String)argument.jjtGetValue();
+                        register_variables.set(register_variables.indexOf(null), argumentName);
 
-                                String argumentName = (String)argument.jjtGetValue();
-                                register_variables.set(register_variables.indexOf(null), argumentName);
-
-                                SimpleNode.Type argumentDataType = argument.getDataType();
-
-                                writer.print(typeToStr(argumentDataType));
-                        }
-
+                        SimpleNode.Type argumentDataType = argument.getDataType();
+                        argumentTypes.add(argumentDataType);
                 }
+
         }
-        writer.print(")");
 
-        // Return type
-        writer.println(typeToStr(functionNode.getDataType()));
-
+        SymbolTable.Signature sign = new SymbolTable.Signature(argumentTypes, functionName);
+        writer.println(functionToBytecodes(symbolTable.functions.get(sign)));
 
         writer.println(".limit locals " + limitLocals);
         writer.println(".limit stack " + limitStack);
 
         // StmtList
         int numStatements = statementList.jjtGetNumChildren();
-
         for(int i = 0; i < numStatements; i++) {
 
                 SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 
-                statementJavaBytecodes(statement, writer, register_variables, symbolTable);
+                statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
         }/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1393,8 +1387,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
-                                                                                                                                                /*@bgen(jjtree) statementJavaBytecodes */
+  static public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign) throws ParseException {
+                                                                                                                                                                            /*@bgen(jjtree) statementJavaBytecodes */
      ASTstatementJavaBytecodes jjtn000 = new ASTstatementJavaBytecodes(JJTSTATEMENTJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1408,7 +1402,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                         SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
 
-                        rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable);
+                        rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
 
                         writer.println(lhsBytecode);
                         break;
@@ -1423,8 +1417,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
-                                                                                                                                    /*@bgen(jjtree) rhsJavaBytecodes */
+  static public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign) throws ParseException {
+                                                                                                                                                                /*@bgen(jjtree) rhsJavaBytecodes */
      ASTrhsJavaBytecodes jjtn000 = new ASTrhsJavaBytecodes(JJTRHSJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1433,7 +1427,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         switch (rhs1stChild.getId()) {
                 case yal2jvmTreeConstants.JJTTERM:
 
-                        termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable);
+                        termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable, sign);
                         break;
 
                 default:
@@ -1444,7 +1438,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         if(rhsNode.jjtGetNumChildren() == 2){
 
                 SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
-                termJavaBytecodes(term2, writer, register_variables, symbolTable);
+                termJavaBytecodes(term2, writer, register_variables, symbolTable, sign);
 
                 switch ((String)rhsNode.jjtGetValue()) {
                         case "*":
@@ -1462,8 +1456,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable) throws ParseException {
-                                                                                                                                      /*@bgen(jjtree) termJavaBytecodes */
+  static public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign) throws ParseException {
+                                                                                                                                                                  /*@bgen(jjtree) termJavaBytecodes */
      ASTtermJavaBytecodes jjtn000 = new ASTtermJavaBytecodes(JJTTERMJAVABYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
@@ -1483,7 +1477,42 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         else{ //function call
                 SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
 
-                // String functionCall = "invokestatic aval1/f(II)I"
+                String functionName = (String) callNode.jjtGetValue();
+
+                SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
+
+                ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+
+                ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
+                for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
+                        SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
+
+                        System.out.println("functionName: " + functionName);
+                        System.out.println("assignFunctionParameters size: " + assignFunctionParameters.size());
+                        for (SymbolTable.Pair<String, SimpleNode.Type> pair : assignFunctionParameters) {
+                                System.out.println("assignFunctionParameters content: [" + pair.key + ", " + pair.value + "]");
+                        }
+                        String argName = assignFunctionParameters.get(i).key;
+                        if(argName != null){
+
+                                SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
+
+                                if(type == null){
+                                        SymbolTable.Function function = symbolTable.functions.get(sign);
+                                        type = function.localDeclarations.get(argName);
+                                }
+                                argumentTypes.add(type);
+                                int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
+                                writer.println("iload_LEO" + rIndex);
+                        }
+                        else{
+                                argumentTypes.add(assignFunctionParameters.get(i).value);
+                                writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
+                        }
+                }
+
+                SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
+
         }/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
@@ -1492,9 +1521,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      }
   }
 
-  static String typeToStr(SimpleNode.Type type) throws ParseException {
-                                        /*@bgen(jjtree) typeToStr */
-     ASTtypeToStr jjtn000 = new ASTtypeToStr(JJTTYPETOSTR);
+  static String typeToBytecodes(SimpleNode.Type type) throws ParseException {
+                                              /*@bgen(jjtree) typeToBytecodes */
+     ASTtypeToBytecodes jjtn000 = new ASTtypeToBytecodes(JJTTYPETOBYTECODES);
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
      try {switch (type) {
@@ -1509,6 +1538,50 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         default:
                 return "";
         }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static String functionToBytecodes(SymbolTable.Function function) throws ParseException {
+                                                          /*@bgen(jjtree) functionToBytecodes */
+     ASTfunctionToBytecodes jjtn000 = new ASTfunctionToBytecodes(JJTFUNCTIONTOBYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {String result = function.signature.functionName + "(";
+
+        if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
+        else{
+                ArrayList<SimpleNode.Type> argumentTypes = function.signature.argumentTypes;
+                for (SimpleNode.Type type : argumentTypes) {
+                        result += typeToBytecodes(type);
+                }
+        }
+
+        result += ")";
+
+        // Return type
+        result += typeToBytecodes(function.returnType);
+
+        return result;/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static String loadIntegerToBytecodes(Integer value) throws ParseException {
+                                             /*@bgen(jjtree) loadIntegerToBytecodes */
+     ASTloadIntegerToBytecodes jjtn000 = new ASTloadIntegerToBytecodes(JJTLOADINTEGERTOBYTECODES);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {if(value > 5)
+                return "bipush " + value;
+        else
+                return "iconst_" + value;/*@bgen(jjtree)*/
      } finally {
        if (jjtc000) {
          jjtree.closeNodeScope(jjtn000, true);
@@ -1559,13 +1632,24 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                 SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
 
+                String variableName = (String) lhs.jjtGetValue();
+
                 switch (node.getId()) {
 
                         case JJTASSIGN:
 
                                 if(node.getDataType() != null) {
 
-                                        function.addLocalDeclaration((String)lhs.jjtGetValue(),node.getDataType(),null,null);
+                                        if(symbolTable.globalDeclarations.containsKey(variableName)) {
+
+                                                if(symbolTable.addGlobalDeclaration(variableName,node.getDataType()) == false) {
+                                                        System.out.println("Repeated global variable found in function");
+                                                }
+
+                                        }
+
+                                        else
+                                                function.addLocalDeclaration(variableName,node.getDataType(),null,null);
 
                                 }
                                 else {
@@ -1577,9 +1661,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                                                 if(type == null)
                                                         type = symbolTable.globalDeclarations.get(previousVariable);
-
-                                                // System.out.println("Variable:" + previousVariable);
-                                                // System.out.println("Type:" + type);
 
                                                 String localVariable = null;
                                                 SymbolTable.Signature signature = null;
@@ -1604,7 +1685,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                                                 }
 
-                                                function.addLocalDeclaration((String)lhs.jjtGetValue(),type, localVariable, signature);
+                                                function.addLocalDeclaration(variableName,type, localVariable, signature);
+
 
                                         }
 
@@ -1641,8 +1723,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
      try {SimpleNode currentNode = (SimpleNode) node;
 
         if(currentNode.getId() == JJTCALL) {
-
-                System.out.println("Entrei no call");
 
                 String functionName = (String)currentNode.jjtGetValue();
                 String moduleName = "";
@@ -1703,31 +1783,82 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
                         int argumentsSize = functionCallSignature.arguments.size();
 
-                        System.out.println("Argument Types size:" + argumentsSize);
-
                         ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
 
-                        // for(int i = 0; i < argumentsSize; i++) {
+                        for(int i = 0; i < argumentsSize; i++) {
 
-                        // 	if(functionCallSignature.argumentTypes.get(i) != null) {
-                        // 		argumentTypesFunctionCall.add(i, functionCallSignature.argumentTypes.get(i));
-                        // 		System.out.println("Argument type: " + argumentTypesFunctionCall.get(i));
-                        // 	}
+                                argumentTypesFunctionCall.add(SimpleNode.Type.INT);
 
+                        }
 
+                        for(int i = 0; i < argumentsSize; i++) {
 
-                        // }
+                                if(functionCallSignature.argumentTypes.get(i) != null) {
+                                        argumentTypesFunctionCall.set(i, functionCallSignature.argumentTypes.get(i));
+                                }
+                                else {
 
-                        // SimpleNode.Type nullType = function.localDeclarations.get(nullDeclarationsFunctionCall.key);
-                        // SymbolTable.Signature signatureFunctionCall = nullDeclarationsFunctionCall.value;
+                                        String variable = functionCallSignature.arguments.get(i);
 
+                                        SimpleNode.Type type = symbolTable.globalDeclarations.get(variable);
 
-                        // SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+                                        if(type == null)
+                                                type = function.localDeclarations.get(variable);
 
-                        // System.out.println("FUNCTION NAME: " + functionFunctionCall.signature.functionName);
+                                        argumentTypesFunctionCall.set(i, type);
 
+                                        if(type == null) {
 
-                        // nullType = functionReturnType;
+                                                System.out.println("Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
+                                                continue;
+                                        }
+
+                                }
+
+                        }
+
+                        SymbolTable.Signature signatureFunctionCall = new SymbolTable.Signature(argumentTypesFunctionCall,functionCallSignature.functionName);
+
+                        SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
+
+                        if(functionFunctionCall == null) {
+
+                                System.out.print("Function " + signatureFunctionCall.functionName + "(");
+
+                                for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
+                                        System.out.print(signatureFunctionCall.argumentTypes.get(i));
+
+                                        if(i < signatureFunctionCall.argumentTypes.size()-1)
+                                                System.out.print(", ");
+
+                                }
+
+                                System.out.println(") does not exist");
+                                continue;
+
+                        }
+
+                        //Ver se já era global e se o tipo é o mesmo, se não for, meter nas repetidas, se ainda não tiver tipo, atribuir o do return
+                        //da função
+
+                        String nullFunctionCallAssignVariable = nullDeclarationsFunctionCall.key;
+                        SimpleNode.Type returnType = functionFunctionCall.returnType;
+
+                        if(symbolTable.globalDeclarations.containsKey(nullFunctionCallAssignVariable)) {
+
+                                SimpleNode.Type currentType = symbolTable.globalDeclarations.get(nullFunctionCallAssignVariable);
+
+                                symbolTable.addGlobalDeclaration(nullFunctionCallAssignVariable, returnType);
+                                function.localDeclarations.remove(nullFunctionCallAssignVariable);
+
+                        }
+
+                        else {
+
+                                SimpleNode.Type nullType = function.localDeclarations.get(nullFunctionCallAssignVariable);
+                                function.localDeclarations.put(nullFunctionCallAssignVariable, returnType);
+
+                        }
 
                 }
 

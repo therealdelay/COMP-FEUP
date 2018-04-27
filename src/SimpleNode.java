@@ -95,20 +95,6 @@ public class SimpleNode implements Node {
 
       }
 
-      System.out.println("Module Id:" + this.assignIdModule);
-      System.out.println("Assign Id:" + this.assignId);
-
-      System.out.println("Function call parameters:");
-
-      for (int k = 0; k < this.assignFunctionParameters.size(); k++) {
-
-        System.out.println("Variable: " + this.assignFunctionParameters.get(k).key + ", Data Type: "
-            + this.assignFunctionParameters.get(k).value);
-
-      }
-
-      System.out.println("Data type: " + this.dataType);
-
     }
 
     if(this.getId() == yal2jvmTreeConstants.JJTCALL) {
