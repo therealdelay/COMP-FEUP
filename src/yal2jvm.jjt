@@ -1,6 +1,6 @@
 options{
 
-	MULTI=true;
+    MULTI=true;
 }
 
 PARSER_BEGIN(yal2jvm)
@@ -17,384 +17,380 @@ import java.io.IOException;
 import java.util.*;
 
 public class yal2jvm {
-	public static int error_counter = 0;
-	private static SimpleNode astRoot = null;
-	public static void main(String args[]) throws ParseException, IOException {
-		InputStream f = null;
+    public static int error_counter = 0;
+    private static SimpleNode astRoot = null;
+    public static void main(String args[]) throws ParseException, IOException {
+        InputStream f = null;
 
-		try {
-			f = new FileInputStream("../yalExamples/" + args[0]);
-		}catch(FileNotFoundException e) {
-			System.out.println(e.getMessage());
-		}
+        try {
+            f = new FileInputStream("../yalExamples/" + args[0]);
+        }catch(FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
 
-		//System.out.println("File: " + args[0]);
+        //System.out.println("File: " + args[0]);
 
-		yal2jvm parser = new yal2jvm(f);
+        yal2jvm parser = new yal2jvm(f);
 
-		astRoot = parser.Module();
+        astRoot = parser.Module();
 
-		// System.out.print("Error count: " + error_counter + "\n\n");
-		
-		// System.out.println("AST:");
-		// astRoot.dump("");
+        System.out.print("Error count: " + error_counter + "\n\n");
+        
+        // System.out.println("AST:");
+        // astRoot.dump("");
 
-		// buildSymbolTable(astRoot);
+        // buildSymbolTable(astRoot);
 
-		SymbolTable symbolTable = generateSymbolTable(astRoot);
-		// generateJavaBytecodes(astRoot, symbolTable);
-		// System.out.println(symbolTable);
-		
-		// updateNullTypesFunctionCalls(symbolTable);
-
-		System.out.println(symbolTable);
-
-		System.out.print("\n\n\n");
-	}
+        SymbolTable symbolTable = generateSymbolTable(astRoot);
+        // generateJavaBytecodes(astRoot, symbolTable);
+        System.out.println(symbolTable);
+        
+        System.out.print("\n\n\n");
+    }
 }
 
 PARSER_END(yal2jvm)
 
 SKIP : {
-	" "
-	| "\t"
-	| "\n"
-	| "\r"
-	| <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
-	| <"/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
+    " "
+    | "\t"
+    | "\n"
+    | "\r"
+    | <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+    | <"/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
 }
 
 /* reserved words */
 TOKEN : {
-	<RELA_OP: ">" | "<" | "<=" | ">=" | "==" | "!=">
-	| <ADDSUB_OP: "+" | "-">
-	| <ARITH_OP: "*" | "/" | "<<" | ">>" | ">>>">
-	| <BITWISE_OP: "&" | "|" | "^">
-	| <NOT_OP: "!">
-	| <WHILE: "while">
-	| <IF: "if">
-	| <ELSE: "else">
-	| <ASSIGN: "=">
-	| <ASPA: "\"">
-	| <LPAR: "(">
-	| <RPAR: ")">
-	| <VIRG: ",">
-	| <PVIRG: ";">
-	| <LCHAVETA: "{">
-	| <RCHAVETA: "}">
-	| <FUNCTION: "function">
-	| <MODULE: "module">
-	| <SIZE: "size">
+    <RELA_OP: ">" | "<" | "<=" | ">=" | "==" | "!=">
+    | <ADDSUB_OP: "+" | "-">
+    | <ARITH_OP: "*" | "/" | "<<" | ">>" | ">>>">
+    | <BITWISE_OP: "&" | "|" | "^">
+    | <NOT_OP: "!">
+    | <WHILE: "while">
+    | <IF: "if">
+    | <ELSE: "else">
+    | <ASSIGN: "=">
+    | <ASPA: "\"">
+    | <LPAR: "(">
+    | <RPAR: ")">
+    | <VIRG: ",">
+    | <PVIRG: ";">
+    | <LCHAVETA: "{">
+    | <RCHAVETA: "}">
+    | <FUNCTION: "function">
+    | <MODULE: "module">
+    | <SIZE: "size">
 }
 
 TOKEN : {
-	<INTEGER: (<DIGIT>)+>
-	| <ID: <LETTER> (<LETTER> | <DIGIT>)*>
-	| <#LETTER: ["$","A"-"Z","_","a"-"z"]>
-	| <#DIGIT: ["0"-"9"]>
-	| <STRING: "\"" (["a"-"z","A"-"Z","0"-"9",":"," ","="])+ "\"">
+    <INTEGER: (<DIGIT>)+>
+    | <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+    | <#LETTER: ["$","A"-"Z","_","a"-"z"]>
+    | <#DIGIT: ["0"-"9"]>
+    | <STRING: "\"" (["a"-"z","A"-"Z","0"-"9",":"," ","="])+ "\"">
 }
 
 SimpleNode Module() : {Token t;}{
-	try{
-		<MODULE> t=<ID>{jjtThis.jjtSetValue(t.image);} <LCHAVETA> (LOOKAHEAD(3) Declaration())* (Function())* <RCHAVETA>
-	}
-	catch (ParseException e) {
-			System.out.println("EXCEPTION IN MODULE " + e.toString());
-			incErrorCounter();
-			int[] kinds = {RCHAVETA, EOF};
-			error_skipto(kinds);
-	}
-	{return jjtThis;}
+    try{
+        <MODULE> t=<ID>{jjtThis.jjtSetValue(t.image);} <LCHAVETA> (LOOKAHEAD(3) Declaration())* (Function())* <RCHAVETA>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN MODULE " + e.toString());
+        incErrorCounter();
+        int[] kinds = {RCHAVETA, EOF};
+        error_skipto(kinds);
+    }
+    {return jjtThis;}
 }
 
 void Declaration() : {Token t, t2;}{
 
-	t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]" {jjtThis.jjtSetArrayType();}]
-	[
-		<ASSIGN>
-		try{
-			(("[" ArraySize() "]") {jjtThis.jjtSetArrayType();} | [<ADDSUB_OP>] t2=<INTEGER>{jjtThis.jjtSetIntType();})
-		}
-		catch (ParseException e) {
-			System.out.println("EXCEPTION IN DECLARATION " + e.toString());
-			incErrorCounter();
-			int[] kinds = {PVIRG};
-			error_skipto(kinds);
-		}
-	]
-	try{
-		<PVIRG>
-	}
-	catch(ParseException e){
-		System.out.println("EXCEPTION IN DECLARATION " + e.toString());
-		incErrorCounter();
-		int[] kinds = {PVIRG};
-		error_skipto(kinds);
-	}
+    t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]" {jjtThis.jjtSetArrayType();}]
+    [
+    <ASSIGN>
+    try{
+        (("[" ArraySize() "]") {jjtThis.jjtSetArrayType();} | [<ADDSUB_OP>] t2=<INTEGER>{jjtThis.jjtSetIntType();})
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN DECLARATION " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG};
+        error_skipto(kinds);
+    }
+    ]
+    try{
+        <PVIRG>
+    }
+    catch(ParseException e){
+        System.out.println("EXCEPTION IN DECLARATION " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG};
+        error_skipto(kinds);
+    }
 }
 
 
 void Function() : {Token t1, t2;}{
 
-	try{
-		<FUNCTION>{jjtThis.jjtSetType(SimpleNode.Type.VOID);} [LOOKAHEAD(2) t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}] <ASSIGN>] t1=<ID>{jjtThis.jjtSetValue(t1.image);}
-	}
-	catch (ParseException e) {
-			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			incErrorCounter();
-			int[] kinds = {PVIRG, LCHAVETA, LPAR, ID};
-			error_skipto(kinds);
-	}
+    try{
+        <FUNCTION>{jjtThis.jjtSetType(SimpleNode.Type.VOID);} [LOOKAHEAD(2) t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}] <ASSIGN>] t1=<ID>{jjtThis.jjtSetValue(t1.image);}
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN FUNCTION " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG, LCHAVETA, LPAR, ID};
+        error_skipto(kinds);
+    }
 
-	try{
-		<LPAR> [Varlist()] <RPAR>
-	}
-	catch (ParseException e) {
-			System.out.println("EXCEPTION IN FUNCTION " + e.toString());
-			incErrorCounter();
-			int[] kinds = {RPAR};
-			error_skipto(kinds);
-	}
-	<LCHAVETA> Stmtlst() <RCHAVETA>
+    try{
+        <LPAR> [Varlist()] <RPAR>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN FUNCTION " + e.toString());
+        incErrorCounter();
+        int[] kinds = {RPAR};
+        error_skipto(kinds);
+    }
+    <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 
 void Varlist() : {}{
-	(Element()) ( <VIRG> Element() )*
+    (Element()) ( <VIRG> Element() )*
 }
 
 void ArrayElement() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} "[" "]"
+    t=<ID>{jjtThis.jjtSetValue(t.image);} "[" "]"
 }
 
 void Element() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image); jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}]
+    t=<ID>{jjtThis.jjtSetValue(t.image); jjtThis.jjtSetIntType();} ["[" "]"{jjtThis.jjtSetArrayType();}]
 }
 
 void ScalarElement() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);}
+    t=<ID>{jjtThis.jjtSetValue(t.image);}
 }
 
 void Stmtlst() : {}
 {
-	( Stmt() )*
+    ( Stmt() )*
 }
 
 void SpecialStmtlst() #void : {}
 {
-	Stmtlst() <RCHAVETA>
+    Stmtlst() <RCHAVETA>
 }
 
 void Stmt() : {}
 {
-	try{
-		If() | While() | LOOKAHEAD(3) Assign() | Callstmt()
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN STMT " + e.toString());
-		incErrorCounter();
-		int[] kinds = {RPAR, PVIRG, LCHAVETA};
-		error_skipto(kinds);
-	}
+    try{
+        If() | While() | LOOKAHEAD(3) Assign() | Callstmt()
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN STMT " + e.toString());
+        incErrorCounter();
+        int[] kinds = {RPAR, PVIRG, LCHAVETA};
+        error_skipto(kinds);
+    }
 }
 
 void Assign() : {}
 {
-	Lhs() <ASSIGN>
-	try{
-		Rhs() <PVIRG>
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN ASSIGN " + e.toString());
-		incErrorCounter();
-		int[] kinds = {PVIRG};
-		error_skipto(kinds);
-	}
+    Lhs() <ASSIGN>
+    try{
+        Rhs() <PVIRG>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN ASSIGN " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG};
+        error_skipto(kinds);
+    }
 }
 
 void Lhs() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|["." <SIZE>])
+    t=<ID>{jjtThis.jjtSetValue(t.image);} (("[" Index() "]")|["." <SIZE>])
 }
 
 void Rhs() : {Token t;}
 {
-	(Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
+    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
 }
 
 void ArraySize() : {}
 {
-	ScalarAccess() | <INTEGER>
+    ScalarAccess() | <INTEGER>
 }
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-[t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
 }
 
 void Exprtest() : {}
 {
-	try{
-		<LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
-		incErrorCounter();
-		int[] kinds = {RPAR};
-		error_skipto(kinds);
-	}
+    try{
+        <LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
+        incErrorCounter();
+        int[] kinds = {RPAR};
+        error_skipto(kinds);
+    }
 }
 
 void While() : {}
 {
-	<WHILE> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
+    <WHILE> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
 }
 
 void If() : {}
 {
-	<IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
+    <IF> Exprtest() <LCHAVETA> Stmtlst() <RCHAVETA>
 
-	try{
-		[<ELSE> <LCHAVETA> Stmtlst() <RCHAVETA>]
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN ELSE " + e.toString());
-		incErrorCounter();
-		int[] kinds = {PVIRG};
-		error_skipto(kinds);
-	}
+    try{
+        [<ELSE> <LCHAVETA> Stmtlst() <RCHAVETA>]
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN ELSE " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG};
+        error_skipto(kinds);
+    }
 }
 
 void Call() : {Token t1, t2;}
 {
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
+    t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
 
-	try{
-		[ArgumentList()] <RPAR>
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN CALL " + e.toString());
-		incErrorCounter();
-		int[] kinds = {RCHAVETA, LCHAVETA, RPAR};
-		int ret = error_skipto(kinds);
-		if(ret == LCHAVETA){
-			SpecialStmtlst();
-		}
-	}
+    try{
+        [ArgumentList()] <RPAR>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN CALL " + e.toString());
+        incErrorCounter();
+        int[] kinds = {RCHAVETA, LCHAVETA, RPAR};
+        int ret = error_skipto(kinds);
+        if(ret == LCHAVETA){
+            SpecialStmtlst();
+        }
+    }
 }
 
 void Callstmt() #Call : {Token t1, t2;}
 {
-	// t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>
-	t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
+    // t1=<ID>{jjtThis.jjtSetValue(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);}] <LPAR>
+    t1=<ID>{jjtThis.jjtSetValue(t1.image);jjtThis.jjtSetAssignId(t1.image);} ["." t2=<ID>{jjtThis.jjtSetSecValue(t2.image);jjtThis.jjtSetAssignId(t2.image);jjtThis.setAssignIdModule(t1.image);}] <LPAR>
 
-	try{
-		[ArgumentList()] <RPAR> <PVIRG>
-	}
-	catch (ParseException e) {
-		System.out.println("EXCEPTION IN CALL " + e.toString());
-		incErrorCounter();
-		int[] kinds = {PVIRG, RCHAVETA, LCHAVETA};
-		int ret = error_skipto(kinds);
-		if(ret == LCHAVETA){
-			SpecialStmtlst();
-		}
-	}
+    try{
+        [ArgumentList()] <RPAR> <PVIRG>
+    }
+    catch (ParseException e) {
+        System.out.println("EXCEPTION IN CALL " + e.toString());
+        incErrorCounter();
+        int[] kinds = {PVIRG, RCHAVETA, LCHAVETA};
+        int ret = error_skipto(kinds);
+        if(ret == LCHAVETA){
+            SpecialStmtlst();
+        }
+    }
 }
 
 void ArgumentList() : {}
 {
-	Argument() ( <VIRG> Argument() )*
+    Argument() ( <VIRG> Argument() )*
 }
 
 void Argument() : {Token t;}
 {
-	( t=<ID>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(t.image,null);} | t=<STRING>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image); jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.INT);})
+    ( t=<ID>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(t.image,null);} | t=<STRING>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image); jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.INT);})
 }
 
 void ArrayAccess() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} "[" Index() "]"
+    t=<ID>{jjtThis.jjtSetValue(t.image);} "[" Index() "]"
 }
 
 void ScalarAccess() : {Token t, t1;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} ["." t1=<SIZE>{jjtThis.jjtSetSecValue(t1.image);}]
+    t=<ID>{jjtThis.jjtSetValue(t.image);} ["." t1=<SIZE>{jjtThis.jjtSetSecValue(t1.image);}]
 }
 
 void Index() : {Token t;}
 {
-	t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);}
+    t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);}
 }
 
 JAVACODE
 int error_skipto(int[] kinds) #void {
-  Token t;
-  boolean exit = false;
-  System.out.print("Tokens skipped: ");
-  do {
-  	t = getNextToken();
-  	System.out.print(t + " ");
-  	for(int a : kinds){
-  		if((a == t.kind) | (t.kind == EOF))
-  			exit = true;
-  	}
-  } while (!exit);
-  System.out.print("\n\n");
-  return t.kind;
+    Token t;
+    boolean exit = false;
+    System.out.print("Tokens skipped: ");
+    do {
+        t = getNextToken();
+        System.out.print(t + " ");
+        for(int a : kinds){
+            if((a == t.kind) | (t.kind == EOF))
+                exit = true;
+        }
+    } while (!exit);
+    System.out.print("\n\n");
+    return t.kind;
 }
 
 JAVACODE
 void incErrorCounter(){
-	if(yal2jvm.error_counter++ == 10){
-		System.out.println("Too many errors found!");
-		System.exit(1);
-	}
+    if(yal2jvm.error_counter++ == 10){
+        System.out.println("Too many errors found!");
+        System.exit(1);
+    }
 }
 
 
 JAVACODE
 void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws IOException {
 
-	String fileName = ((SimpleNode) root).jjtGetValue() + ".j";
-	File jFile = new File(fileName);
-	FileOutputStream jFileOS = new FileOutputStream(jFile);
-	PrintWriter writer = new PrintWriter(jFileOS);
+    String fileName = ((SimpleNode) root).jjtGetValue() + ".j";
+    File jFile = new File(fileName);
+    FileOutputStream jFileOS = new FileOutputStream(jFile);
+    PrintWriter writer = new PrintWriter(jFileOS);
 
-	moduleJavaBytecodes(root, writer, symbolTable);
+    moduleJavaBytecodes(root, writer, symbolTable);
 }
 
 JAVACODE
 void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable){
 
-	writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
-	writer.println(".super java/lang/Object");
+    writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
+    writer.println(".super java/lang/Object");
 
-	int numChildren = root.jjtGetNumChildren();
+    int numChildren = root.jjtGetNumChildren();
 
-	for(int i = 0; i < numChildren; i++) {
+    for(int i = 0; i < numChildren; i++) {
 
-		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+        SimpleNode node = (SimpleNode) root.jjtGetChild(i);
 
-		int nodeType = node.getId();
+        int nodeType = node.getId();
 
-		switch (nodeType) {
-			case JJTFUNCTION:
+        switch (nodeType) {
+            case JJTFUNCTION:
 
-			functionJavaBytecodes(node, writer, symbolTable);
+            functionJavaBytecodes(node, writer, symbolTable);
 
 
-			default:
-				break;
+            default:
+            break;
 
-		}
-	}	
-	clinitJavaBytecodes(writer);
+        }
+    }   
+    clinitJavaBytecodes(writer);
 
-	writer.close();
+    writer.close();
 
 }
 
@@ -403,672 +399,601 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
 
 
     // locals nº de argumentos da funcao + declaraçoes locais
-	// stack nº max entre 2, nº de args das fucntions Calls
-	
-	String functionName = (String) functionNode.jjtGetValue();
-	ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+    // stack nº max entre 2, nº de args das fucntions Calls
 
-	writer.print("\n.method public static ");
+    String functionName = (String) functionNode.jjtGetValue();
+    ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
 
-	Node statementList = functionNode.jjtGetChild(0);
-	Node argumentList;
+    writer.print("\n.method public static ");
 
-	// Locals stack
-	// calculateLimitLocals(function);
-	// calculateLimitStack(function);
-	int limitLocals = 10, limitStack = 10;
+    Node statementList = functionNode.jjtGetChild(0);
+    Node argumentList;
 
-	ArrayList<String> register_variables = new ArrayList();
-	for(int i=0; i<limitLocals; i++) register_variables.add(null);
+    // Locals stack
+    // calculateLimitLocals(function);
+    // calculateLimitStack(function);
+    int limitLocals = 10, limitStack = 10;
 
-	// Arguments
-	if(functionNode.jjtGetNumChildren() == 2) {
+    ArrayList<String> register_variables = new ArrayList();
+    for(int i=0; i<limitLocals; i++) register_variables.add(null);
 
-		argumentList = statementList;
-		statementList = functionNode.jjtGetChild(1);
+    // Arguments
+        if(functionNode.jjtGetNumChildren() == 2) {
 
-		int numArguments = argumentList.jjtGetNumChildren();
-		
-		for(int i = 0; i < numArguments; i++) {
-	
-			SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
-			
-			String argumentName = (String)argument.jjtGetValue();
-			register_variables.set(register_variables.indexOf(null), argumentName);
-		
-			SimpleNode.Type argumentDataType = argument.getDataType();
-			argumentTypes.add(argumentDataType);
-		}
+            argumentList = statementList;
+            statementList = functionNode.jjtGetChild(1);
 
-	}
+            int numArguments = argumentList.jjtGetNumChildren();
 
-	SymbolTable.Signature sign = new SymbolTable.Signature(argumentTypes, functionName);
-	writer.println(functionToBytecodes(symbolTable.functions.get(sign)));
+            for(int i = 0; i < numArguments; i++) {
 
-	writer.println(".limit locals " + limitLocals);
-	writer.println(".limit stack " + limitStack);
+                SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-	// StmtList
-	int numStatements = statementList.jjtGetNumChildren();
-	for(int i = 0; i < numStatements; i++) {
-		
-		SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
-		
-		statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-	}
+                String argumentName = (String)argument.jjtGetValue();
+                register_variables.set(register_variables.indexOf(null), argumentName);
 
-	switch(symbolTable.functions.get(sign).returnType){
-		case INT:
-			writer.print("i");
-			break;
-		case ARRAY_INT:
-			writer.print("a");
-			break;
-		default:
-			break;
-	}
-	writer.println("return");
-	writer.println(".end method\n");
-}
+                SimpleNode.Type argumentDataType = argument.getDataType();
+                argumentTypes.add(argumentDataType);
+            }
 
-JAVACODE
-public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+        }
 
-	SimpleNode statementChild = (SimpleNode) statementNode.jjtGetChild(0);
-	switch (statementChild.getId()) {
-		case yal2jvmTreeConstants.JJTASSIGN:
-			
-			int register_index = register_variables.indexOf(null);
-			register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
-			String lhsBytecode = "istore_" + register_index;
+        SymbolTable.Signature sign = new SymbolTable.Signature(argumentTypes, functionName);
+        writer.println(functionToBytecodes(symbolTable.functions.get(sign)));
 
-			SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
+        writer.println(".limit locals " + limitLocals);
+        writer.println(".limit stack " + limitStack);
 
-			rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
+    // StmtList
+        int numStatements = statementList.jjtGetNumChildren();
+        for(int i = 0; i < numStatements; i++) {
 
-			writer.println(lhsBytecode);
-			break;
-		case yal2jvmTreeConstants.JJTCALL:
-			SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
-			functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
-		default:
-			break;
-	}
-}
+            SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
 
-JAVACODE
-public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
-	SimpleNode rhs1stChild = (SimpleNode) rhsNode.jjtGetChild(0);
+            statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
+        }
 
-	switch (rhs1stChild.getId()) {
-		case yal2jvmTreeConstants.JJTTERM:
-			
-			termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable, sign);
-			break;
-	
-		default:
-		// ARRAY SIZE DEF
-			break;
-	}
+        switch(symbolTable.functions.get(sign).returnType){
+            case INT:
+            writer.print("i");
+            break;
+            case ARRAY_INT:
+            writer.print("a");
+            break;
+            default:
+            break;
+        }
+        writer.println("return");
+        writer.println(".end method\n");
+    }
 
-	if(rhsNode.jjtGetNumChildren() == 2){
-				
-		SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
-		termJavaBytecodes(term2, writer, register_variables, symbolTable, sign);
+    JAVACODE
+    public void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
 
-		switch ((String)rhsNode.jjtGetValue()) {
-			case "*":
-				writer.println("imul");
-				break;
-			case "/":
-				writer.println("idiv");
-				break;
-			case "+":
-				writer.println("iadd");
-				break;
-			case "-":
-				writer.println("isub");
-				break;
-			case "<<":
-				writer.println("ishl");
-				break;
-			case ">>":
-				writer.println("ishr");
-				break;
-			case ">>>":
-				writer.println("iushl");
-				break;
-			case "&":
-				writer.println("iand");
-				break;
-			case "|":
-				writer.println("ior");
-				break;
-			case "^":
-				writer.println("ixor");
-				break;
-			default:
-				break;
-		}
-	}
-}
+        SimpleNode statementChild = (SimpleNode) statementNode.jjtGetChild(0);
+        switch (statementChild.getId()) {
+            case yal2jvmTreeConstants.JJTASSIGN:
 
-JAVACODE
-public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+            int register_index = register_variables.indexOf(null);
+            register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
+            String lhsBytecode = "istore_" + register_index;
 
-	if(termNode.jjtGetNumChildren() == 0){
-		if(termNode.getDataType() == SimpleNode.Type.INT){
+            SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
 
-			if((Integer) termNode.jjtGetValue()>5)
-				writer.println("bipush " + (String) termNode.jjtGetValue());
-			else
-				writer.println("iconst_" + (String) termNode.jjtGetValue());
-		}
-		else{ // ID
-			int rIndex = register_variables.indexOf((String) termNode.jjtGetValue());
-			writer.println("iload_" + rIndex);
-		}
-	}
-	else{ //function call
-		SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
+            rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
 
-		functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
-	}
+            writer.println(lhsBytecode);
+            break;
+            case yal2jvmTreeConstants.JJTCALL:
+            SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
+            functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+            default:
+            break;
+        }
+    }
+
+    JAVACODE
+    public void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+        SimpleNode rhs1stChild = (SimpleNode) rhsNode.jjtGetChild(0);
+
+        switch (rhs1stChild.getId()) {
+            case yal2jvmTreeConstants.JJTTERM:
+
+            termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable, sign);
+            break;
+
+            default:
+        // ARRAY SIZE DEF
+            break;
+        }
+
+        if(rhsNode.jjtGetNumChildren() == 2){
+
+            SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
+            termJavaBytecodes(term2, writer, register_variables, symbolTable, sign);
+
+            switch ((String)rhsNode.jjtGetValue()) {
+                case "*":
+                writer.println("imul");
+                break;
+                case "/":
+                writer.println("idiv");
+                break;
+                case "+":
+                writer.println("iadd");
+                break;
+                case "-":
+                writer.println("isub");
+                break;
+                case "<<":
+                writer.println("ishl");
+                break;
+                case ">>":
+                writer.println("ishr");
+                break;
+                case ">>>":
+                writer.println("iushl");
+                break;
+                case "&":
+                writer.println("iand");
+                break;
+                case "|":
+                writer.println("ior");
+                break;
+                case "^":
+                writer.println("ixor");
+                break;
+                default:
+                break;
+            }
+        }
+    }
+
+    JAVACODE
+    public void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+
+        if(termNode.jjtGetNumChildren() == 0){
+            if(termNode.getDataType() == SimpleNode.Type.INT){
+
+                if((Integer) termNode.jjtGetValue()>5)
+                    writer.println("bipush " + (String) termNode.jjtGetValue());
+                else
+                    writer.println("iconst_" + (String) termNode.jjtGetValue());
+            }
+        else{ // ID
+            int rIndex = register_variables.indexOf((String) termNode.jjtGetValue());
+            writer.println("iload_" + rIndex);
+        }
+    }
+    else{ //function call
+        SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
+
+        functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+    }
 }
 
 JAVACODE
 public void functionCallJavaBytecodes(SimpleNode callNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
-	
-	System.out.println("callNode.id: " + callNode.getId());
 
-	String functionName = (String) callNode.getAssignId();
-	String moduleName = (String) callNode.getAssignIdModule();
-	if(moduleName == null) moduleName = symbolTable.moduleName;
-	
-	
-	SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
-	
-	ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
-	
-	ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
-	
-	System.out.println("functionName: " + moduleName + "/" + functionName);
-	for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
-		SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
+    System.out.println("callNode.id: " + callNode.getId());
 
-		String argName = assignFunctionParameters.get(i).key;
-		if(argName != null){
+    String functionName = (String) callNode.getAssignId();
+    String moduleName = (String) callNode.getAssignIdModule();
+    if(moduleName == null) moduleName = symbolTable.moduleName;
+    
+    
+    SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
+    
+    ArrayList<SimpleNode.Type> argumentTypes = new ArrayList();
+    
+    ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
+    
+    System.out.println("functionName: " + moduleName + "/" + functionName);
+    for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
+        SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
 
-			SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
+        String argName = assignFunctionParameters.get(i).key;
+        if(argName != null){
 
-			if(type == null){
-				SymbolTable.Function function = symbolTable.functions.get(sign);
-				System.out.println("argName: " + argName);
-				type = function.localDeclarations.get(argName);
-				System.out.println("Type: " + type);
-			}
-			argumentTypes.add(type);
-			int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
-			writer.println("iload_" + rIndex);
-		}
-		else{
-			argumentTypes.add(assignFunctionParameters.get(i).value);
-			writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
-		}
-	}
+            SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
 
-	for (SimpleNode.Type type : argumentTypes) {
-		System.out.println("argType: " + type);
-	}
-	SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
-	SymbolTable.Function function = symbolTable.functions.get(funcCallSign);
-	if(function == null){
-		System.out.println("NULL FUNCTION");
-	} 
-	else{
+            if(type == null){
+                SymbolTable.Function function = symbolTable.functions.get(sign);
+                System.out.println("argName: " + argName);
+                type = function.localDeclarations.get(argName);
+                System.out.println("Type: " + type);
+            }
+            argumentTypes.add(type);
+            int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
+            writer.println("iload_" + rIndex);
+        }
+        else{
+            argumentTypes.add(assignFunctionParameters.get(i).value);
+            writer.println(loadIntegerToBytecodes(Integer.parseInt((String)((SimpleNode)argNode).jjtGetValue())));
+        }
+    }
 
-		writer.println("invokestatic " + moduleName + "/" + functionToBytecodes(function) + "\n");
-	}
+    for (SimpleNode.Type type : argumentTypes) {
+        System.out.println("argType: " + type);
+    }
+    SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
+    SymbolTable.Function function = symbolTable.functions.get(funcCallSign);
+    if(function == null){
+        System.out.println("NULL FUNCTION");
+    } 
+    else{
+
+        writer.println("invokestatic " + moduleName + "/" + functionToBytecodes(function) + "\n");
+    }
 
 }
 
 JAVACODE
 String typeToBytecodes(SimpleNode.Type type) {
-	switch (type) {
-	case INT:
-		return "I";
-	case ARRAY_INT:
-		return "[I";
-	case VOID:
-		return "V";
-	case STRING:
-		return "Ljava/lang/String;";
-	default:
-		return "";
-	}
+    switch (type) {
+        case INT:
+        return "I";
+        case ARRAY_INT:
+        return "[I";
+        case VOID:
+        return "V";
+        case STRING:
+        return "Ljava/lang/String;";
+        default:
+        return "";
+    }
 }
 
 JAVACODE
 String functionToBytecodes(SymbolTable.Function function){
-	String result = function.signature.functionName + "(";
-	
-	if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
-	else{
-		ArrayList<SimpleNode.Type> argumentTypes = function.signature.argumentTypes;
-		for (SimpleNode.Type type : argumentTypes) {
-			result += typeToBytecodes(type);
-		}
-	}
+    String result = function.signature.functionName + "(";
 
-	result += ")";
+    if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
+    else{
+        ArrayList<SimpleNode.Type> argumentTypes = function.signature.argumentTypes;
+        for (SimpleNode.Type type : argumentTypes) {
+            result += typeToBytecodes(type);
+        }
+    }
 
-	// Return type
-	result += typeToBytecodes(function.returnType);
+    result += ")";
 
-	return result;
+    // Return type
+    result += typeToBytecodes(function.returnType);
+
+    return result;
 }
 
 JAVACODE 
 String loadIntegerToBytecodes(Integer value){
 
-	if(value > 5) 
-		return "bipush " + value;
-	else 
-		return "iconst_" + value;	
+    if(value > 5) 
+        return "bipush " + value;
+    else 
+        return "iconst_" + value;   
 }
 
 JAVACODE
 void clinitJavaBytecodes(PrintWriter writer){
-	writer.println("method static public <clinit>()V");
-	writer.println(".limit stack 0");
-	writer.println(".limit locals 0");
-	writer.println("return");
-	writer.println(".end method ");
-	 
+    writer.println("method static public <clinit>()V");
+    writer.println(".limit stack 0");
+    writer.println(".limit locals 0");
+    writer.println("return");
+    writer.println(".end method ");
+
 }
 
 JAVACODE
 SymbolTable generateSymbolTable(Node root) {
 
-	SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
-	int numChildren = root.jjtGetNumChildren();
+    SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
+    int numChildren = root.jjtGetNumChildren();
 
-	ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
-	ArrayList<Node> allStatementsListNodes = new ArrayList();
-	ArrayList<Node> allFunctionsNodes = new ArrayList();
+    ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
+    ArrayList<Node> allStatementsListNodes = new ArrayList();
+    ArrayList<Node> allFunctionsNodes = new ArrayList();
 
+    for(int i = 0; i < numChildren; i++) {
 
-	for(int i = 0; i < numChildren; i++) {
+        SimpleNode node = (SimpleNode) root.jjtGetChild(i);
+        int nodeType = node.getId();
 
-		SimpleNode node = (SimpleNode) root.jjtGetChild(i);
-		int nodeType = node.getId();
+        switch (nodeType) {
+            case JJTDECLARATION:
 
-		switch (nodeType) {
-			case JJTDECLARATION:
+            symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+            break;
 
-				symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-				break;
+            case JJTFUNCTION:
 
-			case JJTFUNCTION:
+            String functionName = (String) node.jjtGetValue();
+            SimpleNode.Type returnType = node.getDataType();
+            SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+            SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
 
-				String functionName = (String) node.jjtGetValue();
-				SimpleNode.Type returnType = node.getDataType();
-				SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-				SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+                /**
+                 * verificar se tem argumentos ou apenas statements
+                 */
 
-				/**
-				 * verificar se tem argumentos ou apenas statements
-				 */
+                Node argumentList;
+                Node statementList;
 
-				Node argumentList;
-				Node statementList;
+                int functionChildrenNum = node.jjtGetNumChildren();
+                statementList = node.jjtGetChild(0);
 
-				int functionChildrenNum = node.jjtGetNumChildren();
-				statementList = node.jjtGetChild(0);
+                // System.out.println("Function Name: " + signature.functionName);
 
-				// System.out.println("Function Name: " + signature.functionName);
+                if(functionChildrenNum == 2) {
 
-				if(functionChildrenNum == 2) {
+                    argumentList = statementList;
+                    statementList = node.jjtGetChild(1);
+                    updateSymbolTableFunctionArguments(argumentList, function);
 
-					argumentList = statementList;
-					statementList = node.jjtGetChild(1);
-					updateSymbolTableFunctionArguments(argumentList, function);
 
+                }
 
-				}
+                allFunctions.add(function);
+                allStatementsListNodes.add(statementList);
+                allFunctionsNodes.add(node);
 
-				
-				//add function
-				symbolTable.addFunction(function);
-				allFunctions.add(function);
-				allStatementsListNodes.add(statementList);
-				allFunctionsNodes.add(node);
+                //add function
+                symbolTable.addFunction(function);
 
-				break;
+                break;
 
-			default:
-				break;
-		}
-	}
+                default:
+                break;
+            }
+        }
 
-	for(int i=0 ; i < allFunctions.size(); i++){
-		updateSymbolTableFunctionAssigns(allStatementsListNodes.get(i),allFunctions.get(i),symbolTable);
-		// updateSymbolTableFunctionFunctionCalls(node, function);
-	}
+        for(int i = 0; i < allFunctions.size(); i++) {
 
-	return symbolTable;
+            updateSymbolTableFunctionAssigns(allStatementsListNodes.get(i), allFunctions.get(i),symbolTable);
+            updateSymbolTableFunctionFunctionCalls(allFunctionsNodes.get(i), allFunctions.get(i), symbolTable);
 
+        }
 
-}
+        return symbolTable;
 
-JAVACODE
-void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
 
-	int numArguments = argumentList.jjtGetNumChildren();
+    }
 
-	for(int i = 0; i < numArguments; i++) {
+    JAVACODE
+    void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
 
-		SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+        int numArguments = argumentList.jjtGetNumChildren();
 
-		//apenas uma verificação redundante se é do tipo elemento
-		if(argument.getId() != JJTELEMENT) {
+        for(int i = 0; i < numArguments; i++) {
 
-			System.out.println("Argument not of ELEMENT type, check why.");
-			continue;
-		}
+            SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-		String argumentName = (String)argument.jjtGetValue();
-		SimpleNode.Type argumentDataType = argument.getDataType();
-		function.signature.addArgumentType(argumentName,argumentDataType);
+        //apenas uma verificação redundante se é do tipo elemento
+            if(argument.getId() != JJTELEMENT) {
 
-	}
+                System.out.println("Argument not of ELEMENT type, check why.");
+                continue;
+            }
 
-}
+            String argumentName = (String)argument.jjtGetValue();
+            SimpleNode.Type argumentDataType = argument.getDataType();
+            function.signature.addArgumentType(argumentName,argumentDataType);
 
-JAVACODE
-void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
+        }
 
-	for(int i = 0; i < statementList.jjtGetNumChildren(); i++){
-		
-		SimpleNode statement = (SimpleNode)statementList.jjtGetChild(i);
-		
-		SimpleNode statementChild = (SimpleNode)statement.jjtGetChild(0);
-		
-		switch(statementChild.getId()){
-			case JJTASSIGN:
+    }
 
-				SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
-				SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
-				SimpleNode rhsChild = (SimpleNode)rhs.jjtGetChild(0);
+    JAVACODE
+    void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
-				String rhsValue = (String)rhs.jjtGetValue();
-				if(rhsValue == null)
-					rhsValue = (String)rhsChild.jjtGetValue();
+        for(int i = 0; i < statementList.jjtGetNumChildren(); i++){
 
-				SimpleNode.Type rhsType = rhs.getDataType();
-				if(rhsType == null)
-					rhsType = rhsChild.getDataType();
+            SimpleNode statement = (SimpleNode)statementList.jjtGetChild(i);
 
-				System.out.println("RHS Type: " + rhsType);
+            SimpleNode statementChild = (SimpleNode)statement.jjtGetChild(0);
 
-				// verificar se os types dos 2 membros do assign coincidem
-				if(lhs.getDataType() == null)
-					lhs.jjtSetType(rhsType);
-				else{
-					if(lhs.getDataType() != rhsType){
-						System.out.println("Semantic error: conflict types between " + lhs.value + " and " + rhsValue);
-					}
-				}
-				System.out.println("LHS Type: " + lhs.getDataType());
-				function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
-				break;
+            switch(statementChild.getId()){
+                case JJTASSIGN:
+                SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+                SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
+                SimpleNode rhsChild = (SimpleNode)rhs.jjtGetChild(0);
+                String rhsValue = (String)rhs.jjtGetValue();
+                SimpleNode.Type rhsType = rhs.getDataType();
 
-			case JJTIF:
-			case JJTWHILE:
-				System.out.println("If/While: " + statementChild);
-				System.out.println("If/While children: " + statementChild.jjtGetNumChildren());
-				break;
+                if(rhsChild.jjtGetNumChildren() > 0){ //so entra neste if se for uma function call
+                    //quando não tem module -> first value = nome da funcao
+                    //quanto tem module -> first value = nome do module
+                    SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
+                    String functionName = (String)callNode.jjtGetValue();
+                    String module = null;
+                    if(callNode.jjtGetSecValue() != null){
+                        functionName = (String)callNode.jjtGetSecValue();
+                        module = (String)callNode.jjtGetValue();
+                    }
 
-			default:
-				break;
-		}
+                    //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
+                    SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);
+                    rhsType = fcall.funcionCallReturnType;
 
+                }
+                else { //entra neste else se for ID ou um inteiro
+                    if(statementChild.getAssignId() != null)
+                        rhsType = symbolTable.getType(statementChild.getAssignId(),function);
 
+                    if(rhsValue == null)
+                        rhsValue = (String)rhsChild.jjtGetValue();
 
+                    if(rhsType == null)
+                        rhsType = rhsChild.getDataType();
 
+                }
 
-	}
+                // verificar se os types dos 2 membros do assign coincidem
+                if(lhs.getDataType() == null)
+                    lhs.jjtSetType(rhsType);
+                else{
+                    if(lhs.getDataType() != rhsType){
+                        System.out.println("Semantic error: conflict types between " + lhs.value + " and " + rhsValue);
+                    }
+                }
+                //verificar se está em alguma das tabelas (local ou global)
+                function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
+                break;
 
-	System.out.println();
-	/*int numStatements = statementList.jjtGetNumChildren();
+                case JJTIF:
+                    for(int x = 1; x < statementChild.jjtGetNumChildren(); x++){
+                        SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(x);
+                        updateSymbolTableFunctionAssigns(statementListIfWhile, function, symbolTable);
+                    }
+                    break;
+                case JJTWHILE:
+                    SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(1);
+                    updateSymbolTableFunctionAssigns(statementListIfWhile, function, symbolTable);
+                break;
 
-	for(int i = 0; i < numStatements; i++) {
+                default:
+                break;
+            }
+        }
+        System.out.println();
+    }
 
-		SimpleNode node = (SimpleNode) statementList.jjtGetChild(i).jjtGetChild(0);
 
-		SimpleNode lhs = (SimpleNode)node.jjtGetChild(0);
+    JAVACODE
+    void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function, SymbolTable symbolTable) {
 
-		String variableName = (String) lhs.jjtGetValue();
+        SimpleNode currentNode = (SimpleNode) node;
 
-		switch (node.getId()) {
+        if(currentNode.getId() == JJTCALL) {
 
-			case JJTASSIGN:
+            String functionName = (String)currentNode.jjtGetValue();
+            String moduleName = null;
 
-				if(node.getDataType() != null) {
+            if(currentNode.jjtGetSecValue() != null) {
+                moduleName = functionName;
+                functionName = (String) currentNode.jjtGetSecValue();
+            }
 
-					if(symbolTable.globalDeclarations.containsKey(variableName)) {
+            ArrayList<SymbolTable.Pair<String,SimpleNode.Type>> functionCallParameters = currentNode.assignFunctionParameters;
 
-						if(symbolTable.addGlobalDeclaration(variableName,node.getDataType()) == false) {
-							System.out.println("Repeated global variable found in function");
-						}
+            SymbolTable.FunctionCall functionCall = symbolTable.checkGoodFunctionCall(functionName, moduleName, functionCallParameters, function);
 
-					}
+            function.addFunctionCall(functionCall);
 
-					else
-						function.addLocalDeclaration(variableName,node.getDataType(),null,null,null);
+        }
 
-				}
-				else {
+        else {
 
-					if(node.getAssignId() != null) {
+            for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
 
-						String previousVariable = node.getAssignId();
-						SimpleNode.Type type = function.localDeclarations.get(previousVariable);
+                updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function, symbolTable);
 
-						if(type == null)
-							type = symbolTable.globalDeclarations.get(previousVariable);
+            }
 
-						String localVariable = null;
-						SymbolTable.Signature signature = null;
 
-						SimpleNode rhs = (SimpleNode) node.jjtGetChild(1);
 
-						if(((SimpleNode)rhs.jjtGetChild(0)).getId() == JJTTERM) {
+        }
 
-							SimpleNode term = (SimpleNode) rhs.jjtGetChild(0);
 
-							if(term.jjtGetNumChildren() > 0 && ((SimpleNode) term.jjtGetChild(0)).getId() == JJTCALL) {
 
-								SimpleNode call = (SimpleNode) term.jjtGetChild(0);
+    }
 
-								signature = new SymbolTable.Signature(call.getAssignId(),call.getAssignFunctionParameters());
 
-							}
+    JAVACODE
+    void updateNullTypesFunctionCalls(SymbolTable symbolTable) {
 
-							else
-								localVariable = (String) term.jjtGetValue();
+        HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
 
+        for(SymbolTable.Signature signature: functions.keySet()) {
 
-						}
+            SymbolTable.Function function = functions.get(signature);
 
-						function.addLocalDeclaration(variableName,type, localVariable, signature, symbolTable.globalDeclarations);
-							
+            ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
 
-					}
+            for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
 
-				}
+                SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
 
-				break;
+                int argumentsSize = functionCallSignature.arguments.size();
 
-			case JJTWHILE:
-			case JJTIF:
+                ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
 
-				SimpleNode statementListIfWhile = (SimpleNode) node.jjtGetChild(1);
-				updateSymbolTableFunctionStatements(statementListIfWhile, function, symbolTable);
+                for(int i = 0; i < argumentsSize; i++) {
 
-				break;
+                    argumentTypesFunctionCall.add(SimpleNode.Type.INT);
 
-			default:
+                }
 
-				break;
-		}
+                for(int i = 0; i < argumentsSize; i++) {
 
-	}*/
-}
+                    if(functionCallSignature.argumentTypes.get(i) != null) {
+                        argumentTypesFunctionCall.set(i, functionCallSignature.argumentTypes.get(i));
+                    }
+                    else {
 
+                        String variable = functionCallSignature.arguments.get(i);
 
-JAVACODE
-void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function) {
+                        SimpleNode.Type type = symbolTable.globalDeclarations.get(variable);
 
-	SimpleNode currentNode = (SimpleNode) node;
+                        if(type == null)
+                            type = function.localDeclarations.get(variable);
 
-	if(currentNode.getId() == JJTCALL) {
+                        argumentTypesFunctionCall.set(i, type);
 
-		String functionName = (String)currentNode.jjtGetValue();
-		String moduleName = "";
+                        if(type == null) {
 
-		if(currentNode.jjtGetSecValue() != null) {
-			moduleName = functionName;
-			functionName = (String) currentNode.jjtGetSecValue();
-		}
+                            System.out.println("Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
+                            continue;
+                        }
 
-		String leftVariable = null;
-		SimpleNode parent = (SimpleNode) currentNode.jjtGetParent();
-		if(parent.getId() == JJTTERM) {
+                    }
 
-			SimpleNode greatGrandParent = (SimpleNode) parent.jjtGetParent();
-			SimpleNode lhs = (SimpleNode)greatGrandParent.jjtGetChild(0);
-			leftVariable = (String)lhs.jjtGetValue();
-	
-		}
+                }
 
-		function.addFunctionCall(new SymbolTable.Signature(functionName, currentNode.assignFunctionParameters),moduleName);
+                SymbolTable.Signature signatureFunctionCall = new SymbolTable.Signature(argumentTypesFunctionCall,functionCallSignature.functionName);
 
-	}
+                SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
 
-	else {
+                if(functionFunctionCall == null) {
 
-		for(int i = 0; i < currentNode.jjtGetNumChildren(); i++) {
+                    System.out.print("Function " + signatureFunctionCall.functionName + "("); 
 
-			updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function);
+                    for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
+                        System.out.print(signatureFunctionCall.argumentTypes.get(i));
 
-		}
+                        if(i < signatureFunctionCall.argumentTypes.size()-1)
+                            System.out.print(", ");
 
+                    }
 
+                    System.out.println(") does not exist");
+                    continue;
 
-	}
+                }
 
+            //Ver se já era global e se o tipo é o mesmo, se não for, meter nas repetidas, se ainda não tiver tipo, atribuir o do return
+            //da função
 
+                String nullFunctionCallAssignVariable = nullDeclarationsFunctionCall.key;
+                SimpleNode.Type returnType = functionFunctionCall.returnType;
 
-}
+                if(symbolTable.globalDeclarations.containsKey(nullFunctionCallAssignVariable)) {
 
+                    SimpleNode.Type currentType = symbolTable.globalDeclarations.get(nullFunctionCallAssignVariable);
 
-JAVACODE
-void updateNullTypesFunctionCalls(SymbolTable symbolTable) {
+                    symbolTable.addGlobalDeclaration(nullFunctionCallAssignVariable, returnType);
+                    function.localDeclarations.remove(nullFunctionCallAssignVariable);
 
-	HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
+                }
 
-	for(SymbolTable.Signature signature: functions.keySet()) {
+                else {
 
-		SymbolTable.Function function = functions.get(signature);
+                    SimpleNode.Type nullType = function.localDeclarations.get(nullFunctionCallAssignVariable);
+                    function.localDeclarations.put(nullFunctionCallAssignVariable, returnType);
 
-		ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
+                }
 
-		for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
-			
-			SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
+            }
 
-			int argumentsSize = functionCallSignature.arguments.size();
+        }
 
-			ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
-
-			for(int i = 0; i < argumentsSize; i++) {
-
-				argumentTypesFunctionCall.add(SimpleNode.Type.INT);
-
-			}
-
-			for(int i = 0; i < argumentsSize; i++) {
-
-				if(functionCallSignature.argumentTypes.get(i) != null) {
-					argumentTypesFunctionCall.set(i, functionCallSignature.argumentTypes.get(i));
-				}
-				else {
-					
-					String variable = functionCallSignature.arguments.get(i);
-
-					SimpleNode.Type type = symbolTable.globalDeclarations.get(variable);
-
-					if(type == null)
-						type = function.localDeclarations.get(variable);
-
-					argumentTypesFunctionCall.set(i, type);
-
-					if(type == null) {
-						
-						System.out.println("Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
-						continue;
-					}
-
-				}
-
-			}
-
-			SymbolTable.Signature signatureFunctionCall = new SymbolTable.Signature(argumentTypesFunctionCall,functionCallSignature.functionName);
-
-			SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
-
-			if(functionFunctionCall == null) {
-
-				System.out.print("Function " + signatureFunctionCall.functionName + "("); 
-				
-				for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
-					System.out.print(signatureFunctionCall.argumentTypes.get(i));
-
-					if(i < signatureFunctionCall.argumentTypes.size()-1)
-						System.out.print(", ");
-
-				}
-
-				System.out.println(") does not exist");
-				continue;
-
-			}
-
-			//Ver se já era global e se o tipo é o mesmo, se não for, meter nas repetidas, se ainda não tiver tipo, atribuir o do return
-			//da função
-
-			String nullFunctionCallAssignVariable = nullDeclarationsFunctionCall.key;
-			SimpleNode.Type returnType = functionFunctionCall.returnType;
-
-			if(symbolTable.globalDeclarations.containsKey(nullFunctionCallAssignVariable)) {
-
-				SimpleNode.Type currentType = symbolTable.globalDeclarations.get(nullFunctionCallAssignVariable);
-
-				symbolTable.addGlobalDeclaration(nullFunctionCallAssignVariable, returnType);
-				function.localDeclarations.remove(nullFunctionCallAssignVariable);
-
-			}
-
-			else {
-
-				SimpleNode.Type nullType = function.localDeclarations.get(nullFunctionCallAssignVariable);
-				function.localDeclarations.put(nullFunctionCallAssignVariable, returnType);
-
-			}
-
-		}
-
-	}
-
-}
+    }

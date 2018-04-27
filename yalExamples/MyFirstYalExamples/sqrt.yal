@@ -1,7 +1,7 @@
 module sqrt
 {
 
-	function a=sqrt() {
+	function a=sqrt(x) {
 		vsqn = io.read();
 		io.println("vsqn: ", vsqn);
 
@@ -35,7 +35,8 @@ module sqrt
 
 	function main()
 	{
-		a=sqrt();
+		x = 0;
+		a=sqrt(x);
 	}
 
 }

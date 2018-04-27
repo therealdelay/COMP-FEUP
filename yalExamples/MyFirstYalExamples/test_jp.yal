@@ -24,37 +24,31 @@ module test_jp {
         local100 = f2(local16);
 
         local200 = global4;
+    global1 = 10;
+    global2 = [10];
 
-        local101 = local16;
+    function ret=f1(arg1,arg2[],arg3) {
 
-        local4 = io.read();
-        io.write("ola");
+        global1 = f2(global3);
+        local2 = [2];
 
-        if(local5 == 2) {
+        if(global1 == 10) {
 
-            local6 = 10;
+            local4 = f3(global1);
+            f5();
 
-        }
-
-        while(local1 <  2) {
-
-            local7 = 20;
-            local8 = [5];
-
+            f10(2,3,4);
+            f11(global1,5,10);
 
         }
 
-        global1 = f2(global2);
+        local3 = f2(local2);
 
-        global1 = f3(global1);
-        global4 = 2;
-        global4 = f2(global1);
+    }
 
-        global3 = [12];
+    function ret = f2(arg1[]) {
 
-        local15 = global3;
-        local16 = local15;
-
+        ret = 2;
         
         local300 = f2(global2);
         local300 = 2;
@@ -64,14 +58,9 @@ module test_jp {
 
     }
 
-    function ret[] = f2(arg1[]) {
-
+    function f2(a[]) {
 
     }
-
-    // function f2(a[]) {
-
-    // }
 
     // function a[] = f2(b[]) {
 
@@ -82,6 +71,10 @@ module test_jp {
     // }
 
     function a = f3(a) {
+
+    }
+
+    function f5() {
 
     }
 
