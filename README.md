@@ -4,7 +4,7 @@
 
 All required tasks were completed. 
 
-Our grammar also allows functions with the same name, but they are differentiated by the number of arguments.
+Our grammar also allows functions with the same name, but they are differentiated by the number or type of parameters.
 
 Most of the feedback notes from Checkpoint 1 were implemented and fixed.
 
@@ -13,11 +13,11 @@ Most of the feedback notes from Checkpoint 1 were implemented and fixed.
 
 Danny Almeida Soares - up201505509
 
-Jo√£o Pedro Furriel de Moura Pinheiro - up201104913
+Jo„o Pedro Furriel de Moura Pinheiro - up201104913
 
 Leonardo Manuel Gomes Teixeira - up201502848
 
-Vitor Emanuel Fernandes Magalh√£es - up201503447
+Vitor Emanuel Fernandes Magalh„es - up201503447
 
 
 
