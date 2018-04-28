@@ -13,11 +13,11 @@ Most of the feedback notes from Checkpoint 1 were implemented and fixed.
 
 Danny Almeida Soares - up201505509
 
-João Pedro Furriel de Moura Pinheiro - up201104913
+Joao Pedro Furriel de Moura Pinheiro - up201104913
 
 Leonardo Manuel Gomes Teixeira - up201502848
 
-Vitor Emanuel Fernandes Magalhães - up201503447
+Vitor Emanuel Fernandes Magalhaes - up201503447
 
 
 
