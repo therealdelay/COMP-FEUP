@@ -86,7 +86,7 @@ class SymbolTable {
 		// check if function exists
 		Function calledFunction = this.functions.get(signature);
 
-		if(calledFunction == null) {
+		if((calledFunction == null) || (calledFunction.functionIsOk == false) ) {
 
 			String error = functionName + "(";
 			
@@ -99,7 +99,7 @@ class SymbolTable {
 
 			}
 
-			error += ") does not exist!";
+			error += ") does not exist or is invalid!";
 
 			return new FunctionCall(signature, moduleName, false, error, null);
 
@@ -211,6 +211,10 @@ class SymbolTable {
 			public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
 			public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
 		public SimpleNode.Type returnType; //tipo de retorno
+		public String returnVariable = null;
+		public String returnVariableError = null;
+		public String argumentsError = null;
+		public boolean functionIsOk = true;
 
 		public ArrayList<Pair<String,String>> nullDeclarationsVariables = new ArrayList<>();
 		public ArrayList<Pair<String,Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
@@ -341,7 +345,7 @@ class SymbolTable {
 
 		for(SymbolTable.Pair<String,SimpleNode.Type> repeatedDeclaration : this.repeatedGlobalDeclarationsDiffType) {
 
-			out.println("(Repeated Variable) " + repeatedDeclaration.key + " with type: " + repeatedDeclaration.value);
+			out.println("Semantic Error: (Repeated Variable) " + repeatedDeclaration.key + " with type: " + repeatedDeclaration.value);
 
 		}
 
@@ -354,6 +358,12 @@ class SymbolTable {
 			out.println(function.signature.functionName + ":");
 
 			out.println("Return type: " + function.returnType);
+
+			if(function.returnVariableError != null)
+				out.println(function.returnVariableError);
+
+			if(function.argumentsError != null)
+				out.println(function.argumentsError);
 
 			out.println("Function arguments:");
 			
@@ -375,7 +385,7 @@ class SymbolTable {
 
 			for(Pair<String,SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
 
-				out.println("(Repeated Variable) " + repeatedVariable.key + " with data type " + repeatedVariable.value);
+				out.println("Semantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type " + repeatedVariable.value);
 
 			}
 
@@ -394,7 +404,7 @@ class SymbolTable {
 				if(functionCall.ok)
 					out.println("Call is ok: ");
 				else 
-					out.println("Call NOT ok " + functionCall.error);
+					out.println("Semantic Error: Call NOT ok: " + functionCall.error);
 
 				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
@@ -410,7 +420,7 @@ class SymbolTable {
 
 		for(SymbolTable.Signature signature : this.repeatedFunctions) {
 
-			out.println("(Repeated function) " + signature.functionName + ":");
+			out.println("Semantic Error: (Repeated function) " + signature.functionName + ":");
 
 			for(int i = 0; i < signature.arguments.size(); i++) {
 

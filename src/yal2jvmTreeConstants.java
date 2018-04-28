@@ -38,10 +38,12 @@ public interface yal2jvmTreeConstants
   public int JJTLOADINTEGERTOBYTECODES = 34;
   public int JJTCLINITJAVABYTECODES = 35;
   public int JJTGENERATESYMBOLTABLE = 36;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 37;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONASSIGNS = 38;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 39;
-  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 40;
+  public int JJTCHECKARGSARENOTGLOBALS = 37;
+  public int JJTCHECKRETURNVARIABLE = 38;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 39;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONASSIGNS = 40;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 41;
+  public int JJTUPDATENULLTYPESFUNCTIONCALLS = 42;
 
 
   public String[] jjtNodeName = {
@@ -82,10 +84,12 @@ public interface yal2jvmTreeConstants
     "loadIntegerToBytecodes",
     "clinitJavaBytecodes",
     "generateSymbolTable",
+    "checkArgsAreNotGlobals",
+    "checkReturnVariable",
     "updateSymbolTableFunctionArguments",
     "updateSymbolTableFunctionAssigns",
     "updateSymbolTableFunctionFunctionCalls",
     "updateNullTypesFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=7fdd2fbf7fb2f9e3187c05bc80b125bd (do not edit this line) */
+/* JavaCC - OriginalChecksum=d034f5385417ed32b7e4fc8e7621eafa (do not edit this line) */

@@ -1637,6 +1637,7 @@ if (jjtc000) {
             SimpleNode.Type returnType = node.getDataType();
             SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
             SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+            function.returnVariable = (String)node.jjtGetSecValue();
 
                 /**
                  * verificar se tem argumentos ou apenas statements
@@ -1677,6 +1678,8 @@ if (jjtc000) {
 
             updateSymbolTableFunctionAssigns(allStatementsListNodes.get(i), allFunctions.get(i),symbolTable);
             updateSymbolTableFunctionFunctionCalls(allFunctionsNodes.get(i), allFunctions.get(i), symbolTable);
+            checkReturnVariable(allFunctions.get(i),symbolTable);
+            checkArgsAreNotGlobals(allFunctions.get(i),symbolTable);
 
         }
 
@@ -1686,6 +1689,66 @@ if (jjtc000) {
      jjtree.closeNodeScope(jjtn000, true);
    }
  }
+  }
+
+  static void checkArgsAreNotGlobals(SymbolTable.Function function, SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) checkArgsAreNotGlobals */
+     ASTcheckArgsAreNotGlobals jjtn000 = new ASTcheckArgsAreNotGlobals(JJTCHECKARGSARENOTGLOBALS);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {HashMap<String,SimpleNode.Type> globals = symbolTable.globalDeclarations;
+        ArrayList<String> args = function.signature.arguments;
+
+        for(String arg : args){
+            if(globals.get(arg) != null){
+                function.functionIsOk = false;
+                if(function.argumentsError != null)
+                    function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\n";
+                else
+                    function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
+            }
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
+  }
+
+  static void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) checkReturnVariable */
+     ASTcheckReturnVariable jjtn000 = new ASTcheckReturnVariable(JJTCHECKRETURNVARIABLE);
+     boolean jjtc000 = true;
+     jjtree.openNodeScope(jjtn000);
+     try {String retVariable = (String)function.returnVariable;
+        HashMap<String,SimpleNode.Type> locals = function.localDeclarations;
+        HashMap<String,SimpleNode.Type> globals = symbolTable.globalDeclarations;
+        ArrayList<String> args = function.signature.arguments;
+
+        if(function.returnVariable == null)
+            return;
+
+        if(locals.get(function.returnVariable) != null){
+            return;
+        }
+        if(globals.get(function.returnVariable) != null){
+            function.functionIsOk = false;
+            function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
+            return;
+        }
+        else{
+            for(String arg : args){
+                if(arg == function.returnVariable){
+                    return;
+                }
+            }
+            function.functionIsOk = false;
+            function.returnVariableError = "Semantic Error: The return variable does not exist in the function!";
+
+        }/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+       }
+     }
   }
 
   static void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) throws ParseException {/*@bgen(jjtree) updateSymbolTableFunctionArguments */
@@ -1768,7 +1831,7 @@ if (jjtc000) {
                     lhs.jjtSetType(rhsType);
                 else{
                     if(lhs.getDataType() != rhsType){
-                        System.out.println("Semantic error: conflict types between " + lhs.value + " and " + rhsValue);
+                        System.out.println("Semantic Error: conflict types between " + lhs.value + " and " + rhsValue);
                     }
                 }
                 //verificar se está em alguma das tabelas (local ou global)
@@ -1779,7 +1842,6 @@ if (jjtc000) {
                     for(int x = 1; x < statementChild.jjtGetNumChildren(); x++){
                         SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(x);
                         updateSymbolTableFunctionAssigns(statementListIfWhile, function, symbolTable);
-                    System.out.println("X = " + x);
                     }
                     break;
                 case JJTWHILE:
@@ -1885,7 +1947,7 @@ if (jjtc000) {
 
                         if(type == null) {
 
-                            System.out.println("Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
+                            System.out.println("Semantic Error: Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
                             continue;
                         }
 
@@ -1899,7 +1961,7 @@ if (jjtc000) {
 
                 if(functionFunctionCall == null) {
 
-                    System.out.print("Function " + signatureFunctionCall.functionName + "(");
+                    System.out.print("Semantic Error: Function " + signatureFunctionCall.functionName + "(");
 
                     for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
                         System.out.print(signatureFunctionCall.argumentTypes.get(i));
