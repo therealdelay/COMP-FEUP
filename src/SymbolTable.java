@@ -333,14 +333,14 @@ class SymbolTable {
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		PrintWriter out = new PrintWriter(outStream);
 
-		out.println("\n\n---------Module " + this.moduleName + "---------\n\n");
+		out.println("Module " + this.moduleName + "\n");
 		out.println("Global Variables:");
 
 		for(String globalDeclaration : this.globalDeclarations.keySet()) {
 
 			SimpleNode.Type type = this.globalDeclarations.get(globalDeclaration);
 
-			out.println(globalDeclaration + ", type: " + type);
+			out.println("\t" + globalDeclaration + ", type: " + type);
 		}
 
 		for(SymbolTable.Pair<String,SimpleNode.Type> repeatedDeclaration : this.repeatedGlobalDeclarationsDiffType) {
@@ -355,66 +355,73 @@ class SymbolTable {
 
 			SymbolTable.Function function = this.functions.get(signature);
 
-			out.println(function.signature.functionName + ":");
+			out.println("Function " + function.signature.functionName + ":");
 
-			out.println("Return type: " + function.returnType);
+			out.println("\tReturn type: " + function.returnType);
 
 			if(function.returnVariableError != null)
-				out.println(function.returnVariableError);
+				out.println("\t\t" + function.returnVariableError);
 
 			if(function.argumentsError != null)
-				out.println(function.argumentsError);
+				out.println("\t\t" + function.argumentsError);
 
-			out.println("Function arguments:");
+			out.println();
+			out.println("\tFunction arguments:");
 			
 			for(int i = 0; i < function.signature.arguments.size(); i++) {
 
-				out.println("\tArgument " + function.signature.arguments.get(i) + ", of type " + function.signature.argumentTypes.get(i));
+				out.println("\t\tArgument " + function.signature.arguments.get(i) + ", of type " + function.signature.argumentTypes.get(i));
 
 			}
-
-			out.println("Function local variables:");
+			
+			out.println();
+			out.println("\tFunction local variables:");
 
 			for(String variable : function.localDeclarations.keySet()) {
 
 				SimpleNode.Type type = function.localDeclarations.get(variable);
-				out.println("\t" + variable + " with data type: " + type);
+				out.println("\t\t" + variable + " with data type: " + type);
 
 			}
 
 
 			for(Pair<String,SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
 
-				out.println("Semantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type " + repeatedVariable.value);
+				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type " + repeatedVariable.value);
 
 			}
 
-			out.println("Function function calls:");
+			out.println();
+			out.println("\tFunction function calls:");
 
+			boolean first = true;
 			for(FunctionCall functionCall : function.functionCalls) {
+				if(!first)
+					out.println();
+				first = false;
+				out.println("\t\t" + functionCall.signature.functionName);
 
-				out.println(functionCall.signature.functionName);
-
-				out.print("Module: ");
+				out.print("\t\tModule: ");
 				if(functionCall.module != null)
 					out.println(functionCall.module);
 				else
 					 out.println(this.moduleName);
 					 
 				if(functionCall.ok)
-					out.println("Call is ok: ");
+					out.println("\t\tCall is ok");
 				else 
-					out.println("Semantic Error: Call NOT ok: " + functionCall.error);
+					out.println("\t\tSemantic Error: Call NOT ok: " + functionCall.error);
 
 				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
 					if(functionCall.ok) {
 						SimpleNode.Type type = functionCall.signature.argumentTypes.get(i);
-						out.println("\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
+						out.println("\t\t\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
 					}
 				}
-
+				
 			}
+			out.println();
 
 		}
 

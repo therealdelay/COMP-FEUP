@@ -14,31 +14,61 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     private static SimpleNode astRoot = null;
     public static void main(String args[]) throws ParseException, IOException {
         InputStream f = null;
+        boolean showAst = false;
+        boolean showSymbolTable = false;
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        System.out.println("#########################################");
+        System.out.println("# Yal Compiler Project 2018 - Group G33 #");
+        System.out.println("#########################################");
+        System.out.println("\nInsert the path of the file to parse (from folder /yalExamples/):");
+        System.out.print(">");
+        String fileName = scanner.nextLine();
+        System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream("../yalExamples/" + args[0]);
+            f = new FileInputStream("../yalExamples/" + fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
+            return;
         }
 
-        //System.out.println("File: " + args[0]);
+        System.out.print("\nWould you like to see the AST?(1-Yes;0-No)  ");
+        int astInput = scanner.nextInt();
+        if(astInput == 1)
+            showAst = true;
+        else if(astInput != 0){
+            System.out.println("Error in option!");
+            return;
+        }
+
+        System.out.print("\nWould you like to see the Symbol Table?(1-Yes;0-No)  ");
+        int symbolTableInput = scanner.nextInt();
+        if(symbolTableInput == 1)
+            showSymbolTable = true;
+        else if(symbolTableInput != 0){
+            System.out.println("Error in option!");
+            return;
+        }
 
         yal2jvm parser = new yal2jvm(f);
-
         astRoot = parser.Module();
+        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        System.out.println("File " + fileName + " parsed with " + error_counter + " syntactic errors\n");
 
-        System.out.print("Error count: " + error_counter + "\n\n");
-
-        // System.out.println("AST:");
-        // astRoot.dump("");
-
-        // buildSymbolTable(astRoot);
+        if(showAst){
+            System.out.println("AST:");
+            astRoot.dump("");
+        }
 
         SymbolTable symbolTable = generateSymbolTable(astRoot);
-        // generateJavaBytecodes(astRoot, symbolTable);
-        System.out.println(symbolTable);
+        if(showSymbolTable)
+            System.out.println("Symbol Table:\n" + symbolTable);
 
-        System.out.print("\n\n\n");
+        // generateJavaBytecodes(astRoot, symbolTable);
+
+        System.out.println();
     }
 
   static final public SimpleNode Module() throws ParseException {/*@bgen(jjtree) Module */
@@ -2040,6 +2070,86 @@ if (jjtc000) {
     finally { jj_save(3, xla); }
   }
 
+  static private boolean jj_3_2()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_7()) jj_scanpos = xsp;
+    if (jj_scan_token(ASSIGN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10()
+ {
+    if (jj_scan_token(31)) return true;
+    if (jj_scan_token(32)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_30()
+ {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_31()
+ {
+    if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_29()
+ {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_27()
+ {
+    if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_23()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_27()) {
+    jj_scanpos = xsp;
+    if (jj_3R_28()) return true;
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_25()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_29()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) {
+    jj_scanpos = xsp;
+    if (jj_3R_31()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_7()
+ {
+    if (jj_scan_token(31)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15()
+ {
+    if (jj_3R_22()) return true;
+    return false;
+  }
+
   static private boolean jj_3R_34()
  {
     if (jj_scan_token(INTEGER)) return true;
@@ -2199,21 +2309,6 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3R_8()
- {
-    if (jj_3R_12()) return true;
-    if (jj_scan_token(ASSIGN)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14()
- {
-    if (jj_scan_token(33)) return true;
-    if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_6()
  {
     if (jj_scan_token(ID)) return true;
@@ -2226,83 +2321,18 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3_2()
+  static private boolean jj_3R_8()
  {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_7()) jj_scanpos = xsp;
+    if (jj_3R_12()) return true;
     if (jj_scan_token(ASSIGN)) return true;
+    if (jj_3R_13()) return true;
     return false;
   }
 
-  static private boolean jj_3R_10()
+  static private boolean jj_3R_14()
  {
-    if (jj_scan_token(31)) return true;
-    if (jj_scan_token(32)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_30()
- {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_31()
- {
+    if (jj_scan_token(33)) return true;
     if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_29()
- {
-    if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_27()
- {
-    if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_23()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_27()) {
-    jj_scanpos = xsp;
-    if (jj_3R_28()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_25()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_29()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_7()
- {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_15()
- {
-    if (jj_3R_22()) return true;
     return false;
   }
 
