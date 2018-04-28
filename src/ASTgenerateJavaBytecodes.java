@@ -11,4 +11,4 @@ class ASTgenerateJavaBytecodes extends SimpleNode {
   }
 
 }
-/* JavaCC - OriginalChecksum=863586c83fe727580fcc52e69fb7c03a (do not edit this line) */
+/* JavaCC - OriginalChecksum=21f55a61d8bd5ea780bd18d8e0ecebc7 (do not edit this line) */
