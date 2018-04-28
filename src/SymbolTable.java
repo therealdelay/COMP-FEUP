@@ -45,6 +45,8 @@ class SymbolTable {
 	}
 
 	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName, ArrayList<Pair<String,SimpleNode.Type>> functionCallParameters, Function processingFunction) {
+		
+		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
 
 		//if function is from another module OK
 
@@ -73,7 +75,6 @@ class SymbolTable {
 				
 		}
 
-		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
 			
 		//Parameters not initialized
 
