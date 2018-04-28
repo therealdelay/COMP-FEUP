@@ -1,7 +1,9 @@
 module sqrt
 {
 
-	function a=sqrt(x) {
+	x = 0;
+
+	function arg=sqrt(x) {
 		vsqn = io.read();
 		io.println("vsqn: ", vsqn);
 
