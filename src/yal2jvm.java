@@ -28,7 +28,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream("../yalExamples/" + fileName);
+            f = new FileInputStream("../yalExamples/MyFirstYalExamples/" + fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
@@ -1707,9 +1707,9 @@ if (jjtc000) {
         for(int i = 0; i < allFunctions.size(); i++) {
 
             updateSymbolTableFunctionAssigns(allStatementsListNodes.get(i), allFunctions.get(i),symbolTable);
-            updateSymbolTableFunctionFunctionCalls(allFunctionsNodes.get(i), allFunctions.get(i), symbolTable);
             checkReturnVariable(allFunctions.get(i),symbolTable);
             checkArgsAreNotGlobals(allFunctions.get(i),symbolTable);
+            updateSymbolTableFunctionFunctionCalls(allFunctionsNodes.get(i), allFunctions.get(i), symbolTable);
 
         }
 
@@ -1749,6 +1749,14 @@ if (jjtc000) {
      boolean jjtc000 = true;
      jjtree.openNodeScope(jjtn000);
      try {String retVariable = (String)function.returnVariable;
+
+        System.out.println("Ret Value: " + retVariable);
+
+        for(String localVar : function.localDeclarations.keySet()) {
+            System.out.println("localVar: " + localVar);
+            System.out.println("type: " + function.localDeclarations.get(localVar));
+        }
+
         HashMap<String,SimpleNode.Type> locals = function.localDeclarations;
         HashMap<String,SimpleNode.Type> globals = symbolTable.globalDeclarations;
         ArrayList<String> args = function.signature.arguments;
@@ -1757,7 +1765,13 @@ if (jjtc000) {
             return;
 
         if(locals.get(function.returnVariable) != null){
+
+            if(locals.get(function.returnVariable) == function.returnType)
+                return;
+            function.functionIsOk = false;
+            function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
             return;
+
         }
         if(globals.get(function.returnVariable) != null){
             function.functionIsOk = false;
@@ -1765,13 +1779,21 @@ if (jjtc000) {
             return;
         }
         else{
-            for(String arg : args){
-                if(arg == function.returnVariable){
+            int index = function.signature.arguments.indexOf(retVariable);
+
+            if(index != -1) {
+
+                if(function.signature.argumentTypes.get(index) == function.returnType)
                     return;
-                }
+
+                function.functionIsOk = false;
+                function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+                return;
+
             }
+
             function.functionIsOk = false;
-            function.returnVariableError = "Semantic Error: The return variable does not exist in the function!";
+            function.returnVariableError = "Semantic Error: The return variable does not exist/is not initialized in the function!";
 
         }/*@bgen(jjtree)*/
      } finally {
@@ -1924,111 +1946,6 @@ if (jjtc000) {
             }
 
 
-
-        }/*@bgen(jjtree)*/
-     } finally {
-       if (jjtc000) {
-         jjtree.closeNodeScope(jjtn000, true);
-       }
-     }
-  }
-
-  static void updateNullTypesFunctionCalls(SymbolTable symbolTable) throws ParseException {/*@bgen(jjtree) updateNullTypesFunctionCalls */
-     ASTupdateNullTypesFunctionCalls jjtn000 = new ASTupdateNullTypesFunctionCalls(JJTUPDATENULLTYPESFUNCTIONCALLS);
-     boolean jjtc000 = true;
-     jjtree.openNodeScope(jjtn000);
-     try {HashMap<SymbolTable.Signature,SymbolTable.Function> functions = symbolTable.functions;
-
-        for(SymbolTable.Signature signature: functions.keySet()) {
-
-            SymbolTable.Function function = functions.get(signature);
-
-            ArrayList<SymbolTable.Pair<String,SymbolTable.Signature>> nullDeclarationsFunctionCalls = function.nullDeclarationsFunctionCalls;
-
-            for(SymbolTable.Pair<String,SymbolTable.Signature> nullDeclarationsFunctionCall : nullDeclarationsFunctionCalls) {
-
-                SymbolTable.Signature functionCallSignature = nullDeclarationsFunctionCall.value;
-
-                int argumentsSize = functionCallSignature.arguments.size();
-
-                ArrayList<SimpleNode.Type> argumentTypesFunctionCall = new ArrayList<SimpleNode.Type>(argumentsSize);
-
-                for(int i = 0; i < argumentsSize; i++) {
-
-                    argumentTypesFunctionCall.add(SimpleNode.Type.INT);
-
-                }
-
-                for(int i = 0; i < argumentsSize; i++) {
-
-                    if(functionCallSignature.argumentTypes.get(i) != null) {
-                        argumentTypesFunctionCall.set(i, functionCallSignature.argumentTypes.get(i));
-                    }
-                    else {
-
-                        String variable = functionCallSignature.arguments.get(i);
-
-                        SimpleNode.Type type = symbolTable.globalDeclarations.get(variable);
-
-                        if(type == null)
-                            type = function.localDeclarations.get(variable);
-
-                        argumentTypesFunctionCall.set(i, type);
-
-                        if(type == null) {
-
-                            System.out.println("Semantic Error: Variable " + variable + " not initialized " + "in " + functionCallSignature.functionName + " call on function " + function.signature.functionName);
-                            continue;
-                        }
-
-                    }
-
-                }
-
-                SymbolTable.Signature signatureFunctionCall = new SymbolTable.Signature(argumentTypesFunctionCall,functionCallSignature.functionName);
-
-                SymbolTable.Function functionFunctionCall = symbolTable.functions.get(signatureFunctionCall);
-
-                if(functionFunctionCall == null) {
-
-                    System.out.print("Semantic Error: Function " + signatureFunctionCall.functionName + "(");
-
-                    for(int i = 0; i < signatureFunctionCall.argumentTypes.size(); i++) {
-                        System.out.print(signatureFunctionCall.argumentTypes.get(i));
-
-                        if(i < signatureFunctionCall.argumentTypes.size()-1)
-                            System.out.print(", ");
-
-                    }
-
-                    System.out.println(") does not exist");
-                    continue;
-
-                }
-
-            //Ver se já era global e se o tipo é o mesmo, se não for, meter nas repetidas, se ainda não tiver tipo, atribuir o do return
-            //da função
-
-                String nullFunctionCallAssignVariable = nullDeclarationsFunctionCall.key;
-                SimpleNode.Type returnType = functionFunctionCall.returnType;
-
-                if(symbolTable.globalDeclarations.containsKey(nullFunctionCallAssignVariable)) {
-
-                    SimpleNode.Type currentType = symbolTable.globalDeclarations.get(nullFunctionCallAssignVariable);
-
-                    symbolTable.addGlobalDeclaration(nullFunctionCallAssignVariable, returnType);
-                    function.localDeclarations.remove(nullFunctionCallAssignVariable);
-
-                }
-
-                else {
-
-                    SimpleNode.Type nullType = function.localDeclarations.get(nullFunctionCallAssignVariable);
-                    function.localDeclarations.put(nullFunctionCallAssignVariable, returnType);
-
-                }
-
-            }
 
         }/*@bgen(jjtree)*/
      } finally {

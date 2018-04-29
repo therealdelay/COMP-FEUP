@@ -13,14 +13,14 @@ class SymbolTable {
 
 	public String moduleName;
 
-	public HashMap<String,SimpleNode.Type> globalDeclarations = new HashMap<>();
-	public HashMap<Signature,Function> functions = new HashMap<>();
+	public HashMap<String, SimpleNode.Type> globalDeclarations = new HashMap<>();
+	public HashMap<Signature, Function> functions = new HashMap<>();
 
 	public ArrayList<Signature> repeatedFunctions = new ArrayList<>();
-	public ArrayList<Pair<String,SimpleNode.Type>> repeatedGlobalDeclarationsDiffType = new ArrayList<>();
+	public ArrayList<Pair<String, SimpleNode.Type>> repeatedGlobalDeclarationsDiffType = new ArrayList<>();
 
-	public static class Pair<K,V> {
-		
+	public static class Pair<K, V> {
+
 		public K key;
 		public V value;
 
@@ -35,7 +35,7 @@ class SymbolTable {
 			Pair p2 = (Pair) object;
 			return p2.key.equals(this.key) && p2.value.equals(this.value);
 
-		} 
+		}
 
 		@Override
 		public int hashCode() {
@@ -44,13 +44,14 @@ class SymbolTable {
 
 	}
 
-	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName, ArrayList<Pair<String,SimpleNode.Type>> functionCallParameters, Function processingFunction) {
-		
+	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName,
+			ArrayList<Pair<String, SimpleNode.Type>> functionCallParameters, Function processingFunction) {
+
 		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
 
 		//if function is from another module OK
 
-		if(moduleName != null) {
+		if (moduleName != null) {
 
 			return new FunctionCall(signature, moduleName, true, "OK", SimpleNode.Type.INT);
 
@@ -61,24 +62,23 @@ class SymbolTable {
 		String errorFunctionCall = "";
 		int numberOfNotInitializedParameters = 0;
 
-		for(SymbolTable.Pair<String,SimpleNode.Type> argument : functionCallParameters) {
+		for (SymbolTable.Pair<String, SimpleNode.Type> argument : functionCallParameters) {
 
-			if(argument.value == null) {
+			if (argument.value == null) {
 
 				argument.value = this.getType(argument.key, processingFunction);
-				if(argument.value == null) {
+				if (argument.value == null) {
 					errorFunctionCall += "Parameter " + argument.key + " not initialized";
 					numberOfNotInitializedParameters++;
 				}
 
 			}
-				
+
 		}
 
-			
 		//Parameters not initialized
 
-		if(numberOfNotInitializedParameters > 0) {
+		if (numberOfNotInitializedParameters > 0) {
 
 			return new FunctionCall(signature, moduleName, false, errorFunctionCall, null);
 
@@ -87,15 +87,15 @@ class SymbolTable {
 		// check if function exists
 		Function calledFunction = this.functions.get(signature);
 
-		if((calledFunction == null) || (calledFunction.functionIsOk == false) ) {
+		if ((calledFunction == null) || (calledFunction.functionIsOk == false)) {
 
 			String error = functionName + "(";
-			
-			for(int i = 0; i < signature.argumentTypes.size(); i++) {
+
+			for (int i = 0; i < signature.argumentTypes.size(); i++) {
 
 				error += signature.argumentTypes.get(i);
 
-				if(i < signature.argumentTypes.size() - 1)
+				if (i < signature.argumentTypes.size() - 1)
 					error += ", ";
 
 			}
@@ -106,13 +106,12 @@ class SymbolTable {
 
 		}
 
-
 		return new FunctionCall(signature, moduleName, true, "OK", calledFunction.returnType);
 
 	}
 
 	public static class FunctionCall {
-		
+
 		public Signature signature;
 		public String module;
 		public String error;
@@ -120,7 +119,8 @@ class SymbolTable {
 
 		public SimpleNode.Type funcionCallReturnType; // return type da função que chama, null no caso de ser uma chamada inválida
 
-		public FunctionCall(Signature signature, String module, boolean ok, String error, SimpleNode.Type callReturnType) {
+		public FunctionCall(Signature signature, String module, boolean ok, String error,
+				SimpleNode.Type callReturnType) {
 			this.signature = signature;
 			this.module = module;
 			this.ok = ok;
@@ -136,16 +136,16 @@ class SymbolTable {
 	}
 
 	public static class Signature {
-		
+
 		public String functionName; //nome da funcao
 		public ArrayList<String> arguments = new ArrayList<>();
 		public ArrayList<SimpleNode.Type> argumentTypes = new ArrayList<>();
 
-		public Signature(String functionName, ArrayList<Pair<String,SimpleNode.Type>> arguments) {
+		public Signature(String functionName, ArrayList<Pair<String, SimpleNode.Type>> arguments) {
 
 			this.functionName = functionName;
 
-			for(Pair<String,SimpleNode.Type> pair : arguments) {
+			for (Pair<String, SimpleNode.Type> pair : arguments) {
 
 				this.arguments.add(pair.key);
 				this.argumentTypes.add(pair.value);
@@ -158,7 +158,7 @@ class SymbolTable {
 
 			this.functionName = functionName;
 
-			for(SimpleNode.Type type : argumentTypes) {
+			for (SimpleNode.Type type : argumentTypes) {
 
 				this.arguments.add("");
 				this.argumentTypes.add(type);
@@ -183,54 +183,51 @@ class SymbolTable {
 
 			Signature s2 = (Signature) object;
 
-			if(!this.functionName.equals(s2.functionName))
+			if (!this.functionName.equals(s2.functionName))
 				return false;
-			if(this.arguments.size() != s2.arguments.size())
+			if (this.arguments.size() != s2.arguments.size())
 				return false;
-			for(int i = 0; i < this.arguments.size(); i++)
-				if(this.argumentTypes.get(i) != s2.argumentTypes.get(i))
+			for (int i = 0; i < this.arguments.size(); i++)
+				if (this.argumentTypes.get(i) != s2.argumentTypes.get(i))
 					return false;
 
-				return true;
-
-
-			}
-
-			@Override
-			public int hashCode() {
-
-				return Objects.hash(this.functionName,this.argumentTypes);
-			}
+			return true;
 
 		}
 
+		@Override
+		public int hashCode() {
 
-		public static class Function {
+			return Objects.hash(this.functionName, this.argumentTypes);
+		}
 
-			public Signature signature; 
-			public HashMap<String,SimpleNode.Type> localDeclarations = new HashMap<>();
-			public ArrayList<Pair<String,SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
-			public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
+	}
+
+	public static class Function {
+
+		public Signature signature;
+		public HashMap<String, SimpleNode.Type> localDeclarations = new HashMap<>();
+		public ArrayList<Pair<String, SimpleNode.Type>> repeatedLocalDeclarationsDiffType = new ArrayList<>();
+		public ArrayList<FunctionCall> functionCalls = new ArrayList<>();
 		public SimpleNode.Type returnType; //tipo de retorno
 		public String returnVariable = null;
 		public String returnVariableError = null;
 		public String argumentsError = null;
 		public boolean functionIsOk = true;
 
-		public ArrayList<Pair<String,String>> nullDeclarationsVariables = new ArrayList<>();
-		public ArrayList<Pair<String,Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
-
+		public ArrayList<Pair<String, String>> nullDeclarationsVariables = new ArrayList<>();
+		public ArrayList<Pair<String, Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
 
 		public Function(Signature signature, SimpleNode.Type type) {
 			this.signature = signature;
 			this.returnType = type;
 		}
 
-		public SimpleNode.Type getType(String variableName, HashMap<String,SimpleNode.Type> globalDeclarations) {
+		public SimpleNode.Type getType(String variableName, HashMap<String, SimpleNode.Type> globalDeclarations) {
 
 			SimpleNode.Type type = this.localDeclarations.get(variableName);
 
-			if(type == null) {
+			if (type == null) {
 
 				return globalDeclarations.get(variableName);
 
@@ -240,22 +237,22 @@ class SymbolTable {
 
 		}
 
-		public boolean addLocalDeclaration(String key, SimpleNode.Type value, HashMap<String,SimpleNode.Type> globalDeclarations) {
+		public boolean addLocalDeclaration(String key, SimpleNode.Type value,
+				HashMap<String, SimpleNode.Type> globalDeclarations) {
 
 			SimpleNode.Type isGlobal = globalDeclarations.get(key);
 
-			if(isGlobal != null){ // lhs é variável global
-				if(value != isGlobal)
+			if (isGlobal != null) { // lhs é variável global
+				if (value != isGlobal)
 					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
 				return true;
-			}
-			else{ //lhs é variável local
+			} else { //lhs é variável local
 				SimpleNode.Type alreadyLocal = this.localDeclarations.get(key);
-				if(alreadyLocal == null){
-					localDeclarations.put(key,value);
+				if (alreadyLocal == null) {
+					localDeclarations.put(key, value);
 					return true;
 				}
-				if(alreadyLocal != value){
+				if (alreadyLocal != value) {
 					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
 					return false;
 				}
@@ -282,20 +279,19 @@ class SymbolTable {
 		this.moduleName = moduleName;
 	}
 
-
 	public boolean addGlobalDeclaration(String key, SimpleNode.Type value) {
 
 		SimpleNode.Type exists = this.globalDeclarations.get(key);
 
-		if(exists == null) {
+		if (exists == null) {
 
 			this.globalDeclarations.put(key, value);
 			return true;
 
 		}
 
-		if(exists != value) {
-			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key,value));
+		if (exists != value) {
+			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key, value));
 		}
 
 		return false;
@@ -305,8 +301,8 @@ class SymbolTable {
 	public boolean addFunction(Function function) {
 
 		Function exists = this.functions.get(function.signature);
-		
-		if(exists == null) {
+
+		if (exists == null) {
 
 			this.functions.put(function.signature, function);
 			return true;
@@ -321,9 +317,20 @@ class SymbolTable {
 	public SimpleNode.Type getType(String variableName, Function function) {
 
 		SimpleNode.Type result = this.globalDeclarations.get(variableName);
-		if(result == null)
-			result = function.localDeclarations.get(variableName);
 		
+		if (result == null) {
+
+			int index = function.signature.arguments.indexOf(variableName);
+
+			if(index == -1)
+				result = function.localDeclarations.get(variableName);
+			else
+				result = function.signature.argumentTypes.get(index);
+
+		}
+			
+			
+
 		return result;
 
 	}
@@ -337,22 +344,23 @@ class SymbolTable {
 		out.println("Module " + this.moduleName + "\n");
 		out.println("Global Variables:");
 
-		for(String globalDeclaration : this.globalDeclarations.keySet()) {
+		for (String globalDeclaration : this.globalDeclarations.keySet()) {
 
 			SimpleNode.Type type = this.globalDeclarations.get(globalDeclaration);
 
 			out.println("\t" + globalDeclaration + ", type: " + type);
 		}
 
-		for(SymbolTable.Pair<String,SimpleNode.Type> repeatedDeclaration : this.repeatedGlobalDeclarationsDiffType) {
+		for (SymbolTable.Pair<String, SimpleNode.Type> repeatedDeclaration : this.repeatedGlobalDeclarationsDiffType) {
 
-			out.println("Semantic Error: (Repeated Variable) " + repeatedDeclaration.key + " with type: " + repeatedDeclaration.value);
+			out.println("Semantic Error: (Repeated Variable) " + repeatedDeclaration.key + " with type: "
+					+ repeatedDeclaration.value);
 
 		}
 
 		out.println("\nFunctions:");
 
-		for(SymbolTable.Signature signature : this.functions.keySet()) {
+		for (SymbolTable.Signature signature : this.functions.keySet()) {
 
 			SymbolTable.Function function = this.functions.get(signature);
 
@@ -360,35 +368,36 @@ class SymbolTable {
 
 			out.println("\tReturn type: " + function.returnType);
 
-			if(function.returnVariableError != null)
+			if (function.returnVariableError != null)
 				out.println("\t\t" + function.returnVariableError);
 
-			if(function.argumentsError != null)
+			if (function.argumentsError != null)
 				out.println("\t\t" + function.argumentsError);
 
 			out.println();
 			out.println("\tFunction arguments:");
-			
-			for(int i = 0; i < function.signature.arguments.size(); i++) {
 
-				out.println("\t\tArgument " + function.signature.arguments.get(i) + ", of type " + function.signature.argumentTypes.get(i));
+			for (int i = 0; i < function.signature.arguments.size(); i++) {
+
+				out.println("\t\tArgument " + function.signature.arguments.get(i) + ", of type "
+						+ function.signature.argumentTypes.get(i));
 
 			}
-			
+
 			out.println();
 			out.println("\tFunction local variables:");
 
-			for(String variable : function.localDeclarations.keySet()) {
+			for (String variable : function.localDeclarations.keySet()) {
 
 				SimpleNode.Type type = function.localDeclarations.get(variable);
 				out.println("\t\t" + variable + " with data type: " + type);
 
 			}
 
+			for (Pair<String, SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
 
-			for(Pair<String,SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
-
-				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type " + repeatedVariable.value);
+				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
+						+ repeatedVariable.value);
 
 			}
 
@@ -396,41 +405,42 @@ class SymbolTable {
 			out.println("\tFunction function calls:");
 
 			boolean first = true;
-			for(FunctionCall functionCall : function.functionCalls) {
-				if(!first)
+			for (FunctionCall functionCall : function.functionCalls) {
+				if (!first)
 					out.println();
 				first = false;
 				out.println("\t\t" + functionCall.signature.functionName);
 
 				out.print("\t\tModule: ");
-				if(functionCall.module != null)
+				if (functionCall.module != null)
 					out.println(functionCall.module);
 				else
-					 out.println(this.moduleName);
-					 
-				if(functionCall.ok)
+					out.println(this.moduleName);
+
+				if (functionCall.ok)
 					out.println("\t\tCall is ok");
-				else 
+				else
 					out.println("\t\tSemantic Error: Call NOT ok: " + functionCall.error);
 
-				for(int i = 0; i < functionCall.signature.arguments.size(); i++) {
+				for (int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
-					if(functionCall.ok) {
+					if (functionCall.ok) {
 						SimpleNode.Type type = functionCall.signature.argumentTypes.get(i);
-						out.println("\t\t\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
+						out.println(
+								"\t\t\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
 					}
 				}
-				
+
 			}
 			out.println();
 
 		}
 
-		for(SymbolTable.Signature signature : this.repeatedFunctions) {
+		for (SymbolTable.Signature signature : this.repeatedFunctions) {
 
 			out.println("Semantic Error: (Repeated function) " + signature.functionName + ":");
 
-			for(int i = 0; i < signature.arguments.size(); i++) {
+			for (int i = 0; i < signature.arguments.size(); i++) {
 
 				out.println("\tArgument " + signature.arguments.get(i) + ", of type " + signature.argumentTypes.get(i));
 
@@ -442,10 +452,6 @@ class SymbolTable {
 
 		return outStream.toString();
 
-
 	}
-
-
-	
 
 }
