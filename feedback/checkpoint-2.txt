@@ -1,0 +1,31 @@
+CHECKPOINT 2 FEEDBACK
+=====================
+Class 3 - Group 33
+
+These notes are based on an analysis of commit 5e7bf4a6a398b9d4aa2bc5cc90f60efbde1d7155.
+If you believe this is an error, contact your class teacher.
+=====================
+
+High-priority:
+	- In "w = [a];", where a is a scalar, the compiler indicates that the type of w is
+"null", instead of ARRAY_INT.
+	- In "G33-bug_uninitialized.yal", the compiler incorrectly indicates that "y" was
+not initialized before use. Oddly, in the nearly identical "G33-bug_overloading.yal",
+this particular error is absent.
+	- Missing semantic analysis: "function f(a) { a = array; }" should be an error.
+	- Missing type validation in arithmetic expressions (e.g., "array + array").
+	- Code generation has been commented out. I've uncommented it for the purposes of this
+checkpoint.
+	- Compiler does not properly read from globals (attempting to use "iload_-1" instead of
+"getstatic").
+	- The compact instructions "iload_<n>" are only supported for n <= 3. "iload_4" is invalid
+and instead "iload 4" should be used.
+	- Missing the return value ("ireturn" pops a value from the stack -- the value to return).
+	- When assigning numbers to variables, be mindful that in main variable 0 is assigned to
+the String[] argument, so the first yal variable should be given the value 1.
+
+Low-priority:
+	- Use packages, instead of Java's default package
+	- Accept files directly from the command line (e.g., "java yal2jvm myfile.yal").
+	- Supposedly supports functions with the same name but different argument types, but
+in "G33-bug_overloading.yal", the variable "w" of "g()" is marked as having type "null".
