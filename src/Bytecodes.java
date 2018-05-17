@@ -12,9 +12,13 @@ public class Bytecodes{
   
 
 	public static void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws IOException {
-
-		String fileName = ((SimpleNode) root).jjtGetValue() + ".j";
-	    File jFile = new File(fileName);
+		String dirName = "generatedFiles";
+		File dir = new File(dirName);
+		if(!dir.exists())
+			dir.mkdir();
+		
+		String fileName =((SimpleNode) root).jjtGetValue() + ".j";
+		File jFile = new File(dirName + "/" + fileName);
 	    FileOutputStream jFileOS = new FileOutputStream(jFile);
 	    PrintWriter writer = new PrintWriter(jFileOS);
 	    
