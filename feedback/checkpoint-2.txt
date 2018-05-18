@@ -21,8 +21,6 @@ checkpoint.
 	- The compact instructions "iload_<n>" are only supported for n <= 3. "iload_4" is invalid
 and instead "iload 4" should be used.
 	- Missing the return value ("ireturn" pops a value from the stack -- the value to return).
-	- When assigning numbers to variables, be mindful that in main variable 0 is assigned to
-the String[] argument, so the first yal variable should be given the value 1.
 
 Low-priority:
 	- Use packages, instead of Java's default package
