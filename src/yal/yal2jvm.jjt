@@ -29,6 +29,11 @@ public class yal2jvm {
         System.out.println("#########################################");
         System.out.println("# Yal Compiler Project 2018 - Group G33 #");
         System.out.println("#########################################");
+
+        if(args.length == 0){
+            System.out.println("Proper Usage is: ./script filename \n Example: ./script yalExamples/MyFirstYalExamples/aval1.j");
+            System.exit(0);
+        }
         
         String fileName = args[0];
 

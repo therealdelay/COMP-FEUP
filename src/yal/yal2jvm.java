@@ -19,10 +19,16 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         boolean showSymbolTable = false;
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        System.out.println("\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn");
         System.out.println("#########################################");
         System.out.println("# Yal Compiler Project 2018 - Group G33 #");
         System.out.println("#########################################");
+
+        if(args.length == 0){
+            System.out.println("Proper Usage is: ./script filename \u005cn Example: ./script yalExamples/MyFirstYalExamples/aval1.j");
+
+            System.exit(0);
+        }
 
         String fileName = args[0];
 
@@ -35,7 +41,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
             return;
         }
 
-        System.out.print("\nWould you like to see the AST?(1-Yes;0-No)  ");
+        System.out.print("\u005cnWould you like to see the AST?(1-Yes;0-No)  ");
         int astInput = scanner.nextInt();
         if(astInput == 1)
             showAst = true;
@@ -44,7 +50,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
             return;
         }
 
-        System.out.print("\nWould you like to see the Symbol Table?(1-Yes;0-No)  ");
+        System.out.print("\u005cnWould you like to see the Symbol Table?(1-Yes;0-No)  ");
         int symbolTableInput = scanner.nextInt();
         if(symbolTableInput == 1)
             showSymbolTable = true;
@@ -55,8 +61,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
         yal2jvm parser = new yal2jvm(f);
         astRoot = parser.Module();
-        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-        System.out.println("File " + fileName + " parsed with " + error_counter + " syntactic errors\n");
+        System.out.println("\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn");
+        System.out.println("File " + fileName + " parsed with " + error_counter + " syntactic errors\u005cn");
 
         if(showAst){
             System.out.println("AST:");
@@ -65,7 +71,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
         SymbolTable symbolTable = generateSymbolTable(astRoot);
         if(showSymbolTable)
-            System.out.println("Symbol Table:\n" + symbolTable);
+            System.out.println("Symbol Table:\u005cn" + symbolTable);
 
 
         Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
@@ -1198,7 +1204,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 exit = true;
         }
     } while (!exit);
-    System.out.print("\n\n");
+    System.out.print("\u005cn\u005cn");
     return t.kind;
   }
 
@@ -1313,7 +1319,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         if(globals.get(arg) != null){
             function.functionIsOk = false;
             if(function.argumentsError != null)
-                function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\n";
+                function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\u005cn";
             else
                 function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
         }
@@ -1568,21 +1574,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3_2() {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_7()) jj_scanpos = xsp;
-    if (jj_scan_token(ASSIGN)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10() {
-    if (jj_scan_token(31)) return true;
-    if (jj_scan_token(32)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_30() {
     if (jj_scan_token(INTEGER)) return true;
     return false;
@@ -1798,6 +1789,21 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   static private boolean jj_3R_14() {
     if (jj_scan_token(33)) return true;
     if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_7()) jj_scanpos = xsp;
+    if (jj_scan_token(ASSIGN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    if (jj_scan_token(31)) return true;
+    if (jj_scan_token(32)) return true;
     return false;
   }
 
