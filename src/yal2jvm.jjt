@@ -503,21 +503,27 @@ public void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, S
         switch (statementChild.getId()) {
             case yal2jvmTreeConstants.JJTASSIGN:
 
-            int register_index = register_variables.indexOf(null);
-            register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
-            String lhsBytecode = "istore_" + register_index;
+                int register_index = register_variables.indexOf(null);
+                register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
+                String lhsBytecode = "istore_" + register_index;
 
-            SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
+                SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
 
-            rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
+                rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
 
-            writer.println(lhsBytecode);
-            break;
-            case yal2jvmTreeConstants.JJTCALL:
-            SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
-            functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+                writer.println(lhsBytecode);
+                break;
+            
+                case yal2jvmTreeConstants.JJTCALL:
+                SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
+                functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+                break;
+                   
+            case yal2jvmTreeConstants.JJTIF:
+                
+                break;
             default:
-            break;
+                break;
         }
     }
 

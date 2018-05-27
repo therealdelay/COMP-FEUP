@@ -1,0 +1,17 @@
+module test {
+	function y[]=f(a) {
+		y = [1];
+	}
+
+	function y = h(a) {
+		y = 1;
+	}
+	function y[] = h(a[]) {
+		y = a;
+	}
+
+	function g() {
+		y = f(1);
+		w = h(y);
+	}
+}
