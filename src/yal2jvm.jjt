@@ -29,8 +29,9 @@ public class yal2jvm {
         System.out.println("#########################################");
         System.out.println("\nInsert the path of the file to parse (from folder /yalExamples/):");
         System.out.print(">");
-        String fileName = scanner.nextLine();
-        System.out.println("Your file is " + fileName);
+        // String fileName = scanner.nextLine();
+		String fileName = "MyFirstYalExamples/aval1.yal";
+		System.out.println("Your file is " + fileName);
 
         try {
             f = new FileInputStream("../yalExamples/" + fileName);

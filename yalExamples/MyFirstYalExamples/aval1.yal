@@ -2,15 +2,11 @@ module aval1 {
 
    function main() {
 	 r=f(2,3);
-   f2(4,6);
+	 io.println(r); // print 6
    }
 
    function a=f(b, c) {
      a = b*c;
-   }
-
-   function f2(arg1, arg2) {
-     arg3 = arg1+arg2;
    }
 
 }
