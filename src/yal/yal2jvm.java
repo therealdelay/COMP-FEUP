@@ -570,6 +570,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
           jj_la1[12] = jj_gen;
           ;
         }
+                                                                             jjtree.closeNodeScope(jjtn000, true);
+                                                                             jjtc000 = false;
+                                                                            jjtn000.jjtSetArrayType();
       }
     } catch (Throwable jjte000) {
       if (jjtc000) {
@@ -782,14 +785,15 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static final public void Exprtest() throws ParseException {
                    /*@bgen(jjtree) Exprtest */
-  ASTExprtest jjtn000 = new ASTExprtest(JJTEXPRTEST);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                   ASTExprtest jjtn000 = new ASTExprtest(JJTEXPRTEST);
+                   boolean jjtc000 = true;
+                   jjtree.openNodeScope(jjtn000);Token t;
     try {
       try {
         jj_consume_token(LPAR);
         Lhs();
-        jj_consume_token(RELA_OP);
+        t = jj_consume_token(RELA_OP);
+                                 jjtn000.jjtSetRelaOp(t.image);
         Rhs();
         jj_consume_token(RPAR);
       } catch (ParseException e) {
@@ -1639,15 +1643,15 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_21() {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_19() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_24()) jj_scanpos = xsp;
+    return false;
+  }
+
+  static private boolean jj_3R_21() {
+    if (jj_scan_token(31)) return true;
     return false;
   }
 

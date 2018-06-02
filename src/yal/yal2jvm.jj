@@ -487,7 +487,12 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 {/*@bgen(jjtree) Lhs */
     try {
 /*@egen*/
-    t=<ID>{jjtn000.jjtSetValue(t.image);} (("[" Index() "]")|["." <SIZE>])/*@bgen(jjtree)*/
+    t=<ID>{jjtn000.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>]/*@bgen(jjtree)*/
+                                                                           {
+                                                                             jjtree.closeNodeScope(jjtn000, true);
+                                                                             jjtc000 = false;
+                                                                           }
+/*@egen*/ {jjtn000.jjtSetArrayType();} )/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -609,15 +614,15 @@ void Term() : {/*@bgen(jjtree) Term */
 }
 
 void Exprtest() : {/*@bgen(jjtree) Exprtest */
-  ASTExprtest jjtn000 = new ASTExprtest(JJTEXPRTEST);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
+                   ASTExprtest jjtn000 = new ASTExprtest(JJTEXPRTEST);
+                   boolean jjtc000 = true;
+                   jjtree.openNodeScope(jjtn000);
+/*@egen*/Token t;}
 {/*@bgen(jjtree) Exprtest */
     try {
 /*@egen*/
     try{
-        <LPAR> Lhs() <RELA_OP> Rhs() <RPAR>
+        <LPAR> Lhs() t=<RELA_OP>{jjtn000.jjtSetRelaOp(t.image);} Rhs() <RPAR>
     }
     catch (ParseException e) {
         System.out.println("EXCEPTION IN EXPRTEST " + e.toString());

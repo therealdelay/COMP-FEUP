@@ -14,9 +14,11 @@ public class SimpleNode implements Node {
   protected int id;
   protected Object value;
   protected Object secvalue;
+  protected String relaOp;
   protected Type dataType;
   protected String assignIdModule;
   protected String assignId;
+  protected int current_loop;
   protected ArrayList<SymbolTable.Pair<String, Type>> assignFunctionParameters = new ArrayList<>();
   protected boolean isFunctionCall = false;
   protected yal2jvm parser;
@@ -178,6 +180,14 @@ public class SimpleNode implements Node {
 
   public void jjtSetType(Type type) {
     this.dataType = type;
+  }
+
+   public void jjtSetRelaOp(String operation) {
+    this.relaOp = operation;
+  }
+
+  public String getRelaOp(){
+    return this.relaOp;
   }
 
   public void jjtSetIntType() {

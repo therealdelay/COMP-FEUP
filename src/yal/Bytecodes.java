@@ -9,9 +9,17 @@ import java.util.ArrayList;
 
 
 public class Bytecodes{
-  
 
-	public static void generateJavaBytecodes(Node root, SymbolTable symbolTable) throws IOException {
+	private static SymbolTable symbolTable;
+	private static PrintWriter writer;
+	private static ArrayList<String> register_variables;
+	private static SymbolTable.Signature sign;
+	private static int current_loop = 0;
+
+
+
+	public static void generateJavaBytecodes(Node root, SymbolTable st) throws IOException {
+		symbolTable = st;
 		String dirName = "generatedFiles";
 		File dir = new File(dirName);
 		if(!dir.exists())
@@ -20,13 +28,13 @@ public class Bytecodes{
 		String fileName =((SimpleNode) root).jjtGetValue() + ".j";
 		File jFile = new File(dirName + "/" + fileName);
 	    FileOutputStream jFileOS = new FileOutputStream(jFile);
-	    PrintWriter writer = new PrintWriter(jFileOS);
+	    writer = new PrintWriter(jFileOS);
 	    
-	    moduleJavaBytecodes(root, writer, symbolTable);
+	    moduleJavaBytecodes(root);
 	  
 	}
 
-	private static void moduleJavaBytecodes(Node root, PrintWriter writer, SymbolTable symbolTable){
+	private static void moduleJavaBytecodes(Node root){
 
 	    writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
 	    writer.println(".super java/lang/Object");
@@ -42,11 +50,11 @@ public class Bytecodes{
 	        switch (nodeType) {
 
 	            case yal2jvmTreeConstants.JJTDECLARATION:
-	                declarationJavaByteCodes(node, writer, symbolTable);
+	                declarationJavaByteCodes(node);
 	                break;
 
 	            case yal2jvmTreeConstants.JJTFUNCTION:
-	                functionJavaBytecodes(node, writer, symbolTable);
+	                functionJavaBytecodes(node);
 	                break;
 
 	            default:
@@ -54,7 +62,7 @@ public class Bytecodes{
 
 	        }
 	    }   
-	    clinitJavaBytecodes(writer);
+	    clinitJavaBytecodes();
 
 	    writer.close();
 
@@ -62,7 +70,7 @@ public class Bytecodes{
 
 
 
-	private static void declarationJavaByteCodes(SimpleNode declarationNode, PrintWriter writer, SymbolTable symbolTable){
+	private static void declarationJavaByteCodes(SimpleNode declarationNode){
 
 	    String declarationName = (String) declarationNode.jjtGetValue();
 
@@ -72,7 +80,7 @@ public class Bytecodes{
 
 	}
 
-	private static void functionJavaBytecodes(SimpleNode functionNode, PrintWriter writer, SymbolTable symbolTable){
+	private static void functionJavaBytecodes(SimpleNode functionNode){
 
 
 	    // locals nº de argumentos da funcao + declaraçoes locais
@@ -91,8 +99,9 @@ public class Bytecodes{
 	    // calculateLimitStack(function);
 	    int limitLocals = 10, limitStack = 10;
 
-	    ArrayList<String> register_variables = new ArrayList();
-	    for(int i=0; i<limitLocals; i++) register_variables.add(null);
+	    register_variables = new ArrayList();
+	    for(int i=0; i<limitLocals; i++) 
+			register_variables.add(null);
 
 	    // Arguments
 	        if(functionNode.jjtGetNumChildren() == 2) {
@@ -115,36 +124,37 @@ public class Bytecodes{
 
 	        }
 
-	        SymbolTable.Signature sign = new SymbolTable.Signature(argumentTypes, functionName);
-	        writer.println(functionToBytecodes(symbolTable.functions.get(sign)));
+			System.out.println(symbolTable.functions.size());
+
+	        sign = new SymbolTable.Signature(argumentTypes, functionName);
+			
+			writer.println(functionNameToBytecodes(symbolTable.functions.get(sign)));
 
 	        writer.println(".limit locals " + limitLocals);
 	        writer.println(".limit stack " + limitStack);
 
-	    // StmtList
-	        int numStatements = statementList.jjtGetNumChildren();
-	        for(int i = 0; i < numStatements; i++) {
+			statementListJavaBytecodes((SimpleNode) statementList);
 
-	            SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
-
-	            statementJavaBytecodes(statement, writer, register_variables, symbolTable, sign);
-	        }
-
-	        switch(symbolTable.functions.get(sign).returnType){
-	            case INT:
-	                writer.print("i");
-	            break;
-	            case ARRAY_INT:
-	                writer.print("a");
-	            break;
-	                default:
-	            break;
-	        }
+			String returnVar = symbolTable.functions.get(sign).returnVariable;
+			if (returnVar != null){				
+				writer.println("iload_" + register_variables.indexOf(returnVar));
+				switch(symbolTable.functions.get(sign).returnType){
+	            	case INT:
+	                	writer.print("i");
+	            		break;
+	            	case ARRAY_INT:
+	                	writer.print("a");
+	            		break;
+	             	default:
+	            		break;
+	        	}	
+			}		
+	      
 	        writer.println("return");
 	        writer.println(".end method\n");
 	}
 
-	private static void statementJavaBytecodes(SimpleNode statementNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+	private static void statementJavaBytecodes(SimpleNode statementNode){
 
 	    SimpleNode statementChild = (SimpleNode) statementNode.jjtGetChild(0);
 	    switch (statementChild.getId()) {
@@ -156,31 +166,34 @@ public class Bytecodes{
 
 	            SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
 
-	            rhsJavaBytecodes(rhsNode, writer, register_variables, symbolTable, sign);
+	            rhsJavaBytecodes(rhsNode);
 
 	            writer.println(lhsBytecode);
 	            break;
 	        case yal2jvmTreeConstants.JJTCALL:
 	            SimpleNode callNode = (SimpleNode) statementNode.jjtGetChild(0);
-	            functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+	            functionCallJavaBytecodes(callNode);
+				break;
 	        case yal2jvmTreeConstants.JJTIF:
 	            SimpleNode ifNode = (SimpleNode) statementNode.jjtGetChild(0);
-	            ifJavaBytecodes(ifNode, writer, register_variables, symbolTable, sign);
-	        case yal2jvmTreeConstants.JJTWHILE:
+	            ifJavaBytecodes(ifNode);
+	        	break;
+			case yal2jvmTreeConstants.JJTWHILE:
 	            SimpleNode whileNode = (SimpleNode) statementNode.jjtGetChild(0);
-	            whileJavaBytecodes(whileNode, writer, register_variables, symbolTable, sign);
-	        default:
+	            whileJavaBytecodes(whileNode);
+	        	break;
+			default:
 	        break;
 	    }
 	}
 
-	private static void rhsJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+	private static void rhsJavaBytecodes(SimpleNode rhsNode){
 	    SimpleNode rhs1stChild = (SimpleNode) rhsNode.jjtGetChild(0);
 
 	    switch (rhs1stChild.getId()) {
 	        case yal2jvmTreeConstants.JJTTERM:
 
-	        termJavaBytecodes(rhs1stChild, writer, register_variables, symbolTable, sign);
+	        termJavaBytecodes(rhs1stChild);
 	        break;
 
 	        default:
@@ -190,54 +203,19 @@ public class Bytecodes{
 
 	    if(rhsNode.jjtGetNumChildren() == 2){
 	        SimpleNode term2 = (SimpleNode) rhsNode.jjtGetChild(1);
-	        termJavaBytecodes(term2, writer, register_variables, symbolTable, sign);
-	        checkArithmeticJavaBytecodes(rhsNode, writer);
+	        termJavaBytecodes(term2);
+	        checkArithmeticJavaBytecodes(rhsNode);
 	    }
 	}
 
-	private static void checkArithmeticJavaBytecodes(SimpleNode node, PrintWriter writer){
-	      switch ((String)node.jjtGetValue()) {
-	        case "*":
-	            writer.println("imul");
-	            break;
-	        case "/":
-	            writer.println("idiv");
-	            break;
-	        case "+":
-	            writer.println("iadd");
-	            break;
-	        case "-":
-	            writer.println("isub");
-	            break;
-	        case "<<":
-	            writer.println("ishl");
-	            break;
-	        case ">>":
-	            writer.println("ishr");
-	            break;
-	        case ">>>":
-	            writer.println("iushl");
-	            break;
-	        case "&":
-	            writer.println("iand");
-	            break;
-	        case "|":
-	            writer.println("ior");
-	            break;
-	        case "^":
-	            writer.println("ixor");
-	            break;
-	        default:
-	            break;  
-	    }
-	}
 
-	private static void termJavaBytecodes(SimpleNode termNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+
+	private static void termJavaBytecodes(SimpleNode termNode){
 
 	    if(termNode.jjtGetNumChildren() == 0){
 	        if(termNode.getDataType() == SimpleNode.Type.INT){
-
-	            if((Integer) termNode.jjtGetValue()>5)
+				String value = (String) termNode.jjtGetValue();
+	            if (Integer.parseInt(value) > 5 )
 	                writer.println("bipush " + (String) termNode.jjtGetValue());
 	            else
 	                writer.println("iconst_" + (String) termNode.jjtGetValue());
@@ -250,11 +228,11 @@ public class Bytecodes{
 	    else{ //function call
 	        SimpleNode callNode = (SimpleNode) termNode.jjtGetChild(0);
 
-	        functionCallJavaBytecodes(callNode, writer, register_variables, symbolTable, sign);
+	        functionCallJavaBytecodes(callNode);
 	    }
 	}
 
-	private static void functionCallJavaBytecodes(SimpleNode callNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
+	private static void functionCallJavaBytecodes(SimpleNode callNode){
 
 	    System.out.println("callNode.id: " + callNode.getId());
 
@@ -304,19 +282,92 @@ public class Bytecodes{
 	    } 
 	    else{
 
-	        writer.println("invokestatic " + moduleName + "/" + functionToBytecodes(function) + "\n");
+	        writer.println("invokestatic " + moduleName + "/" + functionNameToBytecodes(function) + "\n");
 	    }
 
 	}
 
+	private static void ifJavaBytecodes(SimpleNode ifNode){
+	
+		System.out.println("ENTROU NO IF");
+	    SimpleNode exprTestNode = (SimpleNode) ifNode.jjtGetChild(0);
+		SimpleNode statementList = (SimpleNode) ifNode.jjtGetChild(1);
 
-	private static void ifJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
-	   
+		exprTestJavaByteCodes(exprTestNode);
+		
+		statementListJavaBytecodes(statementList);
+
+		if (ifNode.jjtGetNumChildren() == 3){
+			elseJavaByteCodes( (SimpleNode) ifNode.jjtGetChild(2));
+		}
+		writer.println();
+		writer.println("loop" + current_loop + "_end:");
+		writer.println();
+
+		current_loop++;
 	}
 
-	private static void whileJavaBytecodes(SimpleNode rhsNode, PrintWriter writer, ArrayList<String> register_variables, SymbolTable symbolTable, SymbolTable.Signature sign){
-	   
+	private static void whileJavaBytecodes(SimpleNode whileNode){
+
+	   System.out.println("ENTROU NO WHILE");
 	}
+
+	private static void exprTestJavaByteCodes(SimpleNode exprTestNode){
+		SimpleNode lhs = (SimpleNode) exprTestNode.jjtGetChild(0);
+		String operation =  exprTestNode.relaOp;
+		SimpleNode rhs = (SimpleNode) exprTestNode.jjtGetChild(1);
+
+		String left = (String) lhs.jjtGetValue();
+		String right = (String) rhs.jjtGetValue();
+		
+		System.out.println("operation " + operation);
+
+		writer.println("iload_" + register_variables.indexOf((left)));
+		writer.println("iload_" + register_variables.indexOf((right)));
+		
+		//TODO: VERIFICAR OS ILOADS
+
+		switch (operation) {
+			case "==":
+				writer.print("if_icmpeq");
+				break;
+			case "!=":
+				writer.print("if_icmpne");
+				break;
+			case ">=":
+				writer.print("if_icmpge");
+				break;
+			case ">":
+				writer.print("if_icmpgt");
+				break;
+			case "<=":
+				writer.print("if_icmple");
+				break;
+			case "<":
+				writer.print("if_icmplt");
+				break;
+			default:
+				break;  
+		}
+		writer.println(" loop" + current_loop + "_end");
+		writer.println();
+	}
+
+	private static void elseJavaByteCodes(SimpleNode elseNode){
+		System.out.println("TODO: FAZER O ELSE E VERIFICAR COMO FAZER O ELSE");
+	}
+
+
+	private static void statementListJavaBytecodes(SimpleNode statementList){
+
+		int numStatements = statementList.jjtGetNumChildren();
+		for(int i = 0; i < numStatements; i++) {
+			SimpleNode statement = (SimpleNode) statementList.jjtGetChild(i);
+			statementJavaBytecodes(statement);
+		}
+	}
+
+
 
 	private static String typeToBytecodes(SimpleNode.Type type) {
 	    switch (type) {
@@ -333,7 +384,44 @@ public class Bytecodes{
 	    }
 	}
 
-	private static String functionToBytecodes(SymbolTable.Function function){
+	private static void checkArithmeticJavaBytecodes(SimpleNode node){
+		switch ((String)node.jjtGetValue()) {
+			case "*":
+				writer.println("imul");
+				break;
+			case "/":
+				writer.println("idiv");
+				break;
+			case "+":
+				writer.println("iadd");
+				break;
+			case "-":
+				writer.println("isub");
+				break;
+			case "<<":
+				writer.println("ishl");
+				break;
+			case ">>":
+				writer.println("ishr");
+				break;
+			case ">>>":
+				writer.println("iushl");
+				break;
+			case "&":
+				writer.println("iand");
+				break;
+			case "|":
+				writer.println("ior");
+				break;
+			case "^":
+				writer.println("ixor");
+				break;
+			default:
+				break;  
+		}
+	}
+
+	private static String functionNameToBytecodes(SymbolTable.Function function){
 	    String result = function.signature.functionName + "(";
 
 	    if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
@@ -360,7 +448,7 @@ public class Bytecodes{
 	        return "iconst_" + value;   
 	}
 
-	private static void clinitJavaBytecodes(PrintWriter writer){
+	private static void clinitJavaBytecodes(){
 	    writer.println("method static public <clinit>()V");
 	    writer.println(".limit stack 0");
 	    writer.println(".limit locals 0");
