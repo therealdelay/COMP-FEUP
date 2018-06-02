@@ -335,16 +335,16 @@ public class Bytecodes{
 				writer.print("if_icmpne");
 				break;
 			case ">=":
-				writer.print("if_icmpge");
+				writer.print("if_icmplt");
 				break;
 			case ">":
-				writer.print("if_icmpgt");
-				break;
-			case "<=":
 				writer.print("if_icmple");
 				break;
+			case "<=":
+				writer.print("if_icmpgt");
+				break;
 			case "<":
-				writer.print("if_icmplt");
+				writer.print("if_icmpge");
 				break;
 			default:
 				break;  
