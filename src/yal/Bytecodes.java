@@ -104,52 +104,52 @@ public class Bytecodes{
 			register_variables.add(null);
 
 	    // Arguments
-	        if(functionNode.jjtGetNumChildren() == 2) {
+		if(functionNode.jjtGetNumChildren() == 2) {
 
-	            argumentList = statementList;
-	            statementList = functionNode.jjtGetChild(1);
+			argumentList = statementList;
+			statementList = functionNode.jjtGetChild(1);
 
-	            int numArguments = argumentList.jjtGetNumChildren();
+			int numArguments = argumentList.jjtGetNumChildren();
 
-	            for(int i = 0; i < numArguments; i++) {
+			for(int i = 0; i < numArguments; i++) {
 
-	                SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
+				SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-	                String argumentName = (String)argument.jjtGetValue();
-	                register_variables.set(register_variables.indexOf(null), argumentName);
+				String argumentName = (String)argument.jjtGetValue();
+				register_variables.set(register_variables.indexOf(null), argumentName);
 
-	                SimpleNode.Type argumentDataType = argument.getDataType();
-	                argumentTypes.add(argumentDataType);
-	            }
+				SimpleNode.Type argumentDataType = argument.getDataType();
+				argumentTypes.add(argumentDataType);
+			}
 
-	        }
+		}
 
-	        sign = new SymbolTable.Signature(argumentTypes, functionName);
-			
-			writer.println(functionNameToBytecodes(symbolTable.functions.get(sign)));
+		sign = new SymbolTable.Signature(argumentTypes, functionName);
+		
+		writer.println(functionNameToBytecodes(symbolTable.functions.get(sign)));
 
-	        writer.println(".limit locals " + limitLocals);
-	        writer.println(".limit stack " + limitStack);
+		writer.println(".limit locals " + limitLocals);
+		writer.println(".limit stack " + limitStack);
 
-			statementListJavaBytecodes((SimpleNode) statementList);
+		statementListJavaBytecodes((SimpleNode) statementList);
 
-			String returnVar = symbolTable.functions.get(sign).returnVariable;
-			if (returnVar != null){				
-				writer.println("iload_" + register_variables.indexOf(returnVar));
-				switch(symbolTable.functions.get(sign).returnType){
-	            	case INT:
-	                	writer.print("i");
-	            		break;
-	            	case ARRAY_INT:
-	                	writer.print("a");
-	            		break;
-	             	default:
-	            		break;
-	        	}	
-			}		
-	      
-	        writer.println("return");
-	        writer.println(".end method\n");
+		String returnVar = symbolTable.functions.get(sign).returnVariable;
+		if (returnVar != null){				
+			writer.println("iload_" + register_variables.indexOf(returnVar));
+			switch(symbolTable.functions.get(sign).returnType){
+				case INT:
+					writer.print("i");
+					break;
+				case ARRAY_INT:
+					writer.print("a");
+					break;
+				default:
+					break;
+			}	
+		}		
+		
+		writer.println("return");
+		writer.println(".end method\n");
 	}
 
 	private static void statementJavaBytecodes(SimpleNode statementNode){
@@ -158,11 +158,16 @@ public class Bytecodes{
 	    switch (statementChild.getId()) {
 	        case yal2jvmTreeConstants.JJTASSIGN:
 
-	            int register_index = register_variables.indexOf(null);
-	            register_variables.set(register_index, (String) ((SimpleNode) statementChild.jjtGetChild(0)).jjtGetValue());
-	            String lhsBytecode = "istore_" + register_index;
-
+				SimpleNode lhsNode = (SimpleNode) statementChild.jjtGetChild(0);
 	            SimpleNode rhsNode = (SimpleNode) statementChild.jjtGetChild(1);
+				String lhsID = (String) lhsNode.jjtGetValue();
+
+				int register_index = register_variables.indexOf(lhsID);
+				if(register_index == -1) 
+					register_index = register_variables.indexOf(null);
+
+	            register_variables.set(register_index, lhsID);
+				String lhsBytecode = "istore_" + register_index;
 
 	            rhsJavaBytecodes(rhsNode);
 
@@ -256,9 +261,8 @@ public class Bytecodes{
 
 	            if(type == null){
 	                SymbolTable.Function function = symbolTable.functions.get(sign);
-	                System.out.println("argName: " + argName);
+	                System.out.println("argName: " + argName + ", type: " + type);
 	                type = function.localDeclarations.get(argName);
-	                System.out.println("Type: " + type);
 	            }
 	            argumentTypes.add(type);
 	            int rIndex = register_variables.indexOf((String) argNode.jjtGetValue());
@@ -274,12 +278,16 @@ public class Bytecodes{
 	        System.out.println("argType: " + type);
 	    }
 	    SymbolTable.Signature funcCallSign = new SymbolTable.Signature(argumentTypes, functionName);
-	    SymbolTable.Function function = symbolTable.functions.get(funcCallSign);
-	    if(function == null){
-	        System.out.println("NULL FUNCTION");
+		SymbolTable.Function function = symbolTable.functions.get(funcCallSign);
+
+		if(function == null){
+			SimpleNode.Type returnType = SimpleNode.Type.INT;
+			if(callNode.jjtGetParent().getId() == yal2jvmTreeConstants.JJTSTMT){
+				returnType = SimpleNode.Type.VOID;
+			}
+			writer.println("invokestatic " + moduleName + "/" + functionNameToBytecodes(functionName, argumentTypes, returnType) +"\n");
 	    } 
 	    else{
-
 	        writer.println("invokestatic " + moduleName + "/" + functionNameToBytecodes(function) + "\n");
 	    }
 
@@ -329,10 +337,9 @@ public class Bytecodes{
 		SimpleNode rhs = (SimpleNode) exprTestNode.jjtGetChild(1);
 
 		String left = (String) lhs.jjtGetValue();
-		String right = (String) rhs.jjtGetValue();
 		writer.println();
 		writer.println("iload_" + register_variables.indexOf((left)));
-		writer.println("iload_" + register_variables.indexOf((right)));
+		rhsJavaBytecodes(rhs);
 		
 		//TODO: VERIFICAR OS ILOADS
 
@@ -435,25 +442,29 @@ public class Bytecodes{
 		}
 	}
 
-	private static String functionNameToBytecodes(SymbolTable.Function function){
-	    String result = function.signature.functionName + "(";
-
-	    if (function.signature.functionName.equals("main")) result +=  "[Ljava/lang/String;";
+	
+	public static String functionNameToBytecodes(String functionName, ArrayList<SimpleNode.Type> argumentTypes, SimpleNode.Type returnType){
+		String result = functionName + "(";
+		
+	    if (functionName.equals("main")) result +=  "[Ljava/lang/String;";
 	    else{
-	        ArrayList<SimpleNode.Type> argumentTypes = function.signature.argumentTypes;
-	        for (SimpleNode.Type type : argumentTypes) {
-	            result += typeToBytecodes(type);
+			for (SimpleNode.Type type : argumentTypes) {
+				result += typeToBytecodes(type);
 	        }
 	    }
-
+		
 	    result += ")";
-
+		
 	    // Return type
-	    result += typeToBytecodes(function.returnType);
-
+	    result += typeToBytecodes(returnType);
+		
 	    return result;
 	}
-
+	
+	private static String functionNameToBytecodes(SymbolTable.Function function){
+		return functionNameToBytecodes(function.signature.functionName, function.signature.argumentTypes, function.returnType);
+	}
+	
 	private static String loadIntegerToBytecodes(Integer value){
 
 	    if(value > 5) 
