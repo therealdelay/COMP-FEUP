@@ -487,12 +487,7 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 {/*@bgen(jjtree) Lhs */
     try {
 /*@egen*/
-    t=<ID>{jjtn000.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>]/*@bgen(jjtree)*/
-                                                                           {
-                                                                             jjtree.closeNodeScope(jjtn000, true);
-                                                                             jjtc000 = false;
-                                                                           }
-/*@egen*/ {jjtn000.jjtSetArrayType();} )/*@bgen(jjtree)*/
+    t=<ID>{jjtn000.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] )/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
