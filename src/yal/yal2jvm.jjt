@@ -23,6 +23,7 @@ public class yal2jvm {
         InputStream f = null;
         boolean showAst = false;
         boolean showSymbolTable = false;
+        boolean generateJavaBytecodes = false;
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -64,6 +65,15 @@ public class yal2jvm {
             return;
         }
 
+        System.out.print("\nWould you like to generate Java Bytecodes in a jasmin file?(1-Yes;0-No)  ");
+        int bytecodesInput = scanner.nextInt();
+        if(bytecodesInput == 1)
+            generateJavaBytecodes = true;
+        else if(bytecodesInput != 0){
+            System.out.println("Error in option!");
+            return;
+        }
+
         yal2jvm parser = new yal2jvm(f);
         astRoot = parser.Module();
         System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -79,7 +89,8 @@ public class yal2jvm {
             System.out.println("Symbol Table:\n" + symbolTable);
 
 
-        Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
+        if(generateJavaBytecodes)
+            Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
         
         System.out.println();
     }
