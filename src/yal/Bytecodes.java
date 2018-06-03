@@ -124,8 +124,6 @@ public class Bytecodes{
 
 	        }
 
-			System.out.println(symbolTable.functions.size());
-
 	        sign = new SymbolTable.Signature(argumentTypes, functionName);
 			
 			writer.println(functionNameToBytecodes(symbolTable.functions.get(sign)));
@@ -297,19 +295,21 @@ public class Bytecodes{
 		
 		statementListJavaBytecodes(statementList);
 
-		if (ifNode.jjtGetNumChildren() == 3){
+		if (ifNode.jjtGetNumChildren() == 3)
 			elseJavaByteCodes( (SimpleNode) ifNode.jjtGetChild(2));
+		
+		else{
+			writer.println();
+			writer.println("loop" + current_loop + "_end:");
+			writer.println();
 		}
-		writer.println();
-		writer.println("loop" + current_loop + "_end:");
-		writer.println();
-
 		current_loop++;
 	}
 
 	private static void whileJavaBytecodes(SimpleNode whileNode){
 
 	   System.out.println("ENTROU NO WHILE");
+	   
 	}
 
 	private static void exprTestJavaByteCodes(SimpleNode exprTestNode){
@@ -319,8 +319,6 @@ public class Bytecodes{
 
 		String left = (String) lhs.jjtGetValue();
 		String right = (String) rhs.jjtGetValue();
-		
-		System.out.println("operation " + operation);
 
 		writer.println("iload_" + register_variables.indexOf((left)));
 		writer.println("iload_" + register_variables.indexOf((right)));
@@ -349,12 +347,17 @@ public class Bytecodes{
 			default:
 				break;  
 		}
-		writer.println(" loop" + current_loop + "_end");
+		writer.println(" loop" + current_loop + "_end"); //label
 		writer.println();
 	}
 
 	private static void elseJavaByteCodes(SimpleNode elseNode){
-		System.out.println("TODO: FAZER O ELSE E VERIFICAR COMO FAZER O ELSE");
+			writer.println();
+			writer.println("goto loop" + current_loop + "_next");
+			writer.println("loop" + current_loop + "_end:");
+	   		statementListJavaBytecodes(elseNode);
+			writer.println();
+			writer.println("loop" + current_loop + "_next:");
 	}
 
 
