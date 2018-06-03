@@ -249,7 +249,7 @@ void Assign() : {}
 
 void Lhs() : {Token t;}
 {
-    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] {jjtThis.jjtSetArrayType();} )
+    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] )
 }
 
 void Rhs() : {Token t;}
