@@ -16,7 +16,7 @@ module test_jp {
         local3 = [1];
         local2 = f2(local3);
 
-        /*global1 = [12];
+        global1 = [12];
         local1 = global1;
         local2 = local1;
         local3 = f2(4,local15,local16,"ola");
@@ -24,8 +24,10 @@ module test_jp {
         local100 = f2(local16);
 
         local200 = global4;
-    global1 = 10;
-    global2 = [10];
+        global1 = 10;
+        global2 = [10];
+    
+    }
 
     function ret=f1(arg1,arg2[],arg3) {
 
@@ -62,13 +64,13 @@ module test_jp {
 
     }
 
-    // function a[] = f2(b[]) {
+    function a[] = f2(b[]) {
 
-    // }
+    }
 
-    // function a = f2(b[]) {
+    function a = f2(b[]) {
 
-    // }
+    }
 
     function a = f3(a) {
 
@@ -78,8 +80,8 @@ module test_jp {
 
     }
 
-    // function b[] = f3(a,c) {
+    function b[] = f3(a,c) {
 
-    // }
+    }
 
 }

@@ -1,0 +1,8 @@
+module test2 {
+
+    g = 3;
+
+    function f() {
+        a = 2;
+    }
+}
