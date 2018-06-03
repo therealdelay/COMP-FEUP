@@ -49,18 +49,13 @@ class SymbolTable {
 	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName,
 			ArrayList<Pair<String, SimpleNode.Type>> functionCallParameters, Function processingFunction) {
 
-		
-		System.out.println("Function name: " + functionName);
-				
-		for(Pair<String,SimpleNode.Type> par : functionCallParameters) {
+			for(Pair<String,SimpleNode.Type> par : functionCallParameters) {
 
 			if(par.value == null) {
 
 				par.value = getType(par.key, processingFunction);
 
 			}
-
-			System.out.println("param name: " + par.key + ": , type: " + par.value);
 
 		}
 
@@ -106,8 +101,6 @@ class SymbolTable {
 
 		
 		if ((calledFunction == null) || (calledFunction.functionIsOk == false)) {
-
-			System.out.println("nao encontrei a funcao");
 
 			String error = functionName + "(";
 

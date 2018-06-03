@@ -485,13 +485,6 @@ JAVACODE
 void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable){
     String retVariable = (String)function.returnVariable;
 
-    System.out.println("Ret Value: " + retVariable);
-
-    for(String localVar : function.localDeclarations.keySet()) {
-        System.out.println("localVar: " + localVar);
-        System.out.println("type: " + function.localDeclarations.get(localVar));
-    }
-
     HashMap<String,SimpleNode.Type> locals = function.localDeclarations;
     HashMap<String,SimpleNode.Type> globals = symbolTable.globalDeclarations;
     ArrayList<String> args = function.signature.arguments;
@@ -562,7 +555,6 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
 
     SimpleNode left = (SimpleNode) expression.jjtGetChild(0);
     SimpleNode.Type lhsType = symbolTable.getType((String)left.jjtGetValue(), function);
-    System.out.println("lhs type: " + lhsType);
 
     SimpleNode right = (SimpleNode) expression.jjtGetChild(1);
     
