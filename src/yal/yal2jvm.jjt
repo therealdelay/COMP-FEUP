@@ -249,7 +249,7 @@ void Assign() : {}
 
 void Lhs() : {Token t;}
 {
-    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] {jjtThis.jjtSetArrayType();} )
+    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] )
 }
 
 void Rhs() : {Token t;}
@@ -264,7 +264,7 @@ void ArraySize() : {}
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index(){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");} "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");})))
 }
 
 void Exprtest() : {Token t;}
@@ -558,6 +558,69 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 }
 
 JAVACODE
+void checkComparisonTypes(Node expression, SymbolTable.Function function, SymbolTable symbolTable) {
+
+    SimpleNode left = (SimpleNode) expression.jjtGetChild(0);
+    SimpleNode.Type lhsType = symbolTable.getType((String)left.jjtGetValue(), function);
+    System.out.println("lhs type: " + lhsType);
+
+    SimpleNode right = (SimpleNode) expression.jjtGetChild(1);
+    
+    SimpleNode rhsChild = (SimpleNode)right.jjtGetChild(0);
+    String rhsValue = (String)right.jjtGetValue();
+    SimpleNode.Type rhsType = rhsChild.getDataType();
+
+    if(rhsChild.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
+        //quando não tem module -> first value = nome da funcao
+        //quanto tem module -> first value = nome do module
+
+        if(rhsChild.jjtGetChild(0).getId() == JJTCALL) {
+
+            SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
+            String functionName = (String)callNode.jjtGetValue();
+            String module = null;
+            if(callNode.jjtGetSecValue() != null){
+                functionName = (String)callNode.jjtGetSecValue();
+                module = (String)callNode.jjtGetValue();
+            }
+    
+            //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
+            SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);                
+            rhsType = fcall.funcionCallReturnType;
+
+
+        }
+
+
+    }
+
+    else { //entra neste else se for ID ou um inteiro
+        if(rhsChild.getAssignId() != null)
+            rhsType = symbolTable.getType(rhsChild.getAssignId(),function);
+
+        if(rhsType == null) {
+            rhsType = rhsChild.getDataType();
+            System.out.println("getting rhs type from array access");
+
+        }
+
+    }
+    
+    if(lhsType != rhsType) {
+        System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of right assignment" );
+    }
+
+    else {
+        if(lhsType != SimpleNode.Type.INT) {
+            System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+        }
+    }
+
+
+
+}
+
+JAVACODE
 void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
     for(int i = 0; i < statementList.jjtGetNumChildren(); i++){
@@ -574,20 +637,29 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             String rhsValue = (String)rhs.jjtGetValue();
             SimpleNode.Type rhsType = rhs.getDataType();
 
-            if(rhsChild.jjtGetNumChildren() > 0){ //so entra neste if se for uma function call
-                //quando não tem module -> first value = nome da funcao
-                //quanto tem module -> first value = nome do module
-                SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
-                String functionName = (String)callNode.jjtGetValue();
-                String module = null;
-                if(callNode.jjtGetSecValue() != null){
-                    functionName = (String)callNode.jjtGetSecValue();
-                    module = (String)callNode.jjtGetValue();
+            if(rhsChild.jjtGetNumChildren() > 0) { 
+                
+                if(rhsChild.jjtGetChild(0).getId() == JJTCALL) {
+                
+                
+                    SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
+                    String functionName = (String)callNode.jjtGetValue();
+                    String module = null;
+                    if(callNode.jjtGetSecValue() != null){
+                        functionName = (String)callNode.jjtGetSecValue();
+                        module = (String)callNode.jjtGetValue();
+                    }
+    
+                    //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
+                    SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);                
+                    rhsType = fcall.funcionCallReturnType;
+                
+                
                 }
 
-                //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
-                SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);
-                rhsType = fcall.funcionCallReturnType;
+                //so entra neste if se for uma function call
+                //quando não tem module -> first value = nome da funcao
+                //quanto tem module -> first value = nome do module
 
             }
             else { //entra neste else se for ID ou um inteiro
@@ -615,15 +687,20 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             break;
 
             case JJTIF:
+
+                checkComparisonTypes((SimpleNode) statementChild.jjtGetChild(0),function, symbolTable);
                 for(int x = 1; x < statementChild.jjtGetNumChildren(); x++){
                     SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(x);
                     updateSymbolTableFunctionAssigns(statementListIfWhile, function, symbolTable);
                 }
                 break;
+
+            //verificar se o while não tem de estar igual ao if
             case JJTWHILE:
+                checkComparisonTypes((SimpleNode) statementChild.jjtGetChild(0),function, symbolTable);
                 SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(1);
                 updateSymbolTableFunctionAssigns(statementListIfWhile, function, symbolTable);
-            break;
+                break;
 
             default:
             break;

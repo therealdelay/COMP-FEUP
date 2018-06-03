@@ -1,15 +1,5 @@
 module test_jp {
 
-    /*global1 = 10;
-    global1 = [10];
-    
-    global2= [10];
-    global3;
-    global4;
-    global5 = [5];
-
-    global6 = [10];*/
-
     function ret=f1(arg1,arg2[],arg3) {
 
         local1 = 0;
@@ -76,8 +66,8 @@ module test_jp {
 
     }
 
-    function f5() {
-
+    function f3() {
+        a=2;
     }
 
     function b[] = f3(a,c) {

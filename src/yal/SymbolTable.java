@@ -49,8 +49,23 @@ class SymbolTable {
 	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName,
 			ArrayList<Pair<String, SimpleNode.Type>> functionCallParameters, Function processingFunction) {
 
-		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+		
+		System.out.println("Function name: " + functionName);
+				
+		for(Pair<String,SimpleNode.Type> par : functionCallParameters) {
 
+			if(par.value == null) {
+
+				par.value = getType(par.key, processingFunction);
+
+			}
+
+			System.out.println("param name: " + par.key + ": , type: " + par.value);
+
+		}
+
+		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+		
 		//if function is from another module OK
 
 		if (moduleName != null) {
@@ -89,7 +104,10 @@ class SymbolTable {
 		// check if function exists
 		Function calledFunction = this.functions.get(signature);
 
+		
 		if ((calledFunction == null) || (calledFunction.functionIsOk == false)) {
+
+			System.out.println("nao encontrei a funcao");
 
 			String error = functionName + "(";
 
@@ -432,6 +450,8 @@ class SymbolTable {
 								"\t\t\tArgument Name " + functionCall.signature.arguments.get(i) + ", of type " + type);
 					}
 				}
+
+				out.println("\t\tFunction return type: " + functionCall.funcionCallReturnType);
 
 			}
 			out.println();
