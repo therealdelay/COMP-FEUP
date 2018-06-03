@@ -14,7 +14,7 @@ public class Bytecodes{
 	private static PrintWriter writer;
 	private static ArrayList<String> register_variables;
 	private static SymbolTable.Signature sign;
-	private static int current_loop = 0;
+	private static int current_loop = -1;
 
 
 
@@ -286,40 +286,51 @@ public class Bytecodes{
 	}
 
 	private static void ifJavaBytecodes(SimpleNode ifNode){
-	
+		current_loop++;
+		int loop = current_loop;
 		System.out.println("ENTROU NO IF");
 	    SimpleNode exprTestNode = (SimpleNode) ifNode.jjtGetChild(0);
 		SimpleNode statementList = (SimpleNode) ifNode.jjtGetChild(1);
 
-		exprTestJavaByteCodes(exprTestNode);
+		exprTestJavaByteCodes(exprTestNode, loop);
 		
 		statementListJavaBytecodes(statementList);
 
 		if (ifNode.jjtGetNumChildren() == 3)
-			elseJavaByteCodes( (SimpleNode) ifNode.jjtGetChild(2));
+			elseJavaByteCodes( (SimpleNode) ifNode.jjtGetChild(2), loop);
 		
-		else{
+		else {
 			writer.println();
-			writer.println("loop" + current_loop + "_end:");
+			writer.println("loop" + loop + "_end:");
 			writer.println();
 		}
-		current_loop++;
 	}
 
 	private static void whileJavaBytecodes(SimpleNode whileNode){
-
+	   current_loop++;
+	   int loop = current_loop;
 	   System.out.println("ENTROU NO WHILE");
+	   writer.println("loop" + loop + ":");
+	   SimpleNode exprTestNode = (SimpleNode) whileNode.jjtGetChild(0);
+	   SimpleNode statementList = (SimpleNode) whileNode.jjtGetChild(1);
+	   exprTestJavaByteCodes(exprTestNode, loop);
+
+	   statementListJavaBytecodes(statementList);
+	   writer.println("goto loop" + loop);
+       writer.println();
+	   writer.println("loop" + loop + "_end:");
+	   writer.println();
 	   
 	}
 
-	private static void exprTestJavaByteCodes(SimpleNode exprTestNode){
+	private static void exprTestJavaByteCodes(SimpleNode exprTestNode, int loop){
 		SimpleNode lhs = (SimpleNode) exprTestNode.jjtGetChild(0);
 		String operation =  exprTestNode.relaOp;
 		SimpleNode rhs = (SimpleNode) exprTestNode.jjtGetChild(1);
 
 		String left = (String) lhs.jjtGetValue();
 		String right = (String) rhs.jjtGetValue();
-
+		writer.println();
 		writer.println("iload_" + register_variables.indexOf((left)));
 		writer.println("iload_" + register_variables.indexOf((right)));
 		
@@ -327,10 +338,10 @@ public class Bytecodes{
 
 		switch (operation) {
 			case "==":
-				writer.print("if_icmpeq");
+				writer.print("if_icmpne");
 				break;
 			case "!=":
-				writer.print("if_icmpne");
+				writer.print("if_icmpeq");
 				break;
 			case ">=":
 				writer.print("if_icmplt");
@@ -347,17 +358,17 @@ public class Bytecodes{
 			default:
 				break;  
 		}
-		writer.println(" loop" + current_loop + "_end"); //label
+		writer.println(" loop" + loop + "_end"); //label
 		writer.println();
 	}
 
-	private static void elseJavaByteCodes(SimpleNode elseNode){
+	private static void elseJavaByteCodes(SimpleNode elseNode, int loop){
 			writer.println();
-			writer.println("goto loop" + current_loop + "_next");
-			writer.println("loop" + current_loop + "_end:");
+			writer.println("goto loop" + loop + "_next");
+			writer.println("loop" + loop + "_end:");
 	   		statementListJavaBytecodes(elseNode);
 			writer.println();
-			writer.println("loop" + current_loop + "_next:");
+			writer.println("loop" + loop + "_next:");
 	}
 
 
