@@ -82,6 +82,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/
         if(showSymbolTable)
             System.out.println("Symbol Table:\n" + symbolTable);
 
+        System.out.println("File " + fileName + " parsed with " + symbolTable.semanticErrors + " semantic errors\n");
+
 
         Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
         
@@ -1088,6 +1090,7 @@ void checkArgsAreNotGlobals(SymbolTable.Function function, SymbolTable symbolTab
                 function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\n";
             else
                 function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
+            symbolTable.semanticErrors++;
         }
     }/*@bgen(jjtree)*/
  } finally {
@@ -1120,12 +1123,14 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
             return;
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+        symbolTable.semanticErrors++;
         return;
         
     }
     if(globals.get(function.returnVariable) != null){
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
+        symbolTable.semanticErrors++;
         return;
     }
     else{
@@ -1138,12 +1143,14 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
             
             function.functionIsOk = false;
             function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+            symbolTable.semanticErrors++;
             return;
 
         }
 
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable does not exist/is not initialized in the function!";
+        symbolTable.semanticErrors++;
 
     }/*@bgen(jjtree)*/
  } finally {
@@ -1269,6 +1276,7 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
         if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
 
             System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+            symbolTable.semanticErrors++;
 
         }
 
@@ -1276,11 +1284,13 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
 
             if(lhsType != rhsTypeTerm1.value) {
                 System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
+                symbolTable.semanticErrors++;
             }
         
             else {
                 if(lhsType != SimpleNode.Type.INT) {
                     System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+                    symbolTable.semanticErrors++;
                 }
             }
 
@@ -1293,11 +1303,13 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
 
         if(lhsType != rhsTypeTerm1.value) {
             System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
+            symbolTable.semanticErrors++;
         }
     
         else {
             if(lhsType != SimpleNode.Type.INT) {
                 System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+                symbolTable.semanticErrors++;
             }
         }
 
@@ -1350,7 +1362,7 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
                 if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
         
                     System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
-        
+                    symbolTable.semanticErrors++;
                 }
                 
             }
@@ -1361,6 +1373,7 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             else{
                 if(lhs.getDataType() != rhsTypeTerm1.value){
                     System.out.println("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                    symbolTable.semanticErrors++;
                 }
             }
 

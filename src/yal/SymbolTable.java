@@ -15,6 +15,8 @@ class SymbolTable {
 
 	public String moduleName;
 
+	public int semanticErrors = 0;
+
 	public HashMap<String, SimpleNode.Type> globalDeclarations = new HashMap<>();
 	public HashMap<Signature, Function> functions = new HashMap<>();
 
@@ -368,6 +370,7 @@ class SymbolTable {
 
 			out.println("Semantic Error: (Repeated Variable) " + repeatedDeclaration.key + " with type: "
 					+ repeatedDeclaration.value);
+			this.semanticErrors++;
 
 		}
 
@@ -411,6 +414,7 @@ class SymbolTable {
 
 				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
 						+ repeatedVariable.value);
+				this.semanticErrors++;
 
 			}
 
@@ -432,8 +436,10 @@ class SymbolTable {
 
 				if (functionCall.ok)
 					out.println("\t\tCall is ok");
-				else
+				else{
 					out.println("\t\tSemantic Error: Call NOT ok: " + functionCall.error);
+					this.semanticErrors++;
+				}
 
 				for (int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
@@ -454,6 +460,7 @@ class SymbolTable {
 		for (SymbolTable.Signature signature : this.repeatedFunctions) {
 
 			out.println("Semantic Error: (Repeated function) " + signature.functionName + ":");
+			this.semanticErrors++;
 
 			for (int i = 0; i < signature.arguments.size(); i++) {
 
