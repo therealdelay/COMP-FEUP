@@ -13,10 +13,10 @@ module test2 {
 
     function f2(arg) {
 
-        a= 1;
+        a = 3 - j;
 
-        while(j < d) {
-            b = f(3);
+        while(g < f(3)) {
+            k = f(3);
         }
 
 

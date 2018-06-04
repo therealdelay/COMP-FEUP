@@ -264,7 +264,7 @@ void ArraySize() : {}
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index(){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");} "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");})))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index(){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");} "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");}]))))
 }
 
 void Exprtest() : {Token t;}
@@ -551,24 +551,18 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 }
 
 JAVACODE
-void checkComparisonTypes(Node expression, SymbolTable.Function function, SymbolTable symbolTable) {
+SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTable.Function function, SymbolTable symbolTable) {
 
-    SimpleNode left = (SimpleNode) expression.jjtGetChild(0);
-    SimpleNode.Type lhsType = symbolTable.getType((String)left.jjtGetValue(), function);
+    SimpleNode.Type type = term.getDataType();
+    String value = (String)term.jjtGetValue();
 
-    SimpleNode right = (SimpleNode) expression.jjtGetChild(1);
-    
-    SimpleNode rhsChild = (SimpleNode)right.jjtGetChild(0);
-    String rhsValue = (String)right.jjtGetValue();
-    SimpleNode.Type rhsType = rhsChild.getDataType();
-
-    if(rhsChild.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
+    if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
         //quando não tem module -> first value = nome da funcao
         //quanto tem module -> first value = nome do module
 
-        if(rhsChild.jjtGetChild(0).getId() == JJTCALL) {
+        if(term.jjtGetChild(0).getId() == JJTCALL) {
 
-            SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
+            SimpleNode callNode = (SimpleNode)term.jjtGetChild(0);
             String functionName = (String)callNode.jjtGetValue();
             String module = null;
             if(callNode.jjtGetSecValue() != null){
@@ -578,8 +572,8 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
     
             //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
             SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);                
-            rhsType = fcall.funcionCallReturnType;
-
+            type = fcall.funcionCallReturnType;
+            value = fcall.signature.functionName;
 
         }
 
@@ -587,30 +581,78 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
     }
 
     else { //entra neste else se for ID ou um inteiro
-        if(rhsChild.getAssignId() != null)
-            rhsType = symbolTable.getType(rhsChild.getAssignId(),function);
-
-        if(rhsType == null) {
-            rhsType = rhsChild.getDataType();
-            System.out.println("getting rhs type from array access");
-
+            
+        if(type == null) {
+            value = term.getAssignId();
+            type = symbolTable.getType(term.getAssignId(),function);
         }
 
     }
+
+    return new SymbolTable.Pair<String,SimpleNode.Type>(value,type);
+
+}
+
+JAVACODE
+void checkComparisonTypes(Node expression, SymbolTable.Function function, SymbolTable symbolTable) {
+
+    SimpleNode left = (SimpleNode) expression.jjtGetChild(0);
+    SimpleNode.Type lhsType = symbolTable.getType((String)left.jjtGetValue(), function);
+
+    SimpleNode right = (SimpleNode) expression.jjtGetChild(1);
     
-    if(lhsType != rhsType) {
-        System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of right assignment" );
+    SimpleNode rhsTerm1 = (SimpleNode)right.jjtGetChild(0);
+    
+    SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
+    SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
+
+    if(right.jjtGetNumChildren() == 2) {
+
+        SimpleNode rhsTerm2 = (SimpleNode)right.jjtGetChild(1);
+        rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
+
+        if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+
+            System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+
+        }
+
+        else {
+
+            if(lhsType != rhsTypeTerm1.value) {
+                System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
+            }
+        
+            else {
+                if(lhsType != SimpleNode.Type.INT) {
+                    System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+                }
+            }
+
+        }
+
     }
 
     else {
-        if(lhsType != SimpleNode.Type.INT) {
-            System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+
+
+        if(lhsType != rhsTypeTerm1.value) {
+            System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
         }
+    
+        else {
+            if(lhsType != SimpleNode.Type.INT) {
+                System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
+            }
+        }
+
+
     }
 
-
-
 }
+
+
+
 
 JAVACODE
 void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
@@ -622,58 +664,43 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
         SimpleNode statementChild = (SimpleNode)statement.jjtGetChild(0);
 
         switch(statementChild.getId()){
+            
             case JJTASSIGN:
+            
             SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+            SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
             SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
-            SimpleNode rhsChild = (SimpleNode)rhs.jjtGetChild(0);
-            String rhsValue = (String)rhs.jjtGetValue();
-            SimpleNode.Type rhsType = rhs.getDataType();
-
-            if(rhsChild.jjtGetNumChildren() > 0) { 
-                
-                if(rhsChild.jjtGetChild(0).getId() == JJTCALL) {
-                
-                
-                    SimpleNode callNode = (SimpleNode)rhsChild.jjtGetChild(0);
-                    String functionName = (String)callNode.jjtGetValue();
-                    String module = null;
-                    if(callNode.jjtGetSecValue() != null){
-                        functionName = (String)callNode.jjtGetSecValue();
-                        module = (String)callNode.jjtGetValue();
-                    }
+            
+            SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
     
-                    //vai buscar a functioncall e tira-lhe o Type para depois comparar com o do lhs
-                    SymbolTable.FunctionCall fcall = symbolTable.checkGoodFunctionCall(functionName,module,callNode.assignFunctionParameters,function);                
-                    rhsType = fcall.funcionCallReturnType;
-                
-                
+            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
+            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
+        
+            if(rhs.jjtGetNumChildren() == 2) {
+        
+                SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
+                rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
+        
+                if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+        
+                    System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+        
                 }
-
-                //so entra neste if se for uma function call
-                //quando não tem module -> first value = nome da funcao
-                //quanto tem module -> first value = nome do module
-
+                
             }
-            else { //entra neste else se for ID ou um inteiro
-                if(statementChild.getAssignId() != null)
-                    rhsType = symbolTable.getType(statementChild.getAssignId(),function);
-
-                if(rhsValue == null)
-                    rhsValue = (String)rhsChild.jjtGetValue();
-
-                if(rhsType == null)
-                    rhsType = rhsChild.getDataType();
-
-            }
-
-            // verificar se os types dos 2 membros do assign coincidem
+                    
             if(lhs.getDataType() == null)
-                lhs.jjtSetType(rhsType);
+                lhs.jjtSetType(rhsTypeTerm1.value);
+            
             else{
-                if(lhs.getDataType() != rhsType){
-                    System.out.println("Semantic Error: conflict types between " + lhs.value + " and " + rhsValue);
+                if(lhs.getDataType() != rhsTypeTerm1.value){
+                    System.out.println("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
                 }
             }
+
+
+
+
             //verificar se está em alguma das tabelas (local ou global)
             function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
             break;
