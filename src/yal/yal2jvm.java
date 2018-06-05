@@ -555,7 +555,7 @@ if (jjtc000) {
   static final public void Lhs() throws ParseException {/*@bgen(jjtree) Lhs */
               ASTLhs jjtn000 = new ASTLhs(JJTLHS);
               boolean jjtc000 = true;
-              jjtree.openNodeScope(jjtn000);Token t;
+              jjtree.openNodeScope(jjtn000);Token t, t1;
     try {
       t = jj_consume_token(ID);
 jjtn000.jjtSetValue(t.image);
@@ -571,7 +571,8 @@ jjtn000.jjtSetValue(t.image);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case 33:{
           jj_consume_token(33);
-          jj_consume_token(SIZE);
+          t1 = jj_consume_token(SIZE);
+jjtn000.jjtSetSecValue(t1.image);
           break;
           }
         default:
@@ -1339,7 +1340,6 @@ if (jjtc000) {
                 function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\u005cn";
             else
                 function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
-            symbolTable.semanticErrors++;
         }
     }/*@bgen(jjtree)*/
  } finally {
@@ -1368,14 +1368,12 @@ if (jjtc000) {
             return;
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
-        symbolTable.semanticErrors++;
         return;
 
     }
     if(globals.get(function.returnVariable) != null) {
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
-        symbolTable.semanticErrors++;
         return;
     }
     else{
@@ -1388,14 +1386,12 @@ if (jjtc000) {
 
             function.functionIsOk = false;
             function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
-            symbolTable.semanticErrors++;
             return;
 
         }
 
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable does not exist/is not initialized in the function!";
-        symbolTable.semanticErrors++;
 
     }/*@bgen(jjtree)*/
  } finally {
@@ -1418,7 +1414,8 @@ if (jjtc000) {
     //apenas uma verificação redundante se é do tipo elemento
         if(argument.getId() != JJTELEMENT) {
 
-            System.out.println("Argument not of ELEMENT type, check why.");
+            function.functionIsOk = false;
+            function.errors.add("Argument not of ELEMENT type, check why.");
             continue;
         }
 
@@ -1512,16 +1509,16 @@ if (jjtc000) {
 
         if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
 
-            System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
-            symbolTable.semanticErrors++;
+            function.functionIsOk = false;
+            function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
 
         }
 
         else {
 
             if(lhsType != rhsTypeTerm1.value) {
-                System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
-                symbolTable.semanticErrors++;
+                function.functionIsOk = false;
+                function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
             }
 
             else {
@@ -1539,14 +1536,15 @@ if (jjtc000) {
 
 
         if(lhsType != rhsTypeTerm1.value) {
-            System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
+            function.functionIsOk = false;
+            function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
             symbolTable.semanticErrors++;
         }
 
         else {
             if(lhsType != SimpleNode.Type.INT) {
-                System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
-                symbolTable.semanticErrors++;
+                function.functionIsOk = false;
+                function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
             }
         }
 
@@ -1575,15 +1573,23 @@ if (jjtc000) {
 
             SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
 
+            if(lhs.jjtGetSecValue() != null) {
+                function.functionIsOk = false;
+                function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
+                break;
+
+            }
+
+
             if(lhs.jjtGetNumChildren() > 0)
                 break;
+
 
             SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
 
             SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
 
             SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
-
 
 
             SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
@@ -1595,9 +1601,8 @@ if (jjtc000) {
                 rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
 
                 if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
-
-                    System.out.println("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
-                    symbolTable.semanticErrors++;
+                    function.functionIsOk = false;
+                    function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
                 }
 
             }
@@ -1607,8 +1612,7 @@ if (jjtc000) {
 
             else{
                 if(lhs.getDataType() != rhsTypeTerm1.value){
-                    System.out.println("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
-                    symbolTable.semanticErrors++;
+                    function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
                 }
             }
 

@@ -229,6 +229,7 @@ class SymbolTable {
 		public String returnVariableError = null;
 		public String argumentsError = null;
 		public boolean functionIsOk = true;
+		public ArrayList<String> errors = new ArrayList<>();
 
 		public ArrayList<Pair<String, String>> nullDeclarationsVariables = new ArrayList<>();
 		public ArrayList<Pair<String, Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
@@ -384,11 +385,16 @@ class SymbolTable {
 
 			out.println("\tReturn type: " + function.returnType);
 
-			if (function.returnVariableError != null)
+			if (function.returnVariableError != null) {
 				out.println("\t\t" + function.returnVariableError);
+				this.semanticErrors++;
 
-			if (function.argumentsError != null)
+			}
+
+			if (function.argumentsError != null) {
 				out.println("\t\t" + function.argumentsError);
+				this.semanticErrors++;
+			}
 
 			out.println();
 			out.println("\tFunction arguments:");
@@ -410,10 +416,21 @@ class SymbolTable {
 
 			}
 
+			out.println();
+			out.println("\tFunction erros:");
+
 			for (Pair<String, SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
 
 				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
 						+ repeatedVariable.value);
+				this.semanticErrors++;
+
+			}
+
+			
+			for(String error: function.errors) {
+
+				out.println("\t\t" + error);
 				this.semanticErrors++;
 
 			}
