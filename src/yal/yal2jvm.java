@@ -12,9 +12,18 @@ import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * Main Class of the Compiler
+ * It deals with Lexical, Syntactic and Semantic analysis all their errors.
+ */
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmConstants {/*@bgen(jjtree)*/
   protected static JJTyal2jvmState jjtree = new JJTyal2jvmState();public static int error_counter = 0;
     private static SimpleNode astRoot = null;
+    /**
+      * Main function. 
+      * The program begins with a Lexical and Syntactic analysis, using a Context-Free Gramar, followed by the Semantic analysis.
+      * Afterwards, it generates the code into Java bytecodes to a Jasmin file. 
+     */
     public static void main(String args[]) throws ParseException, IOException {
         InputStream f = null;
         boolean showAst = false;
@@ -85,6 +94,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
             System.out.println("Symbol Table:\u005cn" + symbolTable);
 
         System.out.println("File " + fileName + " parsed with " + symbolTable.semanticErrors + " semantic errors\u005cn");
+
+        if(symbolTable.semanticErrors > 0){
+            System.out.println("This file has semantic errors. No code generated.");
+            System.exit(1);
+        }
 
 
         if(generateJavaBytecodes)
@@ -1290,46 +1304,37 @@ if (jjtc000) {
         switch (nodeType) {
             case JJTDECLARATION:
 
-            symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-            break;
-
+               symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+               break;
             case JJTFUNCTION:
 
-            String functionName = (String) node.jjtGetValue();
-            SimpleNode.Type returnType = node.getDataType();
-            SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-            SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
-            function.returnVariable = (String)node.jjtGetSecValue();
+                String functionName = (String) node.jjtGetValue();
+                SimpleNode.Type returnType = node.getDataType();
+                SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+                function.returnVariable = (String)node.jjtGetSecValue();
 
-            /**
-             * verificar se tem argumentos ou apenas statements
-             */
+                Node argumentList;
+                Node statementList;
 
-            Node argumentList;
-            Node statementList;
-
-            int functionChildrenNum = node.jjtGetNumChildren();
-            statementList = node.jjtGetChild(0);
+                int functionChildrenNum = node.jjtGetNumChildren();
+                statementList = node.jjtGetChild(0);
 
 
-            if(functionChildrenNum == 2) {
+                if(functionChildrenNum == 2) {
 
-                argumentList = statementList;
-                statementList = node.jjtGetChild(1);
-                updateSymbolTableFunctionArguments(argumentList, function);
+                    argumentList = statementList;
+                    statementList = node.jjtGetChild(1);
+                    updateSymbolTableFunctionArguments(argumentList, function);
+                }
 
+                allFunctions.add(function);
+                allStatementsListNodes.add(statementList);
+                allFunctionsNodes.add(node);
 
-            }
+                symbolTable.addFunction(function);
 
-            allFunctions.add(function);
-            allStatementsListNodes.add(statementList);
-            allFunctionsNodes.add(node);
-
-            //add function
-            symbolTable.addFunction(function);
-
-            break;
-
+                break;
             default:
                 break;
         }
@@ -1404,7 +1409,7 @@ if (jjtc000) {
         function.errors.add("Semantic Error: The return variable is a global declaration!");
         return;
     }
-    else{
+    else {
         int index = function.signature.arguments.indexOf(retVariable);
 
         if(index != -1) {
@@ -1439,9 +1444,7 @@ if (jjtc000) {
 
         SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-    //apenas uma verificação redundante se é do tipo elemento
         if(argument.getId() != JJTELEMENT) {
-
             function.functionIsOk = false;
             function.errors.add("Argument not of ELEMENT type, check why.");
             continue;
@@ -1467,11 +1470,7 @@ if (jjtc000) {
     String value = (String)term.jjtGetValue();
 
 
-    if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
-        //quando não tem module -> first value = nome da funcao
-        //quanto tem module -> first value = nome do module
-
-
+    if(term.jjtGetNumChildren() > 0) {
 
         if(term.jjtGetChild(0).getId() == JJTCALL) {
 
@@ -1491,15 +1490,11 @@ if (jjtc000) {
         }
 
         else if(term.jjtGetChild(0).getId() == JJTINDEX) {
-
             type = SimpleNode.Type.INT;
-
         }
-
-
     }
 
-    else { //entra neste else se for ID ou um inteiro
+    else {
 
         if(type == null) {
             value = term.getAssignId();
@@ -1561,7 +1556,6 @@ if (jjtc000) {
 
     else {
 
-
         if(lhsType != rhsTypeTerm1.value) {
             function.functionIsOk = false;
             function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
@@ -1597,55 +1591,50 @@ if (jjtc000) {
 
             case JJTASSIGN:
 
-            SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+                SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
 
-            if(lhs.jjtGetSecValue() != null) {
-                function.functionIsOk = false;
-                function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
-                break;
-
-            }
-
-
-            if(lhs.jjtGetNumChildren() > 0)
-                break;
-
-
-            SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
-
-            SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
-
-            SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
-
-
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
-
-            if(rhs.jjtGetNumChildren() == 2) {
-
-                SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
-                rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
-
-                if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                if(lhs.jjtGetSecValue() != null) {
                     function.functionIsOk = false;
-                    function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
+                    break;
+
                 }
 
-            }
+                if(lhs.jjtGetNumChildren() > 0)
+                    break;
 
-            if(lhs.getDataType() == null)
-                lhs.jjtSetType(rhsTypeTerm1.value);
 
-            else{
-                if(lhs.getDataType() != rhsTypeTerm1.value){
-                    function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
+
+                SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
+                SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
+
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
+
+                if(rhs.jjtGetNumChildren() == 2) {
+
+                    SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
+                    rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
+
+                    if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                        function.functionIsOk = false;
+                        function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    }
+
                 }
-            }
 
+                if(lhs.getDataType() == null)
+                    lhs.jjtSetType(rhsTypeTerm1.value);
 
-            //verificar se está em alguma das tabelas (local ou global)
-            function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
-            break;
+                else{
+                    if(lhs.getDataType() != rhsTypeTerm1.value){
+                        function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                    }
+                }
+
+                function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
+                break;
 
             case JJTIF:
 
@@ -1656,7 +1645,6 @@ if (jjtc000) {
                 }
                 break;
 
-            //verificar se o while não tem de estar igual ao if
             case JJTWHILE:
                 checkComparisonTypes((SimpleNode) statementChild.jjtGetChild(0),function, symbolTable);
                 SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(1);
@@ -1664,7 +1652,7 @@ if (jjtc000) {
                 break;
 
             default:
-            break;
+                break;
         }
     }
     System.out.println();/*@bgen(jjtree)*/
@@ -1706,9 +1694,6 @@ if (jjtc000) {
             updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function, symbolTable);
 
         }
-
-
-
     }/*@bgen(jjtree)*/
  } finally {
    if (jjtc000) {
@@ -1747,110 +1732,6 @@ if (jjtc000) {
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
-  }
-
-  static private boolean jj_3R_21()
- {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_35()
- {
-    if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_34()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_35()) jj_scanpos = xsp;
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_33()
- {
-    if (jj_scan_token(STRING)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_32()
- {
-    if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_9()
- {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_14()) jj_scanpos = xsp;
-    if (jj_scan_token(LPAR)) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_15()) jj_scanpos = xsp;
-    if (jj_scan_token(RPAR)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_20()
- {
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_13()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_20()) {
-    jj_scanpos = xsp;
-    if (jj_3R_21()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_17()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(8)) jj_scanpos = xsp;
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_26()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_32()) {
-    jj_scanpos = xsp;
-    if (jj_3R_33()) {
-    jj_scanpos = xsp;
-    if (jj_3R_34()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_12()
- {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_18()) {
-    jj_scanpos = xsp;
-    if (jj_3R_19()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3_4()
- {
-    if (jj_3R_9()) return true;
-    return false;
   }
 
   static private boolean jj_3R_22()
@@ -2021,6 +1902,110 @@ if (jjtc000) {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_24()) jj_scanpos = xsp;
+    return false;
+  }
+
+  static private boolean jj_3R_21()
+ {
+    if (jj_scan_token(31)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_35()
+ {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_34()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_35()) jj_scanpos = xsp;
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_33()
+ {
+    if (jj_scan_token(STRING)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_32()
+ {
+    if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_9()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_14()) jj_scanpos = xsp;
+    if (jj_scan_token(LPAR)) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) jj_scanpos = xsp;
+    if (jj_scan_token(RPAR)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_20()
+ {
+    if (jj_3R_25()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_13()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_20()) {
+    jj_scanpos = xsp;
+    if (jj_3R_21()) return true;
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_17()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(8)) jj_scanpos = xsp;
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_26()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_32()) {
+    jj_scanpos = xsp;
+    if (jj_3R_33()) {
+    jj_scanpos = xsp;
+    if (jj_3R_34()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_12()
+ {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_18()) {
+    jj_scanpos = xsp;
+    if (jj_3R_19()) return true;
+    }
+    return false;
+  }
+
+  static private boolean jj_3_4()
+ {
+    if (jj_3R_9()) return true;
     return false;
   }
 
