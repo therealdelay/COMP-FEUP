@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.*;
 
+
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants/*@egen*/ {/*@bgen(jjtree)*/
   protected static JJTyal2jvmState jjtree = new JJTyal2jvmState();
 
@@ -498,7 +499,12 @@ void Lhs() : {/*@bgen(jjtree) Lhs */
 {/*@bgen(jjtree) Lhs */
     try {
 /*@egen*/
-    t=<ID>{jjtn000.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] )/*@bgen(jjtree)*/
+    t=<ID>{jjtn000.jjtSetValue(t.image);} ( ("[" Index() "]"/*@bgen(jjtree)*/
+                                                             {
+                                                               jjtree.closeNodeScope(jjtn000, true);
+                                                               jjtc000 = false;
+                                                             }
+/*@egen*/ {jjtn000.jjtSetArrayType();})|["." <SIZE>] )/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -553,14 +559,19 @@ void Rhs() : {/*@bgen(jjtree) Rhs */
 }
 
 void ArraySize() : {/*@bgen(jjtree) ArraySize */
-  ASTArraySize jjtn000 = new ASTArraySize(JJTARRAYSIZE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/}
+                    ASTArraySize jjtn000 = new ASTArraySize(JJTARRAYSIZE);
+                    boolean jjtc000 = true;
+                    jjtree.openNodeScope(jjtn000);
+/*@egen*/Token t;}
 {/*@bgen(jjtree) ArraySize */
     try {
 /*@egen*/
-    ScalarAccess() | <INTEGER>/*@bgen(jjtree)*/
+    ScalarAccess() | t=<INTEGER>/*@bgen(jjtree)*/
+                                {
+                                  jjtree.closeNodeScope(jjtn000, true);
+                                  jjtc000 = false;
+                                }
+/*@egen*/{jjtn000.jjtSetValue(t.image);}/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -596,7 +607,7 @@ void Term() : {/*@bgen(jjtree) Term */
                                                                        jjtree.closeNodeScope(jjtn000, true);
                                                                        jjtc000 = false;
                                                                      }
-/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);}]))))/*@bgen(jjtree)*/
+/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetSecValue(t4.image);}]))))/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -854,26 +865,30 @@ void Argument() : {/*@bgen(jjtree) Argument */
                    ASTArgument jjtn000 = new ASTArgument(JJTARGUMENT);
                    boolean jjtc000 = true;
                    jjtree.openNodeScope(jjtn000);
-/*@egen*/Token t;}
+/*@egen*/Token t, t1;}
 {/*@bgen(jjtree) Argument */
     try {
 /*@egen*/
-    ( t=<ID>/*@bgen(jjtree)*/
-            {
-              jjtree.closeNodeScope(jjtn000, true);
-              jjtc000 = false;
-            }
-/*@egen*/{jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(t.image,null);} | t=<STRING>/*@bgen(jjtree)*/
-                                                                                                         {
-                                                                                                           jjtree.closeNodeScope(jjtn000, true);
-                                                                                                           jjtc000 = false;
-                                                                                                         }
-/*@egen*/{jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | t=<INTEGER>/*@bgen(jjtree)*/
-                                                                                                                                                                                                                      {
-                                                                                                                                                                                                                        jjtree.closeNodeScope(jjtn000, true);
-                                                                                                                                                                                                                        jjtc000 = false;
-                                                                                                                                                                                                                      }
-/*@egen*/{jjtn000.jjtSetValue(t.image); jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.INT);})/*@bgen(jjtree)*/
+    ( 
+        t=<ID>/*@bgen(jjtree)*/
+              {
+                jjtree.closeNodeScope(jjtn000, true);
+                jjtc000 = false;
+              }
+/*@egen*/{jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(t.image,null);} | 
+        t=<STRING>/*@bgen(jjtree)*/
+                  {
+                    jjtree.closeNodeScope(jjtn000, true);
+                    jjtc000 = false;
+                  }
+/*@egen*/{jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | 
+        [t1=<ADDSUB_OP>{jjtn000.jjtSetSecValue(t1.image);}] t=<INTEGER>/*@bgen(jjtree)*/
+                                                                       {
+                                                                         jjtree.closeNodeScope(jjtn000, true);
+                                                                         jjtc000 = false;
+                                                                       }
+/*@egen*/{jjtn000.jjtSetValue(t.image); jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.INT);}
+    )/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);
@@ -1005,9 +1020,9 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
     SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
     int numChildren = root.jjtGetNumChildren();
 
-    ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
-    ArrayList<Node> allStatementsListNodes = new ArrayList();
-    ArrayList<Node> allFunctionsNodes = new ArrayList();
+    ArrayList<SymbolTable.Function> allFunctions = new ArrayList<SymbolTable.Function>();
+    ArrayList<Node> allStatementsListNodes = new ArrayList<Node>();
+    ArrayList<Node> allFunctionsNodes = new ArrayList<Node>();
 
     for(int i = 0; i < numChildren; i++) {
 

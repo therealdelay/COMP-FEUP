@@ -246,7 +246,7 @@ class SymbolTable {
 
 			if (isGlobal != null) { // lhs é variável global
 				if (value != isGlobal)
-					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
+					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
 				return true;
 			} else { //lhs é variável local
 				SimpleNode.Type alreadyLocal = this.localDeclarations.get(key);
@@ -255,7 +255,7 @@ class SymbolTable {
 					return true;
 				}
 				if (alreadyLocal != value) {
-					this.repeatedLocalDeclarationsDiffType.add(new Pair(key, value));
+					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
 					return false;
 				}
 				return true;
@@ -293,7 +293,7 @@ class SymbolTable {
 		}
 
 		if (exists != value) {
-			this.repeatedGlobalDeclarationsDiffType.add(new Pair(key, value));
+			this.repeatedGlobalDeclarationsDiffType.add(new Pair<>(key, value));
 		}
 
 		return false;

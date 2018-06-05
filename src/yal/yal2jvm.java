@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.*;
 
+
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmConstants {/*@bgen(jjtree)*/
   protected static JJTyal2jvmState jjtree = new JJTyal2jvmState();public static int error_counter = 0;
     private static SimpleNode astRoot = null;
@@ -569,6 +570,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         jj_consume_token(31);
         Index();
         jj_consume_token(32);
+                                                               jjtree.closeNodeScope(jjtn000, true);
+                                                               jjtc000 = false;
+                                                              jjtn000.jjtSetArrayType();
         break;
       default:
         jj_la1[13] = jj_gen;
@@ -675,16 +679,19 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static final public void ArraySize() throws ParseException {
                     /*@bgen(jjtree) ArraySize */
-  ASTArraySize jjtn000 = new ASTArraySize(JJTARRAYSIZE);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
+                    ASTArraySize jjtn000 = new ASTArraySize(JJTARRAYSIZE);
+                    boolean jjtc000 = true;
+                    jjtree.openNodeScope(jjtn000);Token t;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ID:
         ScalarAccess();
         break;
       case INTEGER:
-        jj_consume_token(INTEGER);
+        t = jj_consume_token(INTEGER);
+                                  jjtree.closeNodeScope(jjtn000, true);
+                                  jjtc000 = false;
+                                 jjtn000.jjtSetValue(t.image);
         break;
       default:
         jj_la1[17] = jj_gen;
@@ -755,7 +762,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
               case 33:
                 jj_consume_token(33);
                 t4 = jj_consume_token(SIZE);
-                                                                                                                                                                                                                                                                   jjtn000.jjtSetValue(t4.image);
+                                                                                                                                                                                                                                                                   jjtn000.jjtSetSecValue(t4.image);
                 break;
               default:
                 jj_la1[19] = jj_gen;
@@ -934,6 +941,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       jj_consume_token(LPAR);
       try {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case ADDSUB_OP:
         case INTEGER:
         case ID:
         case STRING:
@@ -996,6 +1004,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       jj_consume_token(LPAR);
       try {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case ADDSUB_OP:
         case INTEGER:
         case ID:
         case STRING:
@@ -1082,29 +1091,39 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                    /*@bgen(jjtree) Argument */
                    ASTArgument jjtn000 = new ASTArgument(JJTARGUMENT);
                    boolean jjtc000 = true;
-                   jjtree.openNodeScope(jjtn000);Token t;
+                   jjtree.openNodeScope(jjtn000);Token t, t1;
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ID:
         t = jj_consume_token(ID);
-              jjtree.closeNodeScope(jjtn000, true);
-              jjtc000 = false;
-             jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(t.image,null);
+                jjtree.closeNodeScope(jjtn000, true);
+                jjtc000 = false;
+               jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(t.image,null);
         break;
       case STRING:
         t = jj_consume_token(STRING);
-                                                                                                           jjtree.closeNodeScope(jjtn000, true);
-                                                                                                           jjtc000 = false;
-                                                                                                          jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.STRING);
+                    jjtree.closeNodeScope(jjtn000, true);
+                    jjtc000 = false;
+                   jjtn000.jjtSetValue(t.image);jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.STRING);
         break;
+      case ADDSUB_OP:
       case INTEGER:
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case ADDSUB_OP:
+          t1 = jj_consume_token(ADDSUB_OP);
+                        jjtn000.jjtSetSecValue(t1.image);
+          break;
+        default:
+          jj_la1[29] = jj_gen;
+          ;
+        }
         t = jj_consume_token(INTEGER);
-                                                                                                                                                                                                                        jjtree.closeNodeScope(jjtn000, true);
-                                                                                                                                                                                                                        jjtc000 = false;
-                                                                                                                                                                                                                       jjtn000.jjtSetValue(t.image); jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.INT);
+                                                                         jjtree.closeNodeScope(jjtn000, true);
+                                                                         jjtc000 = false;
+                                                                        jjtn000.jjtSetValue(t.image); jjtn000.addAssignFunctionParameter(null,SimpleNode.Type.INT);
         break;
       default:
-        jj_la1[29] = jj_gen;
+        jj_la1[30] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1162,7 +1181,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                                          jjtn000.jjtSetSecValue(t1.image);
         break;
       default:
-        jj_la1[30] = jj_gen;
+        jj_la1[31] = jj_gen;
         ;
       }
     } finally {
@@ -1192,7 +1211,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                                                         jjtn000.jjtSetValue(t.image);
         break;
       default:
-        jj_la1[31] = jj_gen;
+        jj_la1[32] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1243,9 +1262,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
  try {SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
     int numChildren = root.jjtGetNumChildren();
 
-    ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
-    ArrayList<Node> allStatementsListNodes = new ArrayList();
-    ArrayList<Node> allFunctionsNodes = new ArrayList();
+    ArrayList<SymbolTable.Function> allFunctions = new ArrayList<SymbolTable.Function>();
+    ArrayList<Node> allStatementsListNodes = new ArrayList<Node>();
+    ArrayList<Node> allFunctionsNodes = new ArrayList<Node>();
 
     for(int i = 0; i < numChildren; i++) {
 
@@ -1585,31 +1604,31 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_34() {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_24() {
-    if (jj_scan_token(33)) return true;
-    if (jj_scan_token(SIZE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_19() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_24()) jj_scanpos = xsp;
-    return false;
-  }
-
   static private boolean jj_3R_21() {
     if (jj_scan_token(31)) return true;
     return false;
   }
 
-  static private boolean jj_3R_28() {
+  static private boolean jj_3R_35() {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_34() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_35()) jj_scanpos = xsp;
     if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_33() {
+    if (jj_scan_token(STRING)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_32() {
+    if (jj_scan_token(ID)) return true;
     return false;
   }
 
@@ -1637,11 +1656,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_scanpos = xsp;
     if (jj_3R_21()) return true;
     }
-    return false;
-  }
-
-  static private boolean jj_3R_32() {
-    if (jj_scan_token(ID)) return true;
     return false;
   }
 
@@ -1677,11 +1691,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_33() {
-    if (jj_scan_token(STRING)) return true;
-    return false;
-  }
-
   static private boolean jj_3_4() {
     if (jj_3R_9()) return true;
     return false;
@@ -1699,6 +1708,19 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static private boolean jj_3_3() {
     if (jj_3R_8()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_24() {
+    if (jj_scan_token(33)) return true;
+    if (jj_scan_token(SIZE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_19() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_24()) jj_scanpos = xsp;
     return false;
   }
 
@@ -1724,6 +1746,17 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
+  static private boolean jj_3R_6() {
+    if (jj_scan_token(ID)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_10()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_11()) jj_scanpos = xsp;
+    if (jj_scan_token(PVIRG)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_8() {
     if (jj_3R_12()) return true;
     if (jj_scan_token(ASSIGN)) return true;
@@ -1734,17 +1767,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   static private boolean jj_3R_14() {
     if (jj_scan_token(33)) return true;
     if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_6() {
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_10()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_11()) jj_scanpos = xsp;
-    if (jj_scan_token(PVIRG)) return true;
     return false;
   }
 
@@ -1773,11 +1795,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_29() {
-    if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_27() {
     if (jj_scan_token(ID)) return true;
     return false;
@@ -1790,6 +1807,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_scanpos = xsp;
     if (jj_3R_28()) return true;
     }
+    return false;
+  }
+
+  static private boolean jj_3R_29() {
+    if (jj_scan_token(ADDSUB_OP)) return true;
     return false;
   }
 
@@ -1818,6 +1840,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
+  static private boolean jj_3R_28() {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
   static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
   static public yal2jvmTokenManager token_source;
@@ -1830,7 +1857,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   static private Token jj_scanpos, jj_lastpos;
   static private int jj_la;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[32];
+  static final private int[] jj_la1 = new int[33];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -1838,10 +1865,10 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x800000,0x80000000,0x100,0x84000100,0x8000,0x80000000,0x8000000,0x80000,0x80000000,0x8003000,0x3000,0x8000000,0x0,0x80000000,0x700,0x700,0x8c000100,0xc000000,0x100,0x0,0x80000000,0x4000000,0x8000000,0x4000,0x0,0x4c000000,0x0,0x4c000000,0x80000,0x4c000000,0x0,0xc000000,};
+      jj_la1_0 = new int[] {0x800000,0x80000000,0x100,0x84000100,0x8000,0x80000000,0x8000000,0x80000,0x80000000,0x8003000,0x3000,0x8000000,0x0,0x80000000,0x700,0x700,0x8c000100,0xc000000,0x100,0x0,0x80000000,0x4000000,0x8000000,0x4000,0x0,0x4c000100,0x0,0x4c000100,0x80000,0x100,0x4c000100,0x0,0xc000000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x2,0x0,0x2,0x0,0x0,0x0,0x2,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x0,0x0,0x2,0x0,0x0,0x0,0x0,0x2,0x0,0x2,0x0,0x0,0x0,0x0,0x2,0x0,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[4];
   static private boolean jj_rescan = false;
@@ -1865,7 +1892,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1881,7 +1908,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1899,7 +1926,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1911,7 +1938,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1928,7 +1955,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1939,7 +1966,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 32; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 33; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -2059,7 +2086,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 33; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

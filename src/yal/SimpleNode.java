@@ -216,7 +216,7 @@ public class SimpleNode implements Node {
 
   public void addAssignFunctionParameter(String variable, Type parameter) {
 
-    this.assignFunctionParameters.add(new SymbolTable.Pair(variable, parameter));
+    this.assignFunctionParameters.add(new SymbolTable.Pair<>(variable, parameter));
   }
 
   public void setAssignIdModule(String module) {

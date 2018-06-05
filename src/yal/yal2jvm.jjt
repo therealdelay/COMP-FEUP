@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.*;
 
+
 public class yal2jvm {
     public static int error_counter = 0;
     private static SimpleNode astRoot = null;
@@ -260,7 +261,7 @@ void Assign() : {}
 
 void Lhs() : {Token t;}
 {
-    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]")|["." <SIZE>] )
+    t=<ID>{jjtThis.jjtSetValue(t.image);} ( ("[" Index() "]" {jjtThis.jjtSetArrayType();})|["." <SIZE>] )
 }
 
 void Rhs() : {Token t;}
@@ -268,14 +269,14 @@ void Rhs() : {Token t;}
     (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
 }
 
-void ArraySize() : {}
+void ArraySize() : {Token t;}
 {
-    ScalarAccess() | <INTEGER>
+    ScalarAccess() | t=<INTEGER>{jjtThis.jjtSetValue(t.image);}
 }
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);}]))))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetSecValue(t4.image);jjtThis.jjtSetIntType();}]))))
 }
 
 void Exprtest() : {Token t;}
@@ -353,9 +354,13 @@ void ArgumentList() : {}
     Argument() ( <VIRG> Argument() )*
 }
 
-void Argument() : {Token t;}
+void Argument() : {Token t, t1;}
 {
-    ( t=<ID>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(t.image,null);} | t=<STRING>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image); jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.INT);})
+    ( 
+        t=<ID>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(t.image,null);} | 
+        t=<STRING>{jjtThis.jjtSetValue(t.image);jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.STRING);} | 
+        [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] t=<INTEGER>{jjtThis.jjtSetValue(t.image); jjtThis.addAssignFunctionParameter(null,SimpleNode.Type.INT);}
+    )
 }
 
 void ArrayAccess() : {Token t;}
@@ -405,9 +410,9 @@ SymbolTable generateSymbolTable(Node root) {
     SymbolTable symbolTable = new SymbolTable( (String)((SimpleNode) root).jjtGetValue());
     int numChildren = root.jjtGetNumChildren();
 
-    ArrayList<SymbolTable.Function> allFunctions = new ArrayList();
-    ArrayList<Node> allStatementsListNodes = new ArrayList();
-    ArrayList<Node> allFunctionsNodes = new ArrayList();
+    ArrayList<SymbolTable.Function> allFunctions = new ArrayList<SymbolTable.Function>();
+    ArrayList<Node> allStatementsListNodes = new ArrayList<Node>();
+    ArrayList<Node> allFunctionsNodes = new ArrayList<Node>();
 
     for(int i = 0; i < numChildren; i++) {
 
