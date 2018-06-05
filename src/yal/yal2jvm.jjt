@@ -91,6 +91,11 @@ public class yal2jvm {
 
         System.out.println("File " + fileName + " parsed with " + symbolTable.semanticErrors + " semantic errors\n");
 
+        if(symbolTable.semanticErrors > 0){
+            System.out.println("This file has semantic errors. No code generated.");
+            System.exit(1);
+        }
+
 
         if(generateJavaBytecodes)
             Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
