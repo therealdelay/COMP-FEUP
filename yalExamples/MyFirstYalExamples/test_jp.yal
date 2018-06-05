@@ -12,6 +12,12 @@ module test_jp {
     global4 = [3];
     global4 = [4];
 
+    array1 = [3];
+    inteiro = 1;
+
+    array2 = [5];
+    inteiro2 = 3;
+
     function ret[]=f1(arg1,arg2[],arg3) {
 
         local1 = 0;
@@ -21,14 +27,19 @@ module test_jp {
         local11 = [4];
         local11 = 0;
     
-        local22 = 3;
-        local22 = [4];
+        // local22 = 3;
+        // local22 = [4];
         
         local33 = 2;
         local33 = 2;
     
         local44 = [3];
         local44 = [4];
+
+        array1 = 0;
+        inteiro = [1];
+        array2 = [4];
+        inteiro2 = 10;
 
         
         ret = f2(4,local1,local2,local3);

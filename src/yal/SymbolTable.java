@@ -123,6 +123,12 @@ class SymbolTable {
 
 		}
 
+		else if(calledFunction.signature.functionName.equals("main")) {
+
+			return new FunctionCall(signature, moduleName, false, "It's not possible to call main function", null);
+
+		}
+
 		return new FunctionCall(signature, moduleName, true, "OK", calledFunction.returnType);
 
 	}
