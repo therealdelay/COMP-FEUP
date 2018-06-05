@@ -520,7 +520,7 @@ void Rhs() : {/*@bgen(jjtree) Rhs */
 {/*@bgen(jjtree) Rhs */
     try {
 /*@egen*/
-    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtn000.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtn000).jjtSetArrayType();} "]"/*@bgen(jjtree)*/
+    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtn000.jjtSetValue(t.image);}  Term()]) | "[" ArraySize() "]"/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -551,7 +551,12 @@ void ArraySize() : {/*@bgen(jjtree) ArraySize */
 {/*@bgen(jjtree) ArraySize */
     try {
 /*@egen*/
-    ScalarAccess() | <INTEGER>/*@bgen(jjtree)*/
+    (ScalarAccess() | <INTEGER>)/*@bgen(jjtree)*/
+                                 {
+                                   jjtree.closeNodeScope(jjtn000, true);
+                                   jjtc000 = false;
+                                 }
+/*@egen*/ {((SimpleNode)jjtn000).jjtSetArrayType();}/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -587,7 +592,7 @@ void Term() : {/*@bgen(jjtree) Term */
                                                                        jjtree.closeNodeScope(jjtn000, true);
                                                                        jjtc000 = false;
                                                                      }
-/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index(){jjtn000.jjtSetIntType();System.out.println("Setting int type of array access.");} "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);jjtn000.jjtSetIntType();System.out.println("Setting int type of array access.");}]))))/*@bgen(jjtree)*/
+/*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetValue(t4.image);jjtn000.jjtSetIntType();System.out.println("Setting int type of array access.");}]))))/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -1029,7 +1034,6 @@ SymbolTable generateSymbolTable(Node root) {/*@bgen(jjtree) generateSymbolTable 
             int functionChildrenNum = node.jjtGetNumChildren();
             statementList = node.jjtGetChild(0);
 
-            // System.out.println("Function Name: " + signature.functionName);
 
             if(functionChildrenNum == 2) {
 
@@ -1117,7 +1121,7 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
     if(function.returnVariable == null)
         return;
 
-    if(locals.get(function.returnVariable) != null){
+    if(locals.get(function.returnVariable) != null) {
         
         if(locals.get(function.returnVariable) == function.returnType)
             return;
@@ -1127,7 +1131,7 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
         return;
         
     }
-    if(globals.get(function.returnVariable) != null){
+    if(globals.get(function.returnVariable) != null) {
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
         symbolTable.semanticErrors++;
@@ -1207,9 +1211,12 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
     SimpleNode.Type type = term.getDataType();
     String value = (String)term.jjtGetValue();
 
+
     if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
         //quando n\u00e3o tem module -> first value = nome da funcao
         //quanto tem module -> first value = nome do module
+
+        
 
         if(term.jjtGetChild(0).getId() == JJTCALL) {
 
@@ -1228,16 +1235,22 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
 
         }
 
+        else if(term.jjtGetChild(0).getId() == JJTINDEX) {
+
+            type = SimpleNode.Type.INT;
+
+        }
+
 
     }
 
     else { //entra neste else se for ID ou um inteiro
-            
+
         if(type == null) {
             value = term.getAssignId();
-            type = symbolTable.getType(term.getAssignId(),function);
-        }
+            type = symbolTable.getType(value,function);
 
+        }
     }
 
     return new SymbolTable.Pair<String,SimpleNode.Type>(value,type);/*@bgen(jjtree)*/
@@ -1346,10 +1359,17 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             case JJTASSIGN:
             
             SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+
+            if(lhs.jjtGetNumChildren() > 0)
+                break;
+
             SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
+
             SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
             
             SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
+
+            
     
             SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
             SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
@@ -1376,8 +1396,6 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
                     symbolTable.semanticErrors++;
                 }
             }
-
-
 
 
             //verificar se est\u00e1 em alguma das tabelas (local ou global)

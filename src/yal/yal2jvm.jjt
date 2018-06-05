@@ -256,17 +256,17 @@ void Lhs() : {Token t;}
 
 void Rhs() : {Token t;}
 {
-    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize(){((SimpleNode)jjtThis).jjtSetArrayType();} "]"
+    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize() "]"
 }
 
 void ArraySize() : {}
 {
-    ScalarAccess() | <INTEGER>
+    (ScalarAccess() | <INTEGER>) {((SimpleNode)jjtThis).jjtSetArrayType();}
 }
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index(){jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");} "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");}]))))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetValue(t4.image);jjtThis.jjtSetIntType();System.out.println("Setting int type of array access.");}]))))
 }
 
 void Exprtest() : {Token t;}
@@ -429,7 +429,6 @@ SymbolTable generateSymbolTable(Node root) {
             int functionChildrenNum = node.jjtGetNumChildren();
             statementList = node.jjtGetChild(0);
 
-            // System.out.println("Function Name: " + signature.functionName);
 
             if(functionChildrenNum == 2) {
 
@@ -495,7 +494,7 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
     if(function.returnVariable == null)
         return;
 
-    if(locals.get(function.returnVariable) != null){
+    if(locals.get(function.returnVariable) != null) {
         
         if(locals.get(function.returnVariable) == function.returnType)
             return;
@@ -505,7 +504,7 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
         return;
         
     }
-    if(globals.get(function.returnVariable) != null){
+    if(globals.get(function.returnVariable) != null) {
         function.functionIsOk = false;
         function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
         symbolTable.semanticErrors++;
@@ -563,9 +562,12 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
     SimpleNode.Type type = term.getDataType();
     String value = (String)term.jjtGetValue();
 
+
     if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
         //quando não tem module -> first value = nome da funcao
         //quanto tem module -> first value = nome do module
+
+        
 
         if(term.jjtGetChild(0).getId() == JJTCALL) {
 
@@ -584,16 +586,22 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
 
         }
 
+        else if(term.jjtGetChild(0).getId() == JJTINDEX) {
+
+            type = SimpleNode.Type.INT;
+
+        }
+
 
     }
 
     else { //entra neste else se for ID ou um inteiro
-            
+
         if(type == null) {
             value = term.getAssignId();
-            type = symbolTable.getType(term.getAssignId(),function);
-        }
+            type = symbolTable.getType(value,function);
 
+        }
     }
 
     return new SymbolTable.Pair<String,SimpleNode.Type>(value,type);
@@ -680,10 +688,17 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             case JJTASSIGN:
             
             SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+
+            if(lhs.jjtGetNumChildren() > 0)
+                break;
+
             SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
+
             SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
             
             SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
+
+            
     
             SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
             SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
@@ -710,8 +725,6 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
                     symbolTable.semanticErrors++;
                 }
             }
-
-
 
 
             //verificar se está em alguma das tabelas (local ou global)
