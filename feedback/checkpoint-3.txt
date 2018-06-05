@@ -1,0 +1,17 @@
+CHECKPOINT 3 FEEDBACK
+=====================
+Class 1 - Group 33
+
+These notes are based on an analysis of commit bc94642a9fec093c3c3c9e117b5c8f0e8c740084.
+If you believe this is an error, contact your class teacher.
+=====================
+
+High-priority:
+	- "arith.yal", "constant-ranges.yal": ClassCastException: String cannot be cast to Integer.
+	- "call-main.yal": NumberFormatException: For input string: ""Call main"".
+	- "array-init.yal": Missing initialization of global arrays.
+	- "input-as-output.yal": Missing "iload" before "ireturn". Missing code generation for
+external function call.
+
+Low-priority:
+	- Allow users to specify YAL files in absolute paths (e.g., "C:\Documents\mytest.yal").
