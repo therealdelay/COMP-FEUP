@@ -152,6 +152,7 @@ public class Bytecodes{
 
 		writer.println(".limit locals " + register_variables.indexOf(null));
 		writer.println(".limit stack " + stack_max);
+		writer.println();
 		writerStandBy.println(outBuffer);
 
 
