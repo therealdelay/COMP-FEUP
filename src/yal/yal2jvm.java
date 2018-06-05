@@ -728,7 +728,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case ADDSUB_OP:
         t1 = jj_consume_token(ADDSUB_OP);
-                    jjtn000.jjtSetSecValue(t1.image);
+                    jjtn000.jjtSetOperation(t1.image);
         break;
       default:
         jj_la1[18] = jj_gen;
@@ -737,9 +737,9 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER:
         t2 = jj_consume_token(INTEGER);
-                                                                       jjtree.closeNodeScope(jjtn000, true);
-                                                                       jjtc000 = false;
-                                                                      jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();
+                                                                        jjtree.closeNodeScope(jjtn000, true);
+                                                                        jjtc000 = false;
+                                                                       jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();
         break;
       default:
         jj_la1[21] = jj_gen;
@@ -749,7 +749,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
           switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
           case ID:
             t3 = jj_consume_token(ID);
-                                                                                                                                                               jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);
+                                                                                                                                                                jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);
             switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
             case 31:
               jj_consume_token(31);
@@ -762,7 +762,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
               case 33:
                 jj_consume_token(33);
                 t4 = jj_consume_token(SIZE);
-                                                                                                                                                                                                                                                                   jjtn000.jjtSetSecValue(t4.image);jjtn000.jjtSetIntType();
+                                                                                                                                                                                                                                                                    jjtn000.jjtSetSecValue(t4.image);jjtn000.jjtSetIntType();
                 break;
               default:
                 jj_la1[19] = jj_gen;
@@ -808,7 +808,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         jj_consume_token(LPAR);
         Lhs();
         t = jj_consume_token(RELA_OP);
-                                 jjtn000.jjtSetRelaOp(t.image);
+                                 jjtn000.jjtSetOperation(t.image);
         Rhs();
         jj_consume_token(RPAR);
       } catch (ParseException e) {
@@ -1208,7 +1208,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         t = jj_consume_token(INTEGER);
                                                          jjtree.closeNodeScope(jjtn000, true);
                                                          jjtc000 = false;
-                                                        jjtn000.jjtSetValue(t.image);
+                                                        jjtn000.jjtSetValue(t.image);jjtn000.jjtSetIntType();
         break;
       default:
         jj_la1[32] = jj_gen;
