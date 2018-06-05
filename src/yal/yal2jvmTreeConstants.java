@@ -32,8 +32,10 @@ public interface yal2jvmTreeConstants
   public int JJTCHECKARGSARENOTGLOBALS = 26;
   public int JJTCHECKRETURNVARIABLE = 27;
   public int JJTUPDATESYMBOLTABLEFUNCTIONARGUMENTS = 28;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONASSIGNS = 29;
-  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 30;
+  public int JJTGETTYPEOFTERM = 29;
+  public int JJTCHECKCOMPARISONTYPES = 30;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONASSIGNS = 31;
+  public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 32;
 
 
   public String[] jjtNodeName = {
@@ -66,8 +68,10 @@ public interface yal2jvmTreeConstants
     "checkArgsAreNotGlobals",
     "checkReturnVariable",
     "updateSymbolTableFunctionArguments",
+    "getTypeOfTerm",
+    "checkComparisonTypes",
     "updateSymbolTableFunctionAssigns",
     "updateSymbolTableFunctionFunctionCalls",
   };
 }
-/* JavaCC - OriginalChecksum=0cceba1b93633560a568d3e7633ea986 (do not edit this line) */
+/* JavaCC - OriginalChecksum=421f5bcd8b7467a52b80e84b586b1e4a (do not edit this line) */

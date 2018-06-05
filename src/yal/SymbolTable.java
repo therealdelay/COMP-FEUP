@@ -15,6 +15,8 @@ class SymbolTable {
 
 	public String moduleName;
 
+	public int semanticErrors = 0;
+
 	public HashMap<String, SimpleNode.Type> globalDeclarations = new HashMap<>();
 	public HashMap<Signature, Function> functions = new HashMap<>();
 
@@ -49,8 +51,18 @@ class SymbolTable {
 	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName,
 			ArrayList<Pair<String, SimpleNode.Type>> functionCallParameters, Function processingFunction) {
 
-		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+			for(Pair<String,SimpleNode.Type> par : functionCallParameters) {
 
+			if(par.value == null) {
+
+				par.value = getType(par.key, processingFunction);
+
+			}
+
+		}
+
+		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
+		
 		//if function is from another module OK
 
 		if (moduleName != null) {
@@ -89,6 +101,7 @@ class SymbolTable {
 		// check if function exists
 		Function calledFunction = this.functions.get(signature);
 
+		
 		if ((calledFunction == null) || (calledFunction.functionIsOk == false)) {
 
 			String error = functionName + "(";
@@ -216,6 +229,7 @@ class SymbolTable {
 		public String returnVariableError = null;
 		public String argumentsError = null;
 		public boolean functionIsOk = true;
+		public ArrayList<String> errors = new ArrayList<>();
 
 		public ArrayList<Pair<String, String>> nullDeclarationsVariables = new ArrayList<>();
 		public ArrayList<Pair<String, Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
@@ -357,6 +371,7 @@ class SymbolTable {
 
 			out.println("Semantic Error: (Repeated Variable) " + repeatedDeclaration.key + " with type: "
 					+ repeatedDeclaration.value);
+			this.semanticErrors++;
 
 		}
 
@@ -370,11 +385,16 @@ class SymbolTable {
 
 			out.println("\tReturn type: " + function.returnType);
 
-			if (function.returnVariableError != null)
+			if (function.returnVariableError != null) {
 				out.println("\t\t" + function.returnVariableError);
+				this.semanticErrors++;
 
-			if (function.argumentsError != null)
+			}
+
+			if (function.argumentsError != null) {
 				out.println("\t\t" + function.argumentsError);
+				this.semanticErrors++;
+			}
 
 			out.println();
 			out.println("\tFunction arguments:");
@@ -396,10 +416,22 @@ class SymbolTable {
 
 			}
 
+			out.println();
+			out.println("\tFunction erros:");
+
 			for (Pair<String, SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
 
 				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
 						+ repeatedVariable.value);
+				this.semanticErrors++;
+
+			}
+
+			
+			for(String error: function.errors) {
+
+				out.println("\t\t" + error);
+				this.semanticErrors++;
 
 			}
 
@@ -421,8 +453,10 @@ class SymbolTable {
 
 				if (functionCall.ok)
 					out.println("\t\tCall is ok");
-				else
+				else{
 					out.println("\t\tSemantic Error: Call NOT ok: " + functionCall.error);
+					this.semanticErrors++;
+				}
 
 				for (int i = 0; i < functionCall.signature.arguments.size(); i++) {
 
@@ -433,6 +467,8 @@ class SymbolTable {
 					}
 				}
 
+				out.println("\t\tFunction return type: " + functionCall.funcionCallReturnType);
+
 			}
 			out.println();
 
@@ -441,6 +477,7 @@ class SymbolTable {
 		for (SymbolTable.Signature signature : this.repeatedFunctions) {
 
 			out.println("Semantic Error: (Repeated function) " + signature.functionName + ":");
+			this.semanticErrors++;
 
 			for (int i = 0; i < signature.arguments.size(); i++) {
 
