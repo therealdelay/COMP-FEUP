@@ -3,10 +3,11 @@ module aval4
 {
 
 function c = f(a, b) {
-    while(a < b) {
-			c = io.read();
-			a = io.read();
-			a = a+c;
+	
+	while(a < b) {
+		c = io.read();
+		a = io.read();
+		a = a+c;
     }
 }
 

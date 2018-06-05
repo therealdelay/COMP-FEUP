@@ -3,7 +3,7 @@ module aval4_err
 {
 
 function c = f(a, b) {
-    while1(a < b) { // error 1
+    while(a < b) { // error 1
 			c = io.read() // error 2
 			a = io.read();
 			a = a+c;

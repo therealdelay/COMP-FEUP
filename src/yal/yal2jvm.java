@@ -1351,6 +1351,8 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\u005cn";
             else
                 function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
+
+            function.errors.add(function.argumentsError);
         }
     }/*@bgen(jjtree)*/
  } finally {
@@ -1379,13 +1381,13 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         if(locals.get(function.returnVariable) == function.returnType)
             return;
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+        function.errors.add("Semantic Error: The return variable type does not match the function return type!");
         return;
 
     }
     if(globals.get(function.returnVariable) != null) {
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
+        function.errors.add("Semantic Error: The return variable is a global declaration!");
         return;
     }
     else{
@@ -1397,13 +1399,13 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 return;
 
             function.functionIsOk = false;
-            function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+            function.errors.add("Semantic Error: The return variable type does not match the function return type!");
             return;
 
         }
 
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable does not exist/is not initialized in the function!";
+        function.errors.add("Semantic Error: The return variable does not exist/is not initialized in the function!");
 
     }/*@bgen(jjtree)*/
  } finally {
@@ -1538,8 +1540,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
             else {
                 if(lhsType != SimpleNode.Type.INT) {
-                    System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
-                    symbolTable.semanticErrors++;
+                    function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
                 }
             }
 
@@ -1553,7 +1554,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         if(lhsType != rhsTypeTerm1.value) {
             function.functionIsOk = false;
             function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
-            symbolTable.semanticErrors++;
         }
 
         else {
