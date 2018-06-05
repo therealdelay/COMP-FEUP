@@ -1,0 +1,27 @@
+module test2 {
+
+    g = 3;
+    j = [2];
+    d = [3];
+
+
+    function a = f(arg) {
+        
+        a = 4;
+
+    }
+
+    function f2(arg) {
+
+        a = 3 - j;
+
+        while(g < f(3)) {
+            k = f(3);
+        }
+
+
+
+    }
+
+
+}

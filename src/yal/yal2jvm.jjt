@@ -42,7 +42,7 @@ public class yal2jvm {
         System.out.println("#########################################");
 
         if(args.length == 0){
-            System.out.println("Proper Usage is: ./script filename \n Example: ./script yalExamples/MyFirstYalExamples/aval1.j");
+            System.out.println("Proper Usage is: ./script filename or java -jar yal2jvm.jar <path to .yal file> \n Example: ./script yalExamples/MyFirstYalExamples/aval1.yal or java -jar yal2jvm.jar ./yalExamples/MyFirstYalExamples/array1.yal");
             System.exit(0);
         }
         
@@ -51,7 +51,7 @@ public class yal2jvm {
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream(/*"../yalExamples/" + */ "../" + fileName);
+            f = new FileInputStream("../" + fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
