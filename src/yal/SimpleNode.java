@@ -14,7 +14,7 @@ public class SimpleNode implements Node {
   protected int id;
   protected Object value;
   protected Object secvalue;
-  protected String relaOp;
+  protected String operation;
   protected Type dataType;
   protected String assignIdModule;
   protected String assignId;
@@ -182,12 +182,12 @@ public class SimpleNode implements Node {
     this.dataType = type;
   }
 
-   public void jjtSetRelaOp(String operation) {
-    this.relaOp = operation;
+   public void jjtSetOperation(String operation) {
+    this.operation = operation;
   }
 
-  public String getRelaOp(){
-    return this.relaOp;
+  public String jjtGetOperation(){
+    return this.operation;
   }
 
   public void jjtSetIntType() {

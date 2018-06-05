@@ -599,11 +599,11 @@ void Term() : {/*@bgen(jjtree) Term */
 {/*@bgen(jjtree) Term */
     try {
 /*@egen*/
-    [t1=<ADDSUB_OP>{jjtn000.jjtSetSecValue(t1.image);}] (t2=<INTEGER>/*@bgen(jjtree)*/
-                                                                     {
-                                                                       jjtree.closeNodeScope(jjtn000, true);
-                                                                       jjtc000 = false;
-                                                                     }
+    [t1=<ADDSUB_OP>{jjtn000.jjtSetOperation(t1.image);}] (t2=<INTEGER>/*@bgen(jjtree)*/
+                                                                      {
+                                                                        jjtree.closeNodeScope(jjtn000, true);
+                                                                        jjtc000 = false;
+                                                                      }
 /*@egen*/{jjtn000.jjtSetValue(t2.image);jjtn000.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtn000.jjtSetValue(t3.image);jjtn000.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtn000.jjtSetSecValue(t4.image);jjtn000.jjtSetIntType();}]))))/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
@@ -636,7 +636,7 @@ void Exprtest() : {/*@bgen(jjtree) Exprtest */
     try {
 /*@egen*/
     try{
-        <LPAR> Lhs() t=<RELA_OP>{jjtn000.jjtSetRelaOp(t.image);} Rhs() <RPAR>
+        <LPAR> Lhs() t=<RELA_OP>{jjtn000.jjtSetOperation(t.image);} Rhs() <RPAR>
     }
     catch (ParseException e) {
         System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
@@ -960,7 +960,7 @@ void Index() : {/*@bgen(jjtree) Index */
                                                          jjtree.closeNodeScope(jjtn000, true);
                                                          jjtc000 = false;
                                                        }
-/*@egen*/{jjtn000.jjtSetValue(t.image);}/*@bgen(jjtree)*/
+/*@egen*/{jjtn000.jjtSetValue(t.image);jjtn000.jjtSetIntType();}/*@bgen(jjtree)*/
     } finally {
       if (jjtc000) {
         jjtree.closeNodeScope(jjtn000, true);

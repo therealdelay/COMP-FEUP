@@ -278,13 +278,13 @@ void ArraySize() : {Token t;}
 
 void Term() : {Token t1,t2,t3,t4;}
 {
-    [t1=<ADDSUB_OP>{jjtThis.jjtSetSecValue(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetSecValue(t4.image);jjtThis.jjtSetIntType();}]))))
+    [t1=<ADDSUB_OP>{jjtThis.jjtSetOperation(t1.image);}] (t2=<INTEGER>{jjtThis.jjtSetValue(t2.image);jjtThis.jjtSetIntType();} | LOOKAHEAD(3) Call() | (t3=<ID>{jjtThis.jjtSetValue(t3.image);jjtThis.jjtSetAssignId(t3.image);} (("[" Index() "]")|(["." t4=<SIZE>{jjtThis.jjtSetSecValue(t4.image);jjtThis.jjtSetIntType();}]))))
 }
 
 void Exprtest() : {Token t;}
 {
     try{
-        <LPAR> Lhs() t=<RELA_OP>{jjtThis.jjtSetRelaOp(t.image);} Rhs() <RPAR>
+        <LPAR> Lhs() t=<RELA_OP>{jjtThis.jjtSetOperation(t.image);} Rhs() <RPAR>
     }
     catch (ParseException e) {
         System.out.println("EXCEPTION IN EXPRTEST " + e.toString());
@@ -377,7 +377,7 @@ void ScalarAccess() : {Token t, t1;}
 
 void Index() : {Token t;}
 {
-    t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);}
+    t=<ID>{jjtThis.jjtSetValue(t.image);} | t=<INTEGER>{jjtThis.jjtSetValue(t.image);jjtThis.jjtSetIntType();}
 }
 
 
