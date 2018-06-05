@@ -282,18 +282,42 @@ class SymbolTable {
 			
 			//lhs é variável local
 			boolean alreadyLocal = this.localDeclarations.containsKey(key);
+			boolean isParameter = this.signature.arguments.contains(key);
 			
-			if (!alreadyLocal) {
+			if (!alreadyLocal && !isParameter) {
 				localDeclarations.put(key, value);
 				return true;
 			}
-			
-			else if ( this.localDeclarations.get(key) != value && localDeclarations.get(key) != null) {
 
-				if(this.localDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT)
-					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
+			else {
+
+				if(alreadyLocal) {
+
+					if (this.localDeclarations.get(key) != value && localDeclarations.get(key) != null) {
+
+						if(this.localDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT)
+							this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
+
+					}
+
+
+				}
+
+				else if(isParameter) {
+
+					SimpleNode.Type type = this.signature.argumentTypes.get(this.signature.arguments.indexOf(key));
+
+					if (type != value && type != null && type != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT) {
+
+						this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
+
+					}
+
+
+				}
+
 			}
-			
+						
 			return false;
 		}
 
