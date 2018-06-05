@@ -494,6 +494,8 @@ void checkArgsAreNotGlobals(SymbolTable.Function function, SymbolTable symbolTab
                 function.argumentsError += "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!\n";
             else
                 function.argumentsError = "Semantic Error: Argument " + arg + " is in conflict with global declaration " + arg + "!";
+            
+            function.errors.add(function.argumentsError);
         }
     }
 }
@@ -514,13 +516,13 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
         if(locals.get(function.returnVariable) == function.returnType)
             return;
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+        function.errors.add("Semantic Error: The return variable type does not match the function return type!");
         return;
         
     }
     if(globals.get(function.returnVariable) != null) {
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable is a global declaration!";
+        function.errors.add("Semantic Error: The return variable is a global declaration!");
         return;
     }
     else{
@@ -532,13 +534,13 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
                 return;
             
             function.functionIsOk = false;
-            function.returnVariableError = "Semantic Error: The return variable type does not match the function return type!";
+            function.errors.add("Semantic Error: The return variable type does not match the function return type!");
             return;
 
         }
 
         function.functionIsOk = false;
-        function.returnVariableError = "Semantic Error: The return variable does not exist/is not initialized in the function!";
+        function.errors.add("Semantic Error: The return variable does not exist/is not initialized in the function!");
 
     }
 }
@@ -654,8 +656,7 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
         
             else {
                 if(lhsType != SimpleNode.Type.INT) {
-                    System.out.println("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
-                    symbolTable.semanticErrors++;
+                    function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is not Integer");
                 }
             }
 
@@ -669,7 +670,6 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
         if(lhsType != rhsTypeTerm1.value) {
             function.functionIsOk = false;
             function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
-            symbolTable.semanticErrors++;
         }
     
         else {

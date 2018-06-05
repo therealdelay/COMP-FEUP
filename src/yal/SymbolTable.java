@@ -9,6 +9,8 @@ import java.util.Objects;
 
 import javax.lang.model.util.ElementScanner6;
 
+import yal.SimpleNode;
+
 // import SimpleNode.Type;
 
 class SymbolTable {
@@ -256,24 +258,37 @@ class SymbolTable {
 		public boolean addLocalDeclaration(String key, SimpleNode.Type value,
 				HashMap<String, SimpleNode.Type> globalDeclarations) {
 
-			SimpleNode.Type isGlobal = globalDeclarations.get(key);
+			boolean isGlobal = globalDeclarations.containsKey(key);
 
-			if (isGlobal != null) { // lhs é variável global
-				if (value != isGlobal)
-					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
-				return true;
-			} else { //lhs é variável local
-				SimpleNode.Type alreadyLocal = this.localDeclarations.get(key);
-				if (alreadyLocal == null) {
-					localDeclarations.put(key, value);
-					return true;
+			// lhs é variável global
+			if (isGlobal) {
+				
+				if(globalDeclarations.get(key) != value  && globalDeclarations.get(key) != null) {
+
+					if(globalDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT) {
+						this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
+					}
+
 				}
-				if (alreadyLocal != value) {
-					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
-					return false;
-				}
+				return false;
+
+			} 
+			
+			//lhs é variável local
+			boolean alreadyLocal = this.localDeclarations.containsKey(key);
+			
+			if (!alreadyLocal) {
+				localDeclarations.put(key, value);
 				return true;
 			}
+			
+			else if ( this.localDeclarations.get(key) != value && localDeclarations.get(key) != null) {
+
+				if(this.localDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT)
+					this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
+			}
+			
+			return false;
 		}
 
 		public void addFunctionCall(FunctionCall functionCall) {
@@ -297,17 +312,19 @@ class SymbolTable {
 
 	public boolean addGlobalDeclaration(String key, SimpleNode.Type value) {
 
-		SimpleNode.Type exists = this.globalDeclarations.get(key);
+		boolean exists = this.globalDeclarations.containsKey(key);
 
-		if (exists == null) {
+		if (!exists) {
 
 			this.globalDeclarations.put(key, value);
 			return true;
 
 		}
 
-		if (exists != value) {
-			this.repeatedGlobalDeclarationsDiffType.add(new Pair<>(key, value));
+		else if (this.globalDeclarations.get(key) != value && this.globalDeclarations.get(key) != null) {
+
+			if(this.globalDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT)
+				this.repeatedGlobalDeclarationsDiffType.add(new Pair<>(key, value));
 		}
 
 		return false;
@@ -381,21 +398,14 @@ class SymbolTable {
 
 			SymbolTable.Function function = this.functions.get(signature);
 
-			out.println("Function " + function.signature.functionName + ":");
+			out.println("Function " + function.signature.functionName + ":\n");
 
-			out.println("\tReturn type: " + function.returnType);
+			if(function.returnVariable != null )
+				out.println("\tReturn:\n " + "\t\t" + function.returnVariable + " of type: " + function.returnType);
+			else
+				out.println("\tReturn:\n\t\t void");
 
-			if (function.returnVariableError != null) {
-				out.println("\t\t" + function.returnVariableError);
-				this.semanticErrors++;
-
-			}
-
-			if (function.argumentsError != null) {
-				out.println("\t\t" + function.argumentsError);
-				this.semanticErrors++;
-			}
-
+			
 			out.println();
 			out.println("\tFunction arguments:");
 
@@ -413,25 +423,6 @@ class SymbolTable {
 
 				SimpleNode.Type type = function.localDeclarations.get(variable);
 				out.println("\t\t" + variable + " with data type: " + type);
-
-			}
-
-			out.println();
-			out.println("\tFunction erros:");
-
-			for (Pair<String, SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
-
-				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
-						+ repeatedVariable.value);
-				this.semanticErrors++;
-
-			}
-
-			
-			for(String error: function.errors) {
-
-				out.println("\t\t" + error);
-				this.semanticErrors++;
 
 			}
 
@@ -454,8 +445,7 @@ class SymbolTable {
 				if (functionCall.ok)
 					out.println("\t\tCall is ok");
 				else{
-					out.println("\t\tSemantic Error: Call NOT ok: " + functionCall.error);
-					this.semanticErrors++;
+					function.errors.add("Semantic Error: Call NOT ok: " + functionCall.error);
 				}
 
 				for (int i = 0; i < functionCall.signature.arguments.size(); i++) {
@@ -470,6 +460,25 @@ class SymbolTable {
 				out.println("\t\tFunction return type: " + functionCall.funcionCallReturnType);
 
 			}
+
+			out.println("\tFunction errors:");
+
+			for (Pair<String, SimpleNode.Type> repeatedVariable : function.repeatedLocalDeclarationsDiffType) {
+
+				out.println("\t\tSemantic Error: (Repeated Variable) " + repeatedVariable.key + " with data type "
+						+ repeatedVariable.value);
+				this.semanticErrors++;
+
+			}
+
+			
+			for(String error: function.errors) {
+
+				out.println("\t\t" + error);
+				this.semanticErrors++;
+
+			}
+
 			out.println();
 
 		}
