@@ -346,9 +346,6 @@ public class Bytecodes{
 		String functionName = (String) callNode.getAssignId();
 	    String moduleName = (String) callNode.getAssignIdModule();
 	    if(moduleName == null) moduleName = symbolTable.moduleName;
-	    
-	    System.out.println("moduleName: " + moduleName);
-		System.out.println("functionName: " + functionName);
 		
 		ArrayList<SimpleNode.Type> argumentTypes = new ArrayList<SimpleNode.Type>();
 		if(callNode.jjtGetNumChildren() > 0){
@@ -358,7 +355,6 @@ public class Bytecodes{
 			
 			ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
 			
-			System.out.println("functionName: " + moduleName + "/" + functionName);
 			for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
 				SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
 	
@@ -369,7 +365,6 @@ public class Bytecodes{
 	
 					if(type == null){
 						SymbolTable.Function function = symbolTable.functions.get(sign);
-						System.out.println("argName: " + argName + ", type: " + type);
 						type = symbolTable.getType(argName, function);
 					}
 					argumentTypes.add(type);
@@ -430,7 +425,6 @@ public class Bytecodes{
 		// Given examples increment loop counter by 2
 		current_loop++;
 		// current_loop+=2;
-		System.out.println("ENTROU NO IF");
 	    SimpleNode exprTestNode = (SimpleNode) ifNode.jjtGetChild(0);
 		SimpleNode statementList = (SimpleNode) ifNode.jjtGetChild(1);
 
@@ -453,7 +447,6 @@ public class Bytecodes{
 		// Given examples increment loop counter by 2
 		current_loop++;
 		// current_loop+=2;	   
-		System.out.println("ENTROU NO WHILE");
 		writer.println("loop" + loop + ":");
 		writer.println();
 		SimpleNode exprTestNode = (SimpleNode) whileNode.jjtGetChild(0);
