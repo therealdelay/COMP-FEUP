@@ -1,0 +1,24 @@
+module arrayTest {
+
+    function a() {
+
+        
+
+        i = 1;
+
+        n = [i];
+        n = 2;
+
+        array = [2];
+        array[i] = 1;
+
+        k = n;
+
+
+    }
+
+    function main() {
+        a();
+    }
+
+}

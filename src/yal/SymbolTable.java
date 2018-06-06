@@ -334,14 +334,6 @@ class SymbolTable {
 
 			if (isGlobal) {
 				
-				// if(globalDeclarations.get(key) != value  && globalDeclarations.get(key) != null) {
-
-				// 	if(globalDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT) {
-				// 		this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
-				// 	}
-
-				// }
-
 				if(globalDeclarations.get(key) == null) {
 					globalDeclarations.put(key,value);
 				}
@@ -367,13 +359,6 @@ class SymbolTable {
 			else {
 
 				if(alreadyLocal) {
-
-					// if (this.localDeclarations.get(key) != value && localDeclarations.get(key) != null) {
-
-					// 	if(this.localDeclarations.get(key) != SimpleNode.Type.ARRAY_INT && value != SimpleNode.Type.INT)
-					// 		this.repeatedLocalDeclarationsDiffType.add(new Pair<>(key, value));
-
-					// }
 
 					if (this.localDeclarations.get(key) != value) {
 	
