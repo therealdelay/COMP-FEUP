@@ -13,10 +13,16 @@ function det(d[]) {
 		b=d[i];
 		mx= library1.max(a,b);
 		mn= library1.min(a,b);
+		io.println(mx);
+		io.println(mn);
+		io.println("mmmmmmmmmmmmmmmmm");
+		
 	}
 }
 
 function main() {
+	data = 2;
+	data[5] = 123;
 	det(data);
 
 	io.println("max: ",mx); 

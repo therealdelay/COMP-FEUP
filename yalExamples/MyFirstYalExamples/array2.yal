@@ -21,7 +21,7 @@ module array2
    i=0;
    while(i < N)
    {
-   	a[i] = 1;
+   	a[i] = i;
 	i=i+1;
 	}
 

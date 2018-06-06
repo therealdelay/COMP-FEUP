@@ -8,7 +8,8 @@ module teste_fill {
         i=0;
         while(i<data.size){
             value = data[i];
-            io.println("data[i]", value);
+            io.print("data: ");
+            io.println(value);
             i=i+1;
         }
     }
