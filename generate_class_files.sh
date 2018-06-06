@@ -1,0 +1,1 @@
+java -jar libs/jasmin.jar $1 -d bin/generatedFiles/

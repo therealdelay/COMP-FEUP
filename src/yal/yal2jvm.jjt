@@ -51,7 +51,7 @@ public class yal2jvm {
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream("../" + fileName);
+            f = new FileInputStream(fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;

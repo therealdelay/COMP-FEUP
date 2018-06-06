@@ -31,7 +31,7 @@ public class Bytecodes{
 	 */
 	public static void generateJavaBytecodes(Node root, SymbolTable st) throws IOException {
 		symbolTable = st;
-		String dirName = "generatedFiles";
+		String dirName = "bin/generatedFiles";
 		File dir = new File(dirName);
 		if(!dir.exists())
 			dir.mkdir();
@@ -716,7 +716,7 @@ public class Bytecodes{
 	 * Writes clinit code
 	 */
 	private static void clinitJavaBytecodes(){
-	    writer.println("method static public <clinit>()V");
+	    writer.println(".method static public <clinit>()V");
 	    writer.println(".limit stack 0");
 	    writer.println(".limit locals 0");
 	    writer.println("return");

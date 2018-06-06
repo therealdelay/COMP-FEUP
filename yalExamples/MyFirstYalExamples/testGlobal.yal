@@ -1,0 +1,11 @@
+module TestGlobal {
+
+    a = 2;
+
+    function main() {
+
+        io.print(a);
+
+    }
+
+}

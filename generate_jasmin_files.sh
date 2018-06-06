@@ -1,0 +1,1 @@
+java -jar bin/yal2jvm.jar $1 
