@@ -48,7 +48,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream("../" + fileName);
+            f = new FileInputStream(fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
@@ -155,7 +155,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                       /*@bgen(jjtree) Declaration */
                       ASTDeclaration jjtn000 = new ASTDeclaration(JJTDECLARATION);
                       boolean jjtc000 = true;
-                      jjtree.openNodeScope(jjtn000);Token t, t2;
+                      jjtree.openNodeScope(jjtn000);Token t, t2, t3;
     try {
       t = jj_consume_token(ID);
            jjtn000.jjtSetValue(t.image);
@@ -184,14 +184,15 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
           case INTEGER:
             switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
             case ADDSUB_OP:
-              jj_consume_token(ADDSUB_OP);
+              t3 = jj_consume_token(ADDSUB_OP);
+                                                                              jjtn000.jjtSetOperation(t3.image);
               break;
             default:
               jj_la1[2] = jj_gen;
               ;
             }
             t2 = jj_consume_token(INTEGER);
-                                                                                         jjtn000.jjtSetIntType();
+                                                                                                                                jjtn000.jjtSetSecValue(t2.image); jjtn000.jjtSetIntType();
             break;
           default:
             jj_la1[3] = jj_gen;
@@ -632,7 +633,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
             jj_consume_token(-1);
             throw new ParseException();
           }
-                                                            jjtn000.jjtSetValue(t.image);
+                                                            jjtn000.jjtSetValue(t.image);jjtn000.jjtSetIntType();
           Term();
           break;
         default:
@@ -1749,16 +1750,16 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_25() {
+  static private boolean jj_3R_26() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_29()) jj_scanpos = xsp;
+    if (jj_3R_30()) jj_scanpos = xsp;
     xsp = jj_scanpos;
-    if (jj_3R_30()) {
+    if (jj_3R_31()) {
     jj_scanpos = xsp;
     if (jj_3_4()) {
     jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
+    if (jj_3R_32()) return true;
     }
     }
     return false;
@@ -1774,12 +1775,12 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_28() {
+  static private boolean jj_3R_29() {
     if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_24() {
+  static private boolean jj_3R_25() {
     if (jj_scan_token(33)) return true;
     if (jj_scan_token(SIZE)) return true;
     return false;
@@ -1788,34 +1789,29 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   static private boolean jj_3R_19() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_24()) jj_scanpos = xsp;
+    if (jj_3R_25()) jj_scanpos = xsp;
     return false;
   }
 
-  static private boolean jj_3R_21() {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_35() {
+  static private boolean jj_3R_36() {
     if (jj_scan_token(ADDSUB_OP)) return true;
     return false;
   }
 
-  static private boolean jj_3R_34() {
+  static private boolean jj_3R_35() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_35()) jj_scanpos = xsp;
+    if (jj_3R_36()) jj_scanpos = xsp;
     if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_33() {
+  static private boolean jj_3R_34() {
     if (jj_scan_token(STRING)) return true;
     return false;
   }
 
-  static private boolean jj_3R_32() {
+  static private boolean jj_3R_33() {
     if (jj_scan_token(ID)) return true;
     return false;
   }
@@ -1833,7 +1829,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   }
 
   static private boolean jj_3R_20() {
-    if (jj_3R_25()) return true;
+    if (jj_3R_26()) return true;
     return false;
   }
 
@@ -1847,22 +1843,27 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
+  static private boolean jj_3R_23() {
+    if (jj_scan_token(ADDSUB_OP)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_17() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(8)) jj_scanpos = xsp;
+    if (jj_3R_23()) jj_scanpos = xsp;
     if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_26() {
+  static private boolean jj_3R_27() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_32()) {
-    jj_scanpos = xsp;
     if (jj_3R_33()) {
     jj_scanpos = xsp;
-    if (jj_3R_34()) return true;
+    if (jj_3R_34()) {
+    jj_scanpos = xsp;
+    if (jj_3R_35()) return true;
     }
     }
     return false;
@@ -1885,7 +1886,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
   }
 
   static private boolean jj_3R_22() {
-    if (jj_3R_26()) return true;
+    if (jj_3R_27()) return true;
     return false;
   }
 
@@ -1901,7 +1902,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static private boolean jj_3R_18() {
     if (jj_scan_token(31)) return true;
-    if (jj_3R_23()) return true;
+    if (jj_3R_24()) return true;
     return false;
   }
 
@@ -1918,6 +1919,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     jj_scanpos = xsp;
     if (jj_3R_17()) return true;
     }
+    return false;
+  }
+
+  static private boolean jj_3R_21() {
+    if (jj_scan_token(31)) return true;
     return false;
   }
 
@@ -1960,32 +1966,32 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
-  static private boolean jj_3R_30() {
+  static private boolean jj_3R_31() {
     if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_31() {
+  static private boolean jj_3R_32() {
     if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_27() {
+  static private boolean jj_3R_28() {
     if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_23() {
+  static private boolean jj_3R_24() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_27()) {
+    if (jj_3R_28()) {
     jj_scanpos = xsp;
-    if (jj_3R_28()) return true;
+    if (jj_3R_29()) return true;
     }
     return false;
   }
 
-  static private boolean jj_3R_29() {
+  static private boolean jj_3R_30() {
     if (jj_scan_token(ADDSUB_OP)) return true;
     return false;
   }

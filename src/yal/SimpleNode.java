@@ -57,16 +57,16 @@ public class SimpleNode implements Node {
     children[i] = n;
     children[i].jjtSetParent(this);
 
-    SimpleNode rhs = (SimpleNode) children[i];
+    SimpleNode newChild = (SimpleNode) children[i];
 
-    if (rhs.getId() == yal2jvmTreeConstants.JJTRHS) {
+    if (newChild.getId() == yal2jvmTreeConstants.JJTRHS) {
 
-      this.dataType = rhs.dataType;
+      this.dataType = newChild.dataType;
 
-      if (rhs.jjtGetNumChildren() > 0 && rhs.jjtGetChild(0).getId() == yal2jvmTreeConstants.JJTTERM) {
+      if (newChild.jjtGetNumChildren() > 0 && newChild.jjtGetChild(0).getId() == yal2jvmTreeConstants.JJTTERM) {
 
       
-        SimpleNode term = (SimpleNode) rhs.children[0];
+        SimpleNode term = (SimpleNode) newChild.children[0];
 
         this.dataType = term.getDataType();
         this.assignId = term.getAssignId();
@@ -116,6 +116,11 @@ public class SimpleNode implements Node {
 
       }
 
+    }
+
+    if(newChild.getId() == yal2jvmTreeConstants.JJTTERM && this.getId() == yal2jvmTreeConstants.JJTRHS){
+      
+      this.jjtSetType(newChild.getDataType());
     }
 
   }

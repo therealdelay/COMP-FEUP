@@ -1,0 +1,15 @@
+module teste_fill {
+
+	data=[5]; // vector of 100 integers
+
+    function main() {
+        data = 2;
+        data[2] = 123; 
+        i=0;
+        while(i<data.size){
+            value = data[i];
+            io.println("data[i]", value);
+            i=i+1;
+        }
+    }
+}

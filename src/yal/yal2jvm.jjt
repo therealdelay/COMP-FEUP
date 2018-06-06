@@ -54,7 +54,7 @@ public class yal2jvm {
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream("../" + fileName);
+            f = new FileInputStream(fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
@@ -149,13 +149,13 @@ SimpleNode Module() : {Token t;}{
     {return jjtThis;}
 }
 
-void Declaration() : {Token t, t2;}{
+void Declaration() : {Token t, t2, t3;}{
 
     t=<ID>{jjtThis.jjtSetValue(t.image);} ["[" "]" {jjtThis.jjtSetArrayType();}]
     [
     <ASSIGN>
     try{
-        (("[" ArraySize() "]") {jjtThis.jjtSetArrayType();} | [<ADDSUB_OP>] t2=<INTEGER>{jjtThis.jjtSetIntType();})
+        (("[" ArraySize() "]") {jjtThis.jjtSetArrayType();} | [t3=<ADDSUB_OP>{jjtThis.jjtSetOperation(t3.image);}] t2=<INTEGER>{jjtThis.jjtSetSecValue(t2.image); jjtThis.jjtSetIntType();})
     }
     catch (ParseException e) {
         System.out.println("EXCEPTION IN DECLARATION " + e.toString());
@@ -263,7 +263,7 @@ void Lhs() : {Token t, t1;}
 
 void Rhs() : {Token t;}
 {
-    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);}  Term()]) | "[" ArraySize() "]"
+    (Term() [(t=<ARITH_OP>| t=<BITWISE_OP> | t=<ADDSUB_OP>){jjtThis.jjtSetValue(t.image);jjtThis.jjtSetIntType();}  Term()]) | "[" ArraySize() "]"
 }
 
 void ArraySize() : {Token t;}

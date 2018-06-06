@@ -31,18 +31,18 @@ public class Bytecodes{
 	 */
 	public static void generateJavaBytecodes(Node root, SymbolTable st) throws IOException {
 		symbolTable = st;
-		String dirName = "generatedFiles";
+		String dirName = "bin/generatedFiles";
 		File dir = new File(dirName);
 		if(!dir.exists())
 			dir.mkdir();
-		
+
 		String fileName =((SimpleNode) root).jjtGetValue() + ".j";
 		File jFile = new File(dirName + "/" + fileName);
 	    FileOutputStream jFileOS = new FileOutputStream(jFile);
 	    writer = new PrintWriter(jFileOS);
-	    
+
 	    moduleJavaBytecodes(root);
-	  
+
 	}
 
 	/**
@@ -51,21 +51,24 @@ public class Bytecodes{
 	 */
 	private static void moduleJavaBytecodes(Node root){
 
-	    writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
-	    writer.println(".super java/lang/Object");
+
+		ByteArrayOutputStream clinitBuffer = new ByteArrayOutputStream();
+		PrintWriter clinitWriter = new PrintWriter(clinitBuffer);
+		SymbolTable.Pair<Integer, Boolean> clinitData = new SymbolTable.Pair<Integer, Boolean>(0, false);
+
+		writer.println(".class public " + ((SimpleNode) root).jjtGetValue());
+	    writer.println(".super java/lang/Object\n");
 
 	    int numChildren = root.jjtGetNumChildren();
-
 	    for(int i = 0; i < numChildren; i++) {
 
 	        SimpleNode node = (SimpleNode) root.jjtGetChild(i);
-
 	        int nodeType = node.getId();
 
 	        switch (nodeType) {
 
 	            case yal2jvmTreeConstants.JJTDECLARATION:
-	                declarationJavaByteCodes(node);
+	                declarationJavaByteCodes(node, clinitWriter, clinitData);
 	                break;
 
 	            case yal2jvmTreeConstants.JJTFUNCTION:
@@ -76,8 +79,9 @@ public class Bytecodes{
 	                break;
 
 	        }
-	    }   
-	    clinitJavaBytecodes();
+		}
+		clinitWriter.close();
+	    clinitJavaBytecodes(clinitData, clinitBuffer.toString());
 
 	    writer.close();
 
@@ -87,17 +91,37 @@ public class Bytecodes{
 	 * Writes the global declarations into the file
 	 * @param declarationNode Node containing the declarations
 	 */
-	private static void declarationJavaByteCodes(SimpleNode declarationNode){
+	private static void declarationJavaByteCodes(SimpleNode declarationNode, PrintWriter clinitWriter, SymbolTable.Pair<Integer, Boolean> clinitData){
 
 	    String declarationName = (String) declarationNode.jjtGetValue();
-
-		SimpleNode.Type type = declarationNode.getDataType();
-
-		if(type == null) return;
+		SimpleNode.Type type = symbolTable.globalDeclarations.get(declarationName);
 
 		String dataType = typeToBytecodes(type);
-	    
-	    writer.println(".field static " + declarationName + " " + dataType);
+
+		writer.println(".field static " + declarationName + " " + dataType);
+
+		if(declarationNode.jjtGetNumChildren() > 0){
+			clinitData.key++;
+			clinitData.value = true;
+			SimpleNode arraySizeNode = (SimpleNode) declarationNode.jjtGetChild(0);
+			clinitWriter.print(arraySizeJavaBytecodes(arraySizeNode));
+
+			clinitWriter.println(storeVariable(declarationName, SimpleNode.Type.ARRAY_INT));
+		}
+		else if(declarationNode.jjtGetSecValue() != null){
+			clinitData.key++;
+			clinitData.value = true;
+			String value = (String) declarationNode.jjtGetSecValue();
+			String signal = declarationNode.jjtGetOperation();
+
+			int signalFixer = 1;
+			if(signal != null && signal.equals("-")){
+				signalFixer = -1;
+			}
+			clinitWriter.println(loadInteger(signalFixer*Integer.parseInt(value)));
+			
+			clinitWriter.println(storeVariable(declarationName, SimpleNode.Type.INT));
+		}
 
 	}
 
@@ -114,7 +138,7 @@ public class Bytecodes{
 
 	    Node statementList = functionNode.jjtGetChild(0);
 		Node argumentList;
-		
+
 		stack_counter = 0;
 		stack_max = 0;
 		register_variables = new ArrayList<String>();
@@ -139,8 +163,8 @@ public class Bytecodes{
 				argumentTypes.add(argumentDataType);
 			}
 
-		} 
-		
+		}
+
 		else if(functionName.equals("main")){
 
 			String argumentName = "args";
@@ -153,13 +177,13 @@ public class Bytecodes{
 		currentFunction = symbolTable.functions.get(sign);
 
 		writer.println(functionNameToBytecodes(currentFunction));
-		
+
         ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
 		PrintWriter writerStandBy = writer;
 		writer = new PrintWriter(outBuffer);
-		
+
 		statementListJavaBytecodes((SimpleNode) statementList);
-		
+
 		writer.close();
 		writer = writerStandBy;
 
@@ -171,7 +195,7 @@ public class Bytecodes{
 
 		String returnVar = currentFunction.returnVariable;
 		if (returnVar != null){
-			push_stack();		
+			push_stack();
 			writer.println(loadVariable(returnVar));
 			pop_stack();
 			switch(currentFunction.returnType){
@@ -183,9 +207,9 @@ public class Bytecodes{
 					break;
 				default:
 					break;
-			}	
-		}		
-		
+			}
+		}
+
 		writer.println("return");
 		writer.println(".end method\n");
 	}
@@ -232,9 +256,9 @@ public class Bytecodes{
 				termJavaBytecodes(rhs1stChild);
 				break;
 
-			case yal2jvmTreeConstants.JJTARRAYSIZE: 
+			case yal2jvmTreeConstants.JJTARRAYSIZE:
 				// ARRAY SIZE DEF
-				arraySizeJavaBytecodes(rhs1stChild);
+				writer.print(arraySizeJavaBytecodes(rhs1stChild));
 				break;
 
 	        default:
@@ -274,24 +298,24 @@ public class Bytecodes{
 					writer.println(loadInteger(signalFixer*Integer.parseInt(value)));
 				}
 	        }
-			else{ 
+			else{
 				push_stack();
 				String varName = (String) termNode.jjtGetValue();
 				writer.println(loadVariable(varName));
 
 	        }
 	    }
-	    else{ 
+	    else{
 	        SimpleNode termChildNode = (SimpleNode) termNode.jjtGetChild(0);
 
 			switch (termChildNode.getId()) {
-				case yal2jvmTreeConstants.JJTCALL:				
+				case yal2jvmTreeConstants.JJTCALL:
 					functionCallJavaBytecodes(termChildNode);
 					break;
-				case yal2jvmTreeConstants.JJTINDEX:				
+				case yal2jvmTreeConstants.JJTINDEX:
 					arrayAccessJavaBytecodes(termChildNode, value);
 					break;
-			
+
 				default:
 					break;
 			}
@@ -302,21 +326,26 @@ public class Bytecodes{
 	 * Handles Array Sizes
 	 * @param arraySizeNode Node containing the array
 	 */
-	private static void arraySizeJavaBytecodes(SimpleNode arraySizeNode){
+	private static String arraySizeJavaBytecodes(SimpleNode arraySizeNode){
+
+		ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
+		PrintWriter writerArraySize = new PrintWriter(outBuffer);
 
 		push_stack();
 		if(arraySizeNode.jjtGetNumChildren() == 0){
 			String value = (String) arraySizeNode.jjtGetValue();
-			writer.println(loadInteger(Integer.parseInt(value)));
+			writerArraySize.println(loadInteger(Integer.parseInt(value)));
 		}
 		else{
 			SimpleNode scalarAccessNode = (SimpleNode) arraySizeNode.jjtGetChild(0);
 
 			String value = (String) scalarAccessNode.jjtGetValue();
-			writer.println(loadVariable(value));
+			writerArraySize.println(loadVariable(value));
 		}
 
-		writer.println("newarray int");
+		writerArraySize.println("newarray int");
+		writerArraySize.close();
+		return outBuffer.toString();
 	}
 
 	/**
@@ -343,9 +372,103 @@ public class Bytecodes{
 			register_variables.set(register_index, lhsID);
 		}
 
-		
+
 		SimpleNode.Type assignType = symbolTable.getType(lhsID, currentFunction);
-		String lhsBytecode = storeVariable(register_index, assignType);
+
+		try{
+			if(symbolTable.getType(lhsID, currentFunction) == SimpleNode.Type.ARRAY_INT &&
+				lhsNode.jjtGetNumChildren() == 0 &&
+				yal2jvm.getTypeOfTerm((SimpleNode)rhsNode.jjtGetChild(0), currentFunction, symbolTable).value == SimpleNode.Type.INT){
+	
+				ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
+				PrintWriter storeWriter = new PrintWriter(outBuffer);
+				String i = "iteratorArrayFill";
+				currentFunction.addLocalDeclaration(i, SimpleNode.Type.INT, symbolTable.globalDeclarations);
+	
+				SimpleNode assignNode = new SimpleNode(yal2jvmTreeConstants.JJTASSIGN);
+				SimpleNode lhsAssign = new SimpleNode(yal2jvmTreeConstants.JJTLHS);
+				lhsAssign.jjtSetValue(i);
+				SimpleNode rhsAssign = new SimpleNode(yal2jvmTreeConstants.JJTRHS);
+				SimpleNode termAssign = new SimpleNode(yal2jvmTreeConstants.JJTTERM);
+				termAssign.jjtSetValue("0");
+				termAssign.jjtSetIntType();
+				rhsAssign.jjtAddChild(termAssign, 0);
+				assignNode.jjtAddChild(lhsAssign, 0);
+				assignNode.jjtAddChild(rhsAssign, 1);
+	
+				SimpleNode whileNode = new SimpleNode(yal2jvmTreeConstants.JJTWHILE);
+	
+				SimpleNode exprTestNode = new SimpleNode(yal2jvmTreeConstants.JJTEXPRTEST);
+				exprTestNode.jjtSetOperation("<");
+				SimpleNode lhsNodeExprTest = new SimpleNode(yal2jvmTreeConstants.JJTLHS);
+				lhsNodeExprTest.jjtSetValue(i);
+				exprTestNode.jjtAddChild(lhsNodeExprTest, 0);
+				SimpleNode rhsNodeExprTest = new SimpleNode(yal2jvmTreeConstants.JJTRHS);
+				SimpleNode termExprTest = new SimpleNode(yal2jvmTreeConstants.JJTTERM);
+				termExprTest.jjtSetValue(lhsID);
+				termExprTest.jjtSetSecValue("size");
+				termExprTest.jjtSetIntType();
+				rhsNodeExprTest.jjtAddChild(termExprTest, 0);
+				exprTestNode.jjtAddChild(rhsNodeExprTest, 1);
+	
+				SimpleNode stmtListNode = new SimpleNode(yal2jvmTreeConstants.JJTSTMTLST);
+				
+				SimpleNode stmt1Node = new SimpleNode(yal2jvmTreeConstants.JJTSTMT);
+				
+				SimpleNode assign1Node = new SimpleNode(yal2jvmTreeConstants.JJTASSIGN);
+				SimpleNode lhsAssignWhile = new SimpleNode(yal2jvmTreeConstants.JJTLHS);
+				lhsAssignWhile.jjtSetValue(lhsID);
+				SimpleNode indexNode = new SimpleNode(yal2jvmTreeConstants.JJTINDEX);
+				indexNode.jjtSetValue(i);
+				lhsAssignWhile.jjtAddChild(indexNode, 0);
+				
+				SimpleNode rhsAssignWhile = rhsNode;
+				assign1Node.jjtAddChild(lhsAssignWhile, 0);
+				assign1Node.jjtAddChild(rhsAssignWhile, 1);
+				
+				stmt1Node.jjtAddChild(assign1Node, 0);
+	
+				SimpleNode stmt2Node = new SimpleNode(yal2jvmTreeConstants.JJTSTMT);
+				
+				SimpleNode assign2Node = new SimpleNode(yal2jvmTreeConstants.JJTASSIGN);
+				SimpleNode lhsAssign2While = new SimpleNode(yal2jvmTreeConstants.JJTLHS);
+				lhsAssign2While.jjtSetValue(i);
+	
+				SimpleNode rhsAssign2While = new SimpleNode(yal2jvmTreeConstants.JJTRHS);
+				rhsAssign2While.jjtSetValue("+");
+				SimpleNode term1rhs2 = new SimpleNode(yal2jvmTreeConstants.JJTTERM);
+				term1rhs2.jjtSetValue(i);
+				term1rhs2.jjtSetAssignId(i);
+				SimpleNode term2rhs2 = new SimpleNode(yal2jvmTreeConstants.JJTTERM);
+				term2rhs2.jjtSetValue("1");
+				term2rhs2.jjtSetIntType();
+	
+				rhsAssign2While.jjtAddChild(term1rhs2, 0);
+				rhsAssign2While.jjtAddChild(term2rhs2, 1);
+				
+				assign2Node.jjtAddChild(lhsAssign2While, 0);
+				assign2Node.jjtAddChild(rhsAssign2While, 1);
+	
+				stmt2Node.jjtAddChild(assign2Node, 0);
+	
+				stmtListNode.jjtAddChild(stmt1Node, 0);
+				stmtListNode.jjtAddChild(stmt2Node, 1);
+	
+				whileNode.jjtAddChild(exprTestNode, 0);
+				whileNode.jjtAddChild(stmtListNode, 1);
+	
+			
+				assignJavaBytecodes(lhsAssign, rhsAssign);
+				whileJavaBytecodes(whileNode);
+
+				return;
+			}
+		}
+		catch(ParseException e){
+			e.printStackTrace();
+		}
+
+		String lhsBytecode = storeVariable(lhsID, assignType);
 
 		if(lhsNode.jjtGetNumChildren() > 0){
 			SimpleNode indexNode = (SimpleNode) lhsNode.jjtGetChild(0);
@@ -354,7 +477,7 @@ public class Bytecodes{
 			writer.println(loadVariable(lhsID));
 			push_stack();
 			String value = (String) indexNode.jjtGetValue();
-		
+
 			if(indexNode.getDataType() == SimpleNode.Type.INT){
 				writer.println(loadInteger(Integer.parseInt(value)));
 			}
@@ -362,13 +485,13 @@ public class Bytecodes{
 				writer.println(loadVariable(value));
 			}
 			rhsJavaBytecodes(rhsNode);
-			pop_stack();			
-			pop_stack();			
-			pop_stack();			
+			pop_stack();
+			pop_stack();
+			pop_stack();
 			writer.println("iastore");
 		}
 		else{
-			rhsJavaBytecodes(rhsNode);			
+			rhsJavaBytecodes(rhsNode);
 			pop_stack();
 			writer.println(lhsBytecode);
 		}
@@ -380,26 +503,26 @@ public class Bytecodes{
 	 * @param callNode Node containing the call
 	 */
 	private static void functionCallJavaBytecodes(SimpleNode callNode){
-		
+
 		String functionName = (String) callNode.getAssignId();
 	    String moduleName = (String) callNode.getAssignIdModule();
 	    if(moduleName == null) moduleName = symbolTable.moduleName;
-		
+
 		ArrayList<SimpleNode.Type> argumentTypes = new ArrayList<SimpleNode.Type>();
 		if(callNode.jjtGetNumChildren() > 0){
 
-			SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);			
-			
+			SimpleNode argsListNode = (SimpleNode) callNode.jjtGetChild(0);
+
 			ArrayList<SymbolTable.Pair<String, SimpleNode.Type>> assignFunctionParameters = callNode.getAssignFunctionParameters();
-			
+
 			for (int i = 0; i < argsListNode.jjtGetNumChildren(); i++) {
 				SimpleNode argNode = (SimpleNode) argsListNode.jjtGetChild(i);
-	
+
 				String argName = assignFunctionParameters.get(i).key;
 				if(argName != null){
-	
+
 					SimpleNode.Type type = symbolTable.globalDeclarations.get(argName);
-	
+
 					if(type == null){
 						SymbolTable.Function function = symbolTable.functions.get(sign);
 						type = symbolTable.getType(argName, function);
@@ -408,7 +531,7 @@ public class Bytecodes{
 					String varName = (String) argNode.jjtGetValue();
 					push_stack();
 					writer.println(loadVariable(varName));
-					
+
 				}
 				else{
 					SimpleNode.Type argType = assignFunctionParameters.get(i).value;
@@ -419,7 +542,7 @@ public class Bytecodes{
 							writer.println(loadInteger(Integer.parseInt((String) argNode.jjtGetValue())));
 							break;
 						case STRING:
-							writer.println(loadString((String) argNode.jjtGetValue()));				
+							writer.println(loadString((String) argNode.jjtGetValue()));
 							break;
 						default:
 							break;
@@ -437,21 +560,21 @@ public class Bytecodes{
 		if(function == null){
 			SimpleNode.Type returnType = SimpleNode.Type.INT;
 			if(callNode.jjtGetParent().getId() == yal2jvmTreeConstants.JJTSTMT){
-				
+
 				returnType = SimpleNode.Type.VOID;
 			}
 			else{
-				push_stack();				
+				push_stack();
 			}
 
 			writer.println("invokestatic " + moduleName + "/" + functionNameToBytecodes(functionName, argumentTypes, returnType) +"\n");
-	    } 
+	    }
 	    else{
-				
+
 			if(function.returnType != SimpleNode.Type.VOID){
 				push_stack();
 			}
-			
+
 	        writer.println("invokestatic " + moduleName + "/" + functionNameToBytecodes(function) + "\n");
 	    }
 
@@ -463,19 +586,19 @@ public class Bytecodes{
 	 */
 	private static void ifJavaBytecodes(SimpleNode ifNode){
 		int loop = current_loop;
-		
+
 		current_loop++;
-		
+
 	    SimpleNode exprTestNode = (SimpleNode) ifNode.jjtGetChild(0);
 		SimpleNode statementList = (SimpleNode) ifNode.jjtGetChild(1);
 
 		exprTestJavaByteCodes(exprTestNode, loop);
-		
+
 		statementListJavaBytecodes(statementList);
 
 		if (ifNode.jjtGetNumChildren() == 3)
 			elseJavaByteCodes( (SimpleNode) ifNode.jjtGetChild(2), loop);
-		
+
 		else {
 			writer.println("loop" + loop + "_end:");
 			writer.println();
@@ -487,7 +610,7 @@ public class Bytecodes{
 	 * @param whileNode Node containing the while
 	 */
 	private static void whileJavaBytecodes(SimpleNode whileNode){
-		int loop = current_loop;		
+		int loop = current_loop;
 		current_loop++;
 		writer.println("loop" + loop + ":");
 		writer.println();
@@ -499,7 +622,7 @@ public class Bytecodes{
 		writer.println("goto loop" + loop);
 		writer.println();
 		writer.println("loop" + loop + "_end:");
-		writer.println();	   
+		writer.println();
 	}
 
 	/**
@@ -517,7 +640,7 @@ public class Bytecodes{
 		writer.println(loadVariable(left));
 
 		rhsJavaBytecodes(rhs);
-		
+
 		pop_stack();
 		pop_stack();
 		switch (operation) {
@@ -540,7 +663,7 @@ public class Bytecodes{
 				writer.print("if_icmpge");
 				break;
 			default:
-				break;  
+				break;
 		}
 		writer.println(" loop" + loop + "_end");
 		writer.println();
@@ -653,7 +776,7 @@ public class Bytecodes{
 				writer.println("ixor");
 				break;
 			default:
-				break;  
+				break;
 		}
 	}
 
@@ -666,21 +789,21 @@ public class Bytecodes{
 	 */
 	public static String functionNameToBytecodes(String functionName, ArrayList<SimpleNode.Type> argumentTypes, SimpleNode.Type returnType){
 		String result = functionName + "(";
-		
+
 	    if (functionName.equals("main")) result +=  "[Ljava/lang/String;";
 	    else{
 			for (SimpleNode.Type type : argumentTypes) {
 				result += typeToBytecodes(type);
 	        }
 	    }
-		
+
 	    result += ")";
-		
+
 	    result += typeToBytecodes(returnType);
-		
+
 	    return result;
 	}
-	
+
 	/**
 	 * Gets the function declaration
 	 * @param Function Function information
@@ -688,14 +811,14 @@ public class Bytecodes{
 	private static String functionNameToBytecodes(SymbolTable.Function function){
 		return functionNameToBytecodes(function.signature.functionName, function.signature.argumentTypes, function.returnType);
 	}
-	
+
 
 	/**
 	 * Handles integer value and converts it to Jasmin instruction
 	 * @param value Value to be converted
 	 */
 	private static String loadInteger(Integer value){
-		if(value >= 0 && value <= 5)	
+		if(value >= 0 && value <= 5)
 			return "iconst_" + value;
 	    else if(value >= -128 && value <= 127)
 	        return "bipush " + value;
@@ -716,10 +839,11 @@ public class Bytecodes{
 	/**
 	 * Writes clinit code
 	 */
-	private static void clinitJavaBytecodes(){
-	    writer.println("method static public <clinit>()V");
-	    writer.println(".limit stack 0");
-	    writer.println(".limit locals 0");
+	private static void clinitJavaBytecodes(SymbolTable.Pair<Integer, Boolean> clinitData, String content){
+	    writer.println(".method static public <clinit>()V");
+	    writer.println(".limit stack " + (clinitData.value ? 1 : 0));
+		writer.println(".limit locals " + clinitData.key);
+		writer.println(content);
 	    writer.println("return");
 	    writer.println(".end method ");
 
@@ -727,10 +851,42 @@ public class Bytecodes{
 
 	/**
 	 * Stores a variable
+	 * @param variableName variable name
+	 */
+	private static String storeVariable(String variableName, SimpleNode.Type storeType){
+		int rIndex = -1;
+
+		if(register_variables != null){	
+			rIndex = register_variables.indexOf(variableName);
+		}
+
+		if(rIndex == -1){
+			return storeGlobalVariable(variableName, storeType);
+		}
+		else{
+			return storeLocalVariable(rIndex, symbolTable.getType(variableName, currentFunction), storeType);
+		}
+	}
+
+	/**
+	 * Stores a global variable
+	 * @param variableName variable name
+	 */
+	private static String storeGlobalVariable(String variableName, SimpleNode.Type storeType){
+		SimpleNode.Type type = symbolTable.globalDeclarations.get(variableName);
+
+		String result = "putstatic " + symbolTable.moduleName + "/" + variableName + " ";
+		result += typeToBytecodes(type);
+
+		return result;
+	}
+
+	/**
+	 * Stores a local variable
 	 * @param register_index index of the variable in the register_variables array
 	 * @param type Type of the variable
 	 */
-	private static String storeVariable(int register_index, SimpleNode.Type type){
+	private static String storeLocalVariable(int register_index, SimpleNode.Type type, SimpleNode.Type storeType){
 		if(type == SimpleNode.Type.ARRAY_INT){
 			return astore(register_index);
 		}
@@ -741,7 +897,7 @@ public class Bytecodes{
 
 	/**
 	 * Stores an int
-	 * @param register_index index of the int 
+	 * @param register_index index of the int
 	 */
 	private static String istore(int register_index){
 		return "istore" + (register_index > 3 ? " " : "_") + register_index;
@@ -749,7 +905,7 @@ public class Bytecodes{
 
 	/**
 	 * Stores an array
-	 * @param register_index index of the int 
+	 * @param register_index index of the int
 	 */
 	private static String astore(int register_index){
 		return "astore" + (register_index > 3 ? " " : "_") + register_index;
@@ -760,7 +916,7 @@ public class Bytecodes{
 	 * @param variableName varable name
 	 */
 	private static String loadVariable(String variableName){
-		
+
 		int rIndex = register_variables.indexOf(variableName);
 		if(rIndex == -1){
 			return loadGlobalVariable(variableName);
@@ -772,7 +928,7 @@ public class Bytecodes{
 
 	/**
 	 * Loads a local variable
-	 * @param register_index index of the int 
+	 * @param register_index index of the int
 	 * @param type Type of the variable
 	 */
 	private static String loadLocalVariable(int register_index, SimpleNode.Type type){
@@ -790,7 +946,6 @@ public class Bytecodes{
 	 * @param variableName varable name
 	 */
 	private static String loadGlobalVariable(String variableName){
-		System.out.println(variableName);
 		String result = "getstatic " + symbolTable.moduleName + "/" + variableName + " ";
 		result += typeToBytecodes(symbolTable.globalDeclarations.get(variableName));
 
