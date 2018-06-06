@@ -36,6 +36,7 @@ public interface yal2jvmTreeConstants
   public int JJTCHECKCOMPARISONTYPES = 30;
   public int JJTUPDATESYMBOLTABLEFUNCTIONASSIGNS = 31;
   public int JJTUPDATESYMBOLTABLEFUNCTIONFUNCTIONCALLS = 32;
+  public int JJTSQUAREDFRAME = 33;
 
 
   public String[] jjtNodeName = {
@@ -72,6 +73,7 @@ public interface yal2jvmTreeConstants
     "checkComparisonTypes",
     "updateSymbolTableFunctionAssigns",
     "updateSymbolTableFunctionFunctionCalls",
+    "squaredFrame",
   };
 }
-/* JavaCC - OriginalChecksum=421f5bcd8b7467a52b80e84b586b1e4a (do not edit this line) */
+/* JavaCC - OriginalChecksum=eff2d28d5155303ba50407fdec876eff (do not edit this line) */

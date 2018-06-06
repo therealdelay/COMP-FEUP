@@ -11,29 +11,41 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * Main Class of the Compiler
+ * It deals with Lexical, Syntactic and Semantic analysis all their errors.
+ */
 public class yal2jvm {
     public static int error_counter = 0;
     private static SimpleNode astRoot = null;
+    /**
+      * Main function. 
+      * The program begins with a Lexical and Syntactic analysis, using a Context-Free Gramar, followed by the Semantic analysis.
+      * Afterwards, it generates the code into Java bytecodes to a Jasmin file. 
+     */
     public static void main(String args[]) throws ParseException, IOException {
         InputStream f = null;
-        boolean showAst = false;
-        boolean showSymbolTable = false;
-        boolean generateJavaBytecodes = false;
+        boolean showAst = true;
+        boolean showSymbolTable = true;
+        boolean generateJavaBytecodes = true;
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-        System.out.println("#########################################");
-        System.out.println("# Yal Compiler Project 2018 - Group G33 #");
-        System.out.println("#########################################");
+        System.out.println("\n\n\n");
+        // System.out.println("#########################################");
+        // System.out.println("# Yal Compiler Project 2018 - Group G33 #");
+        // System.out.println("#########################################");
+
+        System.out.println(squaredFrame("Yal Compiler Project 2018 - Group G33"));
 
         if(args.length == 0){
-            System.out.println("Proper Usage is: ./script filename \n Example: ./script yalExamples/MyFirstYalExamples/aval1.j");
+            System.out.println("Proper Usage is: ./script filename or java -jar yal2jvm.jar <path to .yal file> \n Example: ./script yalExamples/MyFirstYalExamples/aval1.yal or java -jar yal2jvm.jar ./yalExamples/MyFirstYalExamples/array1.yal");
             System.exit(0);
         }
         
@@ -42,58 +54,41 @@ public class yal2jvm {
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream(/*"../yalExamples/" + */ "../" + fileName);
+            f = new FileInputStream("../" + fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
         }
 
-        System.out.print("\nWould you like to see the AST?(1-Yes;0-No)  ");
-        int astInput = scanner.nextInt();
-        if(astInput == 1)
-            showAst = true;
-        else if(astInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
-        System.out.print("\nWould you like to see the Symbol Table?(1-Yes;0-No)  ");
-        int symbolTableInput = scanner.nextInt();
-        if(symbolTableInput == 1)
-            showSymbolTable = true;
-        else if(symbolTableInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
-        System.out.print("\nWould you like to generate Java Bytecodes in a jasmin file?(1-Yes;0-No)  ");
-        int bytecodesInput = scanner.nextInt();
-        if(bytecodesInput == 1)
-            generateJavaBytecodes = true;
-        else if(bytecodesInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
         yal2jvm parser = new yal2jvm(f);
         astRoot = parser.Module();
-        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        System.out.println("\n\n");
         System.out.println("File " + fileName + " parsed with " + error_counter + " syntactic errors\n");
         
+        if(error_counter > 0){
+            System.exit(1);
+        }
+
         if(showAst){
-            System.out.println("AST:");
+            System.out.println(squaredFrame("Abstract Syntax Tree (AST):"));
             astRoot.dump("");
         }
 
         SymbolTable symbolTable = generateSymbolTable(astRoot);
         if(showSymbolTable)
-            System.out.println("Symbol Table:\n" + symbolTable);
+            System.out.println(squaredFrame("Symbol Table:"));
+            System.out.println(symbolTable);
 
         System.out.println("File " + fileName + " parsed with " + symbolTable.semanticErrors + " semantic errors\n");
 
-
-        if(generateJavaBytecodes)
+        if(symbolTable.semanticErrors > 0){
+            System.out.println("This file has semantic errors. No code generated.");
+            System.exit(1);
+        }
+        else if(generateJavaBytecodes){
             Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
+            System.out.println("Jasmin code generated with success.");
+        }
         
         System.out.println();
     }
@@ -381,6 +376,10 @@ void Index() : {Token t;}
 }
 
 
+/**
+ * Skips tokens until it reads one of the specified tokens
+ * @param kinds list of the specified tokens.
+ */
 JAVACODE
 int error_skipto(int[] kinds) #void {
     Token t;
@@ -398,6 +397,10 @@ int error_skipto(int[] kinds) #void {
     return t.kind;
 }
 
+/**
+ * Increments the error counter and
+ * stops the program if it found more than 10 errors.
+ */
 JAVACODE
 void incErrorCounter(){
     if(yal2jvm.error_counter++ == 10){
@@ -406,6 +409,12 @@ void incErrorCounter(){
     }
 }
 
+/**
+ * Begins the Symbol Table generation. 
+ * This table stores all information regarding the module.
+ * @param root Root node of the AST
+ * @return Returns the generated Symbol Table
+ */
 JAVACODE
 SymbolTable generateSymbolTable(Node root) {
 
@@ -424,46 +433,37 @@ SymbolTable generateSymbolTable(Node root) {
         switch (nodeType) {
             case JJTDECLARATION:
 
-            symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-            break;
-
+               symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+               break;
             case JJTFUNCTION:
 
-            String functionName = (String) node.jjtGetValue();
-            SimpleNode.Type returnType = node.getDataType();
-            SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-            SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
-            function.returnVariable = (String)node.jjtGetSecValue();
+                String functionName = (String) node.jjtGetValue();
+                SimpleNode.Type returnType = node.getDataType();
+                SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+                function.returnVariable = (String)node.jjtGetSecValue();
 
-            /**
-             * verificar se tem argumentos ou apenas statements
-             */
+                Node argumentList;
+                Node statementList;
 
-            Node argumentList;
-            Node statementList;
-
-            int functionChildrenNum = node.jjtGetNumChildren();
-            statementList = node.jjtGetChild(0);
+                int functionChildrenNum = node.jjtGetNumChildren();
+                statementList = node.jjtGetChild(0);
 
 
-            if(functionChildrenNum == 2) {
+                if(functionChildrenNum == 2) {
 
-                argumentList = statementList;
-                statementList = node.jjtGetChild(1);
-                updateSymbolTableFunctionArguments(argumentList, function);
+                    argumentList = statementList;
+                    statementList = node.jjtGetChild(1);
+                    updateSymbolTableFunctionArguments(argumentList, function);
+                }
 
+                allFunctions.add(function);
+                allStatementsListNodes.add(statementList);
+                allFunctionsNodes.add(node);
 
-            }
+                symbolTable.addFunction(function);
 
-            allFunctions.add(function);
-            allStatementsListNodes.add(statementList);
-            allFunctionsNodes.add(node);
-
-            //add function
-            symbolTable.addFunction(function);
-
-            break;
-
+                break;
             default:
                 break;
         }
@@ -482,6 +482,11 @@ SymbolTable generateSymbolTable(Node root) {
 
 }
 
+/**
+ * Verifies if the arguments from a function are global or not
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void checkArgsAreNotGlobals(SymbolTable.Function function, SymbolTable symbolTable){
     HashMap<String,SimpleNode.Type> globals = symbolTable.globalDeclarations;
@@ -500,6 +505,11 @@ void checkArgsAreNotGlobals(SymbolTable.Function function, SymbolTable symbolTab
     }
 }
 
+/**
+ * Verifies the return variable of the function
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable){
     String retVariable = (String)function.returnVariable;
@@ -525,7 +535,7 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
         function.errors.add("Semantic Error: The return variable is a global declaration!");
         return;
     }
-    else{
+    else { 
         int index = function.signature.arguments.indexOf(retVariable);
 
         if(index != -1) {
@@ -545,6 +555,11 @@ void checkReturnVariable(SymbolTable.Function function, SymbolTable symbolTable)
     }
 }
 
+/**
+ * Verifies the return variable of the function
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function function) {
 
@@ -554,9 +569,7 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 
         SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-    //apenas uma verificação redundante se é do tipo elemento
         if(argument.getId() != JJTELEMENT) {
-
             function.functionIsOk = false;
             function.errors.add("Argument not of ELEMENT type, check why.");
             continue;
@@ -570,6 +583,13 @@ void updateSymbolTableFunctionArguments(Node argumentList, SymbolTable.Function 
 
 }
 
+/**
+ * Gets the type of the term
+ * @param term Node representing a term
+ * @param function Function information
+ * @param symbolTable symbol table
+ * @return Returns a Pair representing the Type of the term.
+ */
 JAVACODE
 SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTable.Function function, SymbolTable symbolTable) {
 
@@ -577,11 +597,7 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
     String value = (String)term.jjtGetValue();
 
 
-    if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
-        //quando não tem module -> first value = nome da funcao
-        //quanto tem module -> first value = nome do module
-
-        
+    if(term.jjtGetNumChildren() > 0) {         
 
         if(term.jjtGetChild(0).getId() == JJTCALL) {
 
@@ -601,15 +617,11 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
         }
 
         else if(term.jjtGetChild(0).getId() == JJTINDEX) {
-
             type = SimpleNode.Type.INT;
-
         }
-
-
     }
 
-    else { //entra neste else se for ID ou um inteiro
+    else {
 
         if(type == null) {
             value = term.getAssignId();
@@ -622,6 +634,12 @@ SymbolTable.Pair<String,SimpleNode.Type> getTypeOfTerm(SimpleNode term, SymbolTa
 
 }
 
+/**
+ * Verifies the comparison types
+ * @param expression Node representing a expression
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void checkComparisonTypes(Node expression, SymbolTable.Function function, SymbolTable symbolTable) {
 
@@ -666,7 +684,6 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
 
     else {
 
-
         if(lhsType != rhsTypeTerm1.value) {
             function.functionIsOk = false;
             function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
@@ -685,8 +702,12 @@ void checkComparisonTypes(Node expression, SymbolTable.Function function, Symbol
 }
 
 
-
-
+/**
+ * Updates the Symbol Table's Assignments
+ * @param statementList Node representing a statementList
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function function, SymbolTable symbolTable) {
 
@@ -700,55 +721,50 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
             
             case JJTASSIGN:
             
-            SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+                SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
 
-            if(lhs.jjtGetSecValue() != null) {
-                function.functionIsOk = false;
-                function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
-                break;
-
-            }
-
-
-            if(lhs.jjtGetNumChildren() > 0)
-                break;
-                
-
-            SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
-
-            SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
-            
-            SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
-
-            
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
-        
-            if(rhs.jjtGetNumChildren() == 2) {
-        
-                SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
-                rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
-        
-                if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                if(lhs.jjtGetSecValue() != null) {
                     function.functionIsOk = false;
-                    function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
+                    break;
+
                 }
-                
-            }
+
+                if(lhs.jjtGetNumChildren() > 0)
+                    break;
                     
-            if(lhs.getDataType() == null)
-                lhs.jjtSetType(rhsTypeTerm1.value);
+
+                SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
+
+                SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);                
+                SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
+                
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
             
-            else{
-                if(lhs.getDataType() != rhsTypeTerm1.value){
-                    function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                if(rhs.jjtGetNumChildren() == 2) {
+            
+                    SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
+                    rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
+            
+                    if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                        function.functionIsOk = false;
+                        function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    }
+                    
                 }
-            }
+                        
+                if(lhs.getDataType() == null)
+                    lhs.jjtSetType(rhsTypeTerm1.value);
+                
+                else{
+                    if(lhs.getDataType() != rhsTypeTerm1.value){
+                        function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                    }
+                }
 
-
-            //verificar se está em alguma das tabelas (local ou global)
-            function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
-            break;
+                function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
+                break;
 
             case JJTIF:
 
@@ -759,7 +775,6 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
                 }
                 break;
 
-            //verificar se o while não tem de estar igual ao if
             case JJTWHILE:
                 checkComparisonTypes((SimpleNode) statementChild.jjtGetChild(0),function, symbolTable);
                 SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(1);
@@ -767,13 +782,18 @@ void updateSymbolTableFunctionAssigns(Node statementList, SymbolTable.Function f
                 break;
 
             default:
-            break;
+                break;
         }
     }
     System.out.println();
 }
 
-
+/**
+ * Updates the Symbol Table's Function Calls
+ * @param node Node from the AST
+ * @param function Function information
+ * @param symbolTable Symbol Table
+ */
 JAVACODE
 void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function function, SymbolTable symbolTable) {
 
@@ -804,9 +824,46 @@ void updateSymbolTableFunctionFunctionCalls(Node node, SymbolTable.Function func
             updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function, symbolTable);
 
         }
-
-
-
     }
 
+}
+
+JAVACODE
+String squaredFrame(Object object) {
+		
+    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    PrintWriter out = new PrintWriter(outStream);
+    
+    String text = object.toString();
+    out.print("\n +");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print("-");
+    }
+    out.println("+");
+
+    out.print(" |");    
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print(" ");
+    }
+    out.println("|");    
+
+    
+    out.println(" |  " + text + "  |");
+    
+
+    out.print(" |");    
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print(" ");
+    }
+    out.println("|"); 
+
+    out.print(" +");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print("-");
+    }
+    out.println("+");
+    
+    out.close();
+    
+    return outStream.toString();
 }

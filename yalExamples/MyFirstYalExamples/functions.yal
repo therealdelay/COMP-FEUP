@@ -1,0 +1,28 @@
+module functions {
+
+    function f1(a,b,c) {
+    
+    }
+    
+    function f1(a,d[],c) {
+    
+    }
+    
+    function f1(a,b) {
+    
+    }
+
+    function ret = f1(a,b) {
+
+        ret = 1;
+
+    }
+
+    function e[] = f1(a,e[],d) {
+
+        
+
+    }
+
+
+}

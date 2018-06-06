@@ -5,29 +5,41 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * Main Class of the Compiler
+ * It deals with Lexical, Syntactic and Semantic analysis all their errors.
+ */
 public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmConstants {/*@bgen(jjtree)*/
   protected static JJTyal2jvmState jjtree = new JJTyal2jvmState();public static int error_counter = 0;
     private static SimpleNode astRoot = null;
+    /**
+      * Main function. 
+      * The program begins with a Lexical and Syntactic analysis, using a Context-Free Gramar, followed by the Semantic analysis.
+      * Afterwards, it generates the code into Java bytecodes to a Jasmin file. 
+     */
     public static void main(String args[]) throws ParseException, IOException {
         InputStream f = null;
-        boolean showAst = false;
-        boolean showSymbolTable = false;
-        boolean generateJavaBytecodes = false;
+        boolean showAst = true;
+        boolean showSymbolTable = true;
+        boolean generateJavaBytecodes = true;
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn");
-        System.out.println("#########################################");
-        System.out.println("# Yal Compiler Project 2018 - Group G33 #");
-        System.out.println("#########################################");
+        System.out.println("\u005cn\u005cn\u005cn");
+        // System.out.println("#########################################");
+        // System.out.println("# Yal Compiler Project 2018 - Group G33 #");
+        // System.out.println("#########################################");
+
+        System.out.println(squaredFrame("Yal Compiler Project 2018 - Group G33"));
 
         if(args.length == 0){
-            System.out.println("Proper Usage is: ./script filename \u005cn Example: ./script yalExamples/MyFirstYalExamples/aval1.j");
+            System.out.println("Proper Usage is: ./script filename or java -jar yal2jvm.jar <path to .yal file> \u005cn Example: ./script yalExamples/MyFirstYalExamples/aval1.yal or java -jar yal2jvm.jar ./yalExamples/MyFirstYalExamples/array1.yal");
             System.exit(0);
         }
 
@@ -36,58 +48,41 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         System.out.println("Your file is " + fileName);
 
         try {
-            f = new FileInputStream(/*"../yalExamples/" + */ "../" + fileName);
+            f = new FileInputStream("../" + fileName);
         }catch(FileNotFoundException e) {
             System.out.println(e.getMessage());
             return;
         }
 
-        System.out.print("\u005cnWould you like to see the AST?(1-Yes;0-No)  ");
-        int astInput = scanner.nextInt();
-        if(astInput == 1)
-            showAst = true;
-        else if(astInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
-        System.out.print("\u005cnWould you like to see the Symbol Table?(1-Yes;0-No)  ");
-        int symbolTableInput = scanner.nextInt();
-        if(symbolTableInput == 1)
-            showSymbolTable = true;
-        else if(symbolTableInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
-        System.out.print("\u005cnWould you like to generate Java Bytecodes in a jasmin file?(1-Yes;0-No)  ");
-        int bytecodesInput = scanner.nextInt();
-        if(bytecodesInput == 1)
-            generateJavaBytecodes = true;
-        else if(bytecodesInput != 0){
-            System.out.println("Error in option!");
-            return;
-        }
-
         yal2jvm parser = new yal2jvm(f);
         astRoot = parser.Module();
-        System.out.println("\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn\u005cn");
+        System.out.println("\u005cn\u005cn");
         System.out.println("File " + fileName + " parsed with " + error_counter + " syntactic errors\u005cn");
 
+        if(error_counter > 0){
+            System.exit(1);
+        }
+
         if(showAst){
-            System.out.println("AST:");
+            System.out.println(squaredFrame("Abstract Syntax Tree (AST):"));
             astRoot.dump("");
         }
 
         SymbolTable symbolTable = generateSymbolTable(astRoot);
         if(showSymbolTable)
-            System.out.println("Symbol Table:\u005cn" + symbolTable);
+            System.out.println(squaredFrame("Symbol Table:"));
+            System.out.println(symbolTable);
 
         System.out.println("File " + fileName + " parsed with " + symbolTable.semanticErrors + " semantic errors\u005cn");
 
-
-        if(generateJavaBytecodes)
+        if(symbolTable.semanticErrors > 0){
+            System.out.println("This file has semantic errors. No code generated.");
+            System.exit(1);
+        }
+        else if(generateJavaBytecodes){
             Bytecodes.generateJavaBytecodes(astRoot, symbolTable);
+            System.out.println("Jasmin code generated with success.");
+        }
 
         System.out.println();
     }
@@ -1274,46 +1269,37 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         switch (nodeType) {
             case JJTDECLARATION:
 
-            symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
-            break;
-
+               symbolTable.addGlobalDeclaration((String)node.jjtGetValue(),node.getDataType());
+               break;
             case JJTFUNCTION:
 
-            String functionName = (String) node.jjtGetValue();
-            SimpleNode.Type returnType = node.getDataType();
-            SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
-            SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
-            function.returnVariable = (String)node.jjtGetSecValue();
+                String functionName = (String) node.jjtGetValue();
+                SimpleNode.Type returnType = node.getDataType();
+                SymbolTable.Signature signature = new SymbolTable.Signature(functionName);
+                SymbolTable.Function function = new SymbolTable.Function(signature,returnType);
+                function.returnVariable = (String)node.jjtGetSecValue();
 
-            /**
-             * verificar se tem argumentos ou apenas statements
-             */
+                Node argumentList;
+                Node statementList;
 
-            Node argumentList;
-            Node statementList;
-
-            int functionChildrenNum = node.jjtGetNumChildren();
-            statementList = node.jjtGetChild(0);
+                int functionChildrenNum = node.jjtGetNumChildren();
+                statementList = node.jjtGetChild(0);
 
 
-            if(functionChildrenNum == 2) {
+                if(functionChildrenNum == 2) {
 
-                argumentList = statementList;
-                statementList = node.jjtGetChild(1);
-                updateSymbolTableFunctionArguments(argumentList, function);
+                    argumentList = statementList;
+                    statementList = node.jjtGetChild(1);
+                    updateSymbolTableFunctionArguments(argumentList, function);
+                }
 
+                allFunctions.add(function);
+                allStatementsListNodes.add(statementList);
+                allFunctionsNodes.add(node);
 
-            }
+                symbolTable.addFunction(function);
 
-            allFunctions.add(function);
-            allStatementsListNodes.add(statementList);
-            allFunctionsNodes.add(node);
-
-            //add function
-            symbolTable.addFunction(function);
-
-            break;
-
+                break;
             default:
                 break;
         }
@@ -1390,7 +1376,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         function.errors.add("Semantic Error: The return variable is a global declaration!");
         return;
     }
-    else{
+    else {
         int index = function.signature.arguments.indexOf(retVariable);
 
         if(index != -1) {
@@ -1426,9 +1412,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
         SimpleNode argument = (SimpleNode) argumentList.jjtGetChild(i);
 
-    //apenas uma verificação redundante se é do tipo elemento
         if(argument.getId() != JJTELEMENT) {
-
             function.functionIsOk = false;
             function.errors.add("Argument not of ELEMENT type, check why.");
             continue;
@@ -1455,11 +1439,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     String value = (String)term.jjtGetValue();
 
 
-    if(term.jjtGetNumChildren() > 0) { //so entra neste if se for uma function call
-        //quando não tem module -> first value = nome da funcao
-        //quanto tem module -> first value = nome do module
-
-
+    if(term.jjtGetNumChildren() > 0) {
 
         if(term.jjtGetChild(0).getId() == JJTCALL) {
 
@@ -1479,15 +1459,11 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         }
 
         else if(term.jjtGetChild(0).getId() == JJTINDEX) {
-
             type = SimpleNode.Type.INT;
-
         }
-
-
     }
 
-    else { //entra neste else se for ID ou um inteiro
+    else {
 
         if(type == null) {
             value = term.getAssignId();
@@ -1550,7 +1526,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
     else {
 
-
         if(lhsType != rhsTypeTerm1.value) {
             function.functionIsOk = false;
             function.errors.add("Semantic Error: invalid comparison, " + left.jjtGetValue() + " is of different type of comparison expression" );
@@ -1587,55 +1562,50 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
             case JJTASSIGN:
 
-            SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
+                SimpleNode lhs = (SimpleNode)statementChild.jjtGetChild(0);
 
-            if(lhs.jjtGetSecValue() != null) {
-                function.functionIsOk = false;
-                function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
-                break;
-
-            }
-
-
-            if(lhs.jjtGetNumChildren() > 0)
-                break;
-
-
-            SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
-
-            SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
-
-            SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
-
-
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
-            SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
-
-            if(rhs.jjtGetNumChildren() == 2) {
-
-                SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
-                rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
-
-                if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                if(lhs.jjtGetSecValue() != null) {
                     function.functionIsOk = false;
-                    function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    function.errors.add("Can't assign size of array " + lhs.jjtGetValue());
+                    break;
+
                 }
 
-            }
+                if(lhs.jjtGetNumChildren() > 0)
+                    break;
 
-            if(lhs.getDataType() == null)
-                lhs.jjtSetType(rhsTypeTerm1.value);
 
-            else{
-                if(lhs.getDataType() != rhsTypeTerm1.value){
-                    function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                SimpleNode.Type lhsType = symbolTable.getType((String)lhs.jjtGetValue(), function);
+
+                SimpleNode rhs = (SimpleNode)statementChild.jjtGetChild(1);
+                SimpleNode rhsTerm1 = (SimpleNode)rhs.jjtGetChild(0);
+
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm1 = getTypeOfTerm(rhsTerm1, function, symbolTable);
+                SymbolTable.Pair<String,SimpleNode.Type> rhsTypeTerm2 = null;
+
+                if(rhs.jjtGetNumChildren() == 2) {
+
+                    SimpleNode rhsTerm2 = (SimpleNode)rhs.jjtGetChild(1);
+                    rhsTypeTerm2 = getTypeOfTerm(rhsTerm2, function, symbolTable);
+
+                    if(rhsTypeTerm1.value != rhsTypeTerm2.value) {
+                        function.functionIsOk = false;
+                        function.errors.add("Semantic Error: invalid expression in rhs, " + rhsTypeTerm1.key + " is of different type of " + rhsTypeTerm2.key);
+                    }
+
                 }
-            }
 
+                if(lhs.getDataType() == null)
+                    lhs.jjtSetType(rhsTypeTerm1.value);
 
-            //verificar se está em alguma das tabelas (local ou global)
-            function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
-            break;
+                else{
+                    if(lhs.getDataType() != rhsTypeTerm1.value){
+                        function.errors.add("Semantic Error in assignment: conflict types between " + lhs.value + " and " + rhsTypeTerm1.key);
+                    }
+                }
+
+                function.addLocalDeclaration((String)lhs.value, lhs.getDataType(), symbolTable.globalDeclarations);
+                break;
 
             case JJTIF:
 
@@ -1646,7 +1616,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 }
                 break;
 
-            //verificar se o while não tem de estar igual ao if
             case JJTWHILE:
                 checkComparisonTypes((SimpleNode) statementChild.jjtGetChild(0),function, symbolTable);
                 SimpleNode statementListIfWhile = (SimpleNode) statementChild.jjtGetChild(1);
@@ -1654,7 +1623,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
                 break;
 
             default:
-            break;
+                break;
         }
     }
     System.out.println();/*@bgen(jjtree)*/
@@ -1697,10 +1666,54 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
             updateSymbolTableFunctionFunctionCalls(currentNode.jjtGetChild(i),function, symbolTable);
 
         }
-
-
-
     }/*@bgen(jjtree)*/
+ } finally {
+   if (jjtc000) {
+     jjtree.closeNodeScope(jjtn000, true);
+   }
+ }
+  }
+
+  static String squaredFrame(Object object) throws ParseException {
+                                    /*@bgen(jjtree) squaredFrame */
+ ASTsquaredFrame jjtn000 = new ASTsquaredFrame(JJTSQUAREDFRAME);
+ boolean jjtc000 = true;
+ jjtree.openNodeScope(jjtn000);
+ try {ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    PrintWriter out = new PrintWriter(outStream);
+
+    String text = object.toString();
+    out.print("\u005cn +");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print("-");
+    }
+    out.println("+");
+
+    out.print(" |");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print(" ");
+    }
+    out.println("|");
+
+
+    out.println(" |  " + text + "  |");
+
+
+    out.print(" |");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print(" ");
+    }
+    out.println("|");
+
+    out.print(" +");
+    for (int i = 0; i < text.length() + 4; i++) {
+        out.print("-");
+    }
+    out.println("+");
+
+    out.close();
+
+    return outStream.toString();/*@bgen(jjtree)*/
  } finally {
    if (jjtc000) {
      jjtree.closeNodeScope(jjtn000, true);
@@ -1734,6 +1747,49 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
+  }
+
+  static private boolean jj_3R_25() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_29()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_30()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) {
+    jj_scanpos = xsp;
+    if (jj_3R_31()) return true;
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_7() {
+    if (jj_scan_token(31)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15() {
+    if (jj_3R_22()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_28() {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_24() {
+    if (jj_scan_token(33)) return true;
+    if (jj_scan_token(SIZE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_19() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_24()) jj_scanpos = xsp;
+    return false;
   }
 
   static private boolean jj_3R_21() {
@@ -1865,6 +1921,12 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     return false;
   }
 
+  static private boolean jj_3R_14() {
+    if (jj_scan_token(33)) return true;
+    if (jj_scan_token(ID)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_6() {
     if (jj_scan_token(ID)) return true;
     Token xsp;
@@ -1880,12 +1942,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
     if (jj_3R_12()) return true;
     if (jj_scan_token(ASSIGN)) return true;
     if (jj_3R_13()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_14() {
-    if (jj_scan_token(33)) return true;
-    if (jj_scan_token(ID)) return true;
     return false;
   }
 
@@ -1931,49 +1987,6 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
 
   static private boolean jj_3R_29() {
     if (jj_scan_token(ADDSUB_OP)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_25() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_29()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_30()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_31()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_7() {
-    if (jj_scan_token(31)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_15() {
-    if (jj_3R_22()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_28() {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_24() {
-    if (jj_scan_token(33)) return true;
-    if (jj_scan_token(SIZE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_19() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_24()) jj_scanpos = xsp;
     return false;
   }
 

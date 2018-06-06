@@ -11,8 +11,9 @@ import javax.lang.model.util.ElementScanner6;
 
 import yal.SimpleNode;
 
-// import SimpleNode.Type;
-
+/**
+ * Class that creates a Symbol Table
+ */
 class SymbolTable {
 
 	public String moduleName;
@@ -25,11 +26,19 @@ class SymbolTable {
 	public ArrayList<Signature> repeatedFunctions = new ArrayList<>();
 	public ArrayList<Pair<String, SimpleNode.Type>> repeatedGlobalDeclarationsDiffType = new ArrayList<>();
 
+	/**
+	 * Class that represents a pair of generic variables.
+	 */
 	public static class Pair<K, V> {
 
 		public K key;
 		public V value;
 
+		/**
+		 * Constructs a Pair
+		 * @param key Left side of the pair
+		 * @param value Right side of the pair
+		 */
 		public Pair(K key, V value) {
 			this.key = key;
 			this.value = value;
@@ -37,10 +46,8 @@ class SymbolTable {
 
 		@Override
 		public boolean equals(Object object) {
-
 			Pair p2 = (Pair) object;
 			return p2.key.equals(this.key) && p2.value.equals(this.value);
-
 		}
 
 		@Override
@@ -50,6 +57,14 @@ class SymbolTable {
 
 	}
 
+	/**
+	* Checks the function call and returns it
+	* @param functionName Name of the function
+	* @param moduleName Name of the module
+	* @param functionCallParameters Parameters of the function call
+	* @param processingFunction ProcessingFunction information
+	* @return Returns a new FunctionCall
+	*/
 	public FunctionCall checkGoodFunctionCall(String functionName, String moduleName,
 			ArrayList<Pair<String, SimpleNode.Type>> functionCallParameters, Function processingFunction) {
 
@@ -64,8 +79,6 @@ class SymbolTable {
 		}
 
 		SymbolTable.Signature signature = new SymbolTable.Signature(functionName, functionCallParameters);
-		
-		//if function is from another module OK
 
 		if (moduleName != null) {
 
@@ -73,7 +86,6 @@ class SymbolTable {
 
 		}
 
-		//Check if all parameters are initialized
 
 		String errorFunctionCall = "";
 		int numberOfNotInitializedParameters = 0;
@@ -92,7 +104,6 @@ class SymbolTable {
 
 		}
 
-		//Parameters not initialized
 
 		if (numberOfNotInitializedParameters > 0) {
 
@@ -100,7 +111,6 @@ class SymbolTable {
 
 		}
 
-		// check if function exists
 		Function calledFunction = this.functions.get(signature);
 
 		
@@ -133,6 +143,9 @@ class SymbolTable {
 
 	}
 
+	/**
+	 * Class that represents a FunctionCall
+	 */
 	public static class FunctionCall {
 
 		public Signature signature;
@@ -142,6 +155,14 @@ class SymbolTable {
 
 		public SimpleNode.Type funcionCallReturnType; // return type da função que chama, null no caso de ser uma chamada inválida
 
+		/**
+		 * Constructs a FunctionCall
+		 * @param signature Signature of the function
+		 * @param module Module name
+		 * @param ok Boolean that indicates if functionCall is okay
+		 * @param error Possible errors for the functionCall
+		 * @param callReturnType Return Type
+		 */
 		public FunctionCall(Signature signature, String module, boolean ok, String error,
 				SimpleNode.Type callReturnType) {
 			this.signature = signature;
@@ -151,6 +172,10 @@ class SymbolTable {
 			this.funcionCallReturnType = callReturnType;
 		}
 
+		/**
+		 * Sets error
+		 * @param error Message containing the error
+		 */
 		public void setErrorCall(String error) {
 			this.error = error;
 			this.ok = false;
@@ -158,12 +183,20 @@ class SymbolTable {
 
 	}
 
+	/**
+	 * Class that represents a Signature
+	 */
 	public static class Signature {
 
-		public String functionName; //nome da funcao
+		public String functionName;
 		public ArrayList<String> arguments = new ArrayList<>();
 		public ArrayList<SimpleNode.Type> argumentTypes = new ArrayList<>();
 
+		/**
+		 * Constructs a Signature with an ArrayList of pairs representing the arguments
+		 * @param functionName Name of the function
+		 * @param arguments Arguments of the function
+		 */
 		public Signature(String functionName, ArrayList<Pair<String, SimpleNode.Type>> arguments) {
 
 			this.functionName = functionName;
@@ -177,6 +210,11 @@ class SymbolTable {
 
 		}
 
+		/**
+		 * Constructs a Signature with an ArrayList of Types representing the arguments types
+		 * @param argumentTypes Arguments types of the function
+		 * @param functionName Name of the function
+		 */
 		public Signature(ArrayList<SimpleNode.Type> argumentTypes, String functionName) {
 
 			this.functionName = functionName;
@@ -190,11 +228,20 @@ class SymbolTable {
 
 		}
 
+		/**
+		 * Constructs a Signature without arguments
+		 * @param functionName Name of the function
+		 */
 		public Signature(String functionName) {
 			this.functionName = functionName;
 			this.arguments = new ArrayList<>();
 		}
 
+		/**
+		 * Adds an argument type
+		 * @param argName Argument name
+		 * @param type Argument type
+		 */
 		public void addArgumentType(String argName, SimpleNode.Type type) {
 
 			this.arguments.add(argName);
@@ -226,6 +273,9 @@ class SymbolTable {
 
 	}
 
+	/**
+	 * Class that represents a Function
+	 */
 	public static class Function {
 
 		public Signature signature;
@@ -242,11 +292,22 @@ class SymbolTable {
 		public ArrayList<Pair<String, String>> nullDeclarationsVariables = new ArrayList<>();
 		public ArrayList<Pair<String, Signature>> nullDeclarationsFunctionCalls = new ArrayList<>();
 
+		/**
+		 * Constructs a Function
+		 * @param signature Signature of the function
+		 * @param type Return type
+		 */
 		public Function(Signature signature, SimpleNode.Type type) {
 			this.signature = signature;
 			this.returnType = type;
 		}
 
+		/**
+		 * Returns the type of the function
+		 * @param variableName Name of the variable
+		 * @param globalDeclarations Global declarations(if the return is a global variable)
+		 * @return Returns the type
+		 */
 		public SimpleNode.Type getType(String variableName, HashMap<String, SimpleNode.Type> globalDeclarations) {
 
 			SimpleNode.Type type = this.localDeclarations.get(variableName);
@@ -261,12 +322,16 @@ class SymbolTable {
 
 		}
 
-		public boolean addLocalDeclaration(String key, SimpleNode.Type value,
-				HashMap<String, SimpleNode.Type> globalDeclarations) {
+		/**
+		 * Adds a local declaration
+		 * @param key Key
+		 * @param value Value of the variable
+		 * @param globalDeclarations Global declarations
+		 */
+		public boolean addLocalDeclaration(String key, SimpleNode.Type value, HashMap<String, SimpleNode.Type> globalDeclarations) {
 
 			boolean isGlobal = globalDeclarations.containsKey(key);
 
-			// lhs é variável global
 			if (isGlobal) {
 				
 				if(globalDeclarations.get(key) != value  && globalDeclarations.get(key) != null) {
@@ -279,8 +344,7 @@ class SymbolTable {
 				return false;
 
 			} 
-			
-			//lhs é variável local
+
 			boolean alreadyLocal = this.localDeclarations.containsKey(key);
 			boolean isParameter = this.signature.arguments.contains(key);
 			
@@ -321,6 +385,9 @@ class SymbolTable {
 			return false;
 		}
 
+		/**
+		* Adds a function call 
+		*/
 		public void addFunctionCall(FunctionCall functionCall) {
 			this.functionCalls.add(functionCall);
 		}
@@ -336,10 +403,19 @@ class SymbolTable {
 
 	}
 
+	/**
+	* Constructs a SymbolTable
+	* @param moduleName Name of the module
+	*/
 	public SymbolTable(String moduleName) {
 		this.moduleName = moduleName;
 	}
 
+	/**
+	* Adds a global declaration
+	* @param key key
+	* @param value value
+	*/
 	public boolean addGlobalDeclaration(String key, SimpleNode.Type value) {
 
 		boolean exists = this.globalDeclarations.containsKey(key);
@@ -361,6 +437,10 @@ class SymbolTable {
 
 	}
 
+	/**
+	* Adds a function
+	* @param Function function to be added
+	*/
 	public boolean addFunction(Function function) {
 
 		Function exists = this.functions.get(function.signature);
@@ -377,6 +457,12 @@ class SymbolTable {
 
 	}
 
+	/**
+	* Returns the type of the function
+	* @param variableName Name of the variable
+	* @param function Function information
+	* @return Returns the type
+	*/
 	public SimpleNode.Type getType(String variableName, Function function) {
 
 		SimpleNode.Type result = this.globalDeclarations.get(variableName);
