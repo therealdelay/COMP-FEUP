@@ -1,0 +1,11 @@
+module inputAsOutput {
+	function y = f(y) {
+		// z = y;
+		// y = z;
+	}
+
+	function main() {
+		a = f(1);
+		io.println(a); // 1
+	}
+}
