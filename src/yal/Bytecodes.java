@@ -212,15 +212,7 @@ public class Bytecodes{
 
 		statementListJavaBytecodes((SimpleNode) statementList);
 
-		writer.close();
-		writer = writerStandBy;
-
-		writer.println(".limit locals " + register_variables.indexOf(null));
-		writer.println(".limit stack " + stack_max);
-		writer.println();
-		writerStandBy.println(outBuffer);
-
-
+		
 		String returnVar = currentFunction.returnVariable;
 		if (returnVar != null){
 			push_stack();
@@ -228,18 +220,25 @@ public class Bytecodes{
 			pop_stack();
 			switch(currentFunction.returnType){
 				case INT:
-					writer.print("i");
-					break;
+				writer.print("i");
+				break;
 				case ARRAY_INT:
-					writer.print("a");
-					break;
+				writer.print("a");
+				break;
 				default:
-					break;
+				break;
 			}
 		}
-
+		
 		writer.println("return");
 		writer.println(".end method\n");
+
+		writer.close();
+		writer = writerStandBy;
+		writer.println(".limit locals " + register_variables.indexOf(null));
+		writer.println(".limit stack " + stack_max);
+		writer.println();
+		writerStandBy.println(outBuffer);
 	}
 
 	/**
@@ -1000,6 +999,7 @@ public class Bytecodes{
 		stack_counter++;
 		if(stack_counter > stack_max)
 			stack_max = stack_counter;
+		// writer.println("counter: " + stack_counter + "; max: " + stack_max);
 	}
 
 	/**
@@ -1007,6 +1007,7 @@ public class Bytecodes{
 	 */
 	private static void pop_stack(){
 		stack_counter--;
+		// writer.println("counter: " + stack_counter + "; max: " + stack_max);
 	}
 
 }

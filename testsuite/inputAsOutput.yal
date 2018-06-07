@@ -1,7 +1,6 @@
 module inputAsOutput {
 	function y = f(y) {
-		// z = y;
-		// y = z;
+		// Ok
 	}
 
 	function main() {
