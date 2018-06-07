@@ -6,7 +6,7 @@ function c=f(a, b) {
 		 c = 2;
     }
     else {
-        c= 0;
+        c = 0;
     }
 }
 

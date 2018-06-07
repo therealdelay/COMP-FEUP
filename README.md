@@ -18,7 +18,12 @@ By receiving a .yal file, the tool parses the file, outputting any lexical, synt
 Afterwards, the tool generates the necessary code to compile it in the Jasmin Assembler, which outputs a .class file.
  
 ###BUILD AND COMPILE OUR TOOL
+
+!Important Note: It's necessary to have a folder in the project root with io.class and jasmin.jar files inside.
+
 To build the tool and have it set up to use, run the script build.sh by using the command "sh build.sh". This will generate all the class files needed to use the tool and a .jar file.
+
+
 
 All generated files go to bin/ directory inside yal package.
 
