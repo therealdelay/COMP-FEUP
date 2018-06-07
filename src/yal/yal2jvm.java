@@ -39,7 +39,7 @@ public class yal2jvm/*@bgen(jjtree)*/implements yal2jvmTreeConstants, yal2jvmCon
         System.out.println(squaredFrame("Yal Compiler Project 2018 - Group G33"));
 
         if(args.length == 0){
-            System.out.println("Proper Usage is: ./script filename or java -jar yal2jvm.jar <path to .yal file> \u005cn Example: ./script yalExamples/MyFirstYalExamples/aval1.yal or java -jar yal2jvm.jar ./yalExamples/MyFirstYalExamples/array1.yal");
+            System.out.println("Proper Usage is: ./script filename or java -jar bin/yal2jvm.jar <path to .yal file> \u005cn Example: ./script yalExamples/aval1.yal or java -jar bin/yal2jvm.jar ./yalExamples/array1.yal");
             System.exit(0);
         }
 

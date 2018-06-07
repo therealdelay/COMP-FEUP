@@ -17,9 +17,39 @@ The tool is a compiler for the Yal Programming Language.
 By receiving a .yal file, the tool parses the file, outputting any lexical, syntactic or semantic error.
 Afterwards, the tool generates the necessary code to compile it in the Jasmin Assembler, which outputs a .class file.
  
-###EXECUTE
-To build the tool and have it set up to use, run the script build_script.sh by using the command “./build_script.sh”. This will generate all the class files needed to use the tool.
-To run the tool you have to be in the bin folder of the project, where the .jar file is. Inside the bin folder write “java -jar yal2jvm.jar <path to .yal file>“ (e.g. “java -jar yal2jvm.jar ./yalExamples/MyFirstYalExamples/array1.yal”). We also have a terminal script to run the tool without the jar. To run with the script run the command “./run_script.sh <path to .yal file>”.
+###BUILD AND COMPILE OUR TOOL
+To build the tool and have it set up to use, run the script build.sh by using the command "sh build.sh". This will generate all the class files needed to use the tool and a .jar file.
+
+All generated files go to bin/ directory inside yal package.
+
+###COMPILE .yal FILES
+
+All generated files (.j and .class) go to bin/generatedFiles directory.
+
+####CREATE .j FILES
+
+To create the jasmin files we have 2 ways:
+ - directly with .jar file:
+    - java -jar bin/yal2jvm.jar <path_to_.yal_file> 
+    (e.g. java -jar bin/yal2jvm.jar yalExamples/array1.yal).
+ - with a script using .jar file
+    - sh yal2jasmin.sh <path_to_.yal_file>
+    (e.g. sh yal2jasmin_jar.sh yalExamples/array1.yal).
+
+####CREATE .class FILES
+
+To generate the .class files from jasmin files:
+- with a script using jasmin.jar file
+    - sh jasmin2class.sh <path to .j file>
+    (e.g. sh jasmin2class.sh bin/generatedFiles/array1.j).
+
+####ALL TOGETHER
+
+To compile .yal files into .j files and then into .class files all together, we provided a script which usage is:
+- sh compile_yal.sh <file_name>
+    - (e.g. sh compile_yal.sh array1)
+    <file_name>.yal must be inside yalExamples/ directory
+
 If you have any doubt, you can run it without arguments, which will indicate how to run the tool.
  
 ###DEALING WITH SYNTACTIC ERRORS: 

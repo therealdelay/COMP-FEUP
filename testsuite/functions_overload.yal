@@ -1,0 +1,67 @@
+module functions_overload {
+
+    function ret = sum(a, b) {
+        ret = a + b;
+    }
+
+    function ret = sum(a,b,c) {
+        ret = a + b;
+        ret = ret + c;
+    }
+
+    function ret[] = sum(a[],b[]) {
+
+        ret_size = a.size + b.size;
+        ret = [ret_size];
+
+        i=0;
+
+        while(i < a.size) {
+            ret[i] = a[i];
+            i = i + 1;
+        }
+
+        j = 0;
+
+        while(i < ret.size) {
+            ret[i] = b[j];
+            j = j + 1;
+            i = i + 1; 
+        }
+    } 
+
+    function main() {
+
+        array1 = [5];
+        i = 0;
+        while(i < array1.size) {
+            array1[i] = i;
+            i = i + 1;
+        }
+
+        array2 = [10];
+        array2 = 3;
+
+        x = 1;
+        y = 2;
+        z = 3;
+
+        sum1 = sum(1,2);
+        sum2 = sum(x,y,z);
+        sum3 = sum(array1,array2);
+
+        io.println("sum1: ", sum1);
+        io.println("sum2: ", sum2);
+
+
+        i = 0;
+        while(i < sum3.size) {
+            value = sum3[i];
+            io.print("sum3 at ", i);
+            io.println(": ", value);
+            i = i + 1;
+        }
+
+    }
+
+}

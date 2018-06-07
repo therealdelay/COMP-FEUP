@@ -4,7 +4,7 @@ module test_jp {
     global1 = 0;
 
     global3 = 2;
-    global3 = 2;
+    global3 = 3;
 
     global4 = [3];
     global4 = [4];
