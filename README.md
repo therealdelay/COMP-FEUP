@@ -1,16 +1,13 @@
 # PROJECT TITLE: Yal2jvm Compiler
 
-## GROUP: G33
+## Members
 
-|Name               | Number    | Grade | Contribuition
-| ------------- |:-------------:| -----:|--------:|
-|Danny Soares       | 201505509 | 18    | 25%
-|João Pinheiro      | 201104913 | 18    | 25%
-|Leonardo Teixeira  | 201502848 | 18    | 25%
-|Vitor Magalhães    | 201503447 | 18    | 25%
-
-
-### GLOBAL Grade of the project: 18
+|Name               | Number    |
+| ------------- |:-------------:|
+|Danny Soares       | 201505509 |
+|João Pinheiro      | 201104913 |
+|Leonardo Teixeira  | 201502848 |
+|Vitor Magalhães    | 201503447 |
 
 ### SUMMARY 
 The tool is a compiler for the Yal Programming Language.
