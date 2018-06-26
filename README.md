@@ -2,12 +2,12 @@
 
 ## Members
 
-|Name               | Number    |
+|Name               | Git    |
 | ------------- |:-------------:|
-|Danny Soares       | 201505509 |
-|João Pinheiro      | 201104913 |
-|Leonardo Teixeira  | 201502848 |
-|Vitor Magalhães    | 201503447 |
+|Danny Soares       | https://github.com/therealdelay/ |
+|João Pinheiro      | https://github.com/joaopedrofump/ |
+|Leonardo Teixeira  | https://github.com/leonardomgt/ |
+|Vitor Magalhães    | https://github.com/LastLombax/ |
 
 ### SUMMARY 
 The tool is a compiler for the Yal Programming Language.
